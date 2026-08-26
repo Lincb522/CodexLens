@@ -1,66 +1,59 @@
 <p align="center">
-  <img src="Design/AppIconMaster.png" width="112" alt="Codex Token Ledger 图标">
+  <img src="Design/AppIconMaster.png" width="112" alt="Codex Token Ledger">
 </p>
 
 <h1 align="center">Codex Token Ledger</h1>
 
-<p align="center">
-  macOS 菜单栏里的 Codex 上下文与用量查看器
-</p>
-
-<p align="center">
-  macOS 14+ &nbsp;·&nbsp; SwiftUI + AppKit &nbsp;·&nbsp; 7 种语言
-</p>
-
----
-
-Codex Token Ledger 只驻留在菜单栏。应用内显示名为 **Token Pulse**，没有主窗口，也不会出现在 Dock 中。
-
-## 界面
-
-| 实时上下文 | Token 明细 |
+| 概览 | Token 明细 |
 | :---: | :---: |
-| <img src="docs/images/overview-light.png" width="340" alt="Token Pulse 实时上下文"> | <img src="docs/images/token-details-light.png" width="340" alt="Token Pulse Token 明细"> |
+| <img src="docs/images/overview-light.png" width="340" alt="概览"> | <img src="docs/images/token-details-light.png" width="340" alt="Token 明细"> |
 
 ## 功能
 
-- **当前请求** — 输入、缓存输入、输出与上下文占用
-- **当前轮次** — 同一轮内多次模型调用的有效增量
-- **任务累计** — 当前任务最新的累计 Token
-- **多任务** — 自动发现运行中的任务并读取真实标题
-- **本地历史** — 汇总 `sessions` 与可选的 `archived_sessions`
-- **账号用量** — 读取 Codex `app-server` 返回的累计用量与额度窗口
-- **费用** — 按单次请求和内置 API 费率折算参考成本
-- **Tibo 信号** — 单独显示公共重置信号，不与账号周期混合
+- 当前请求：输入、缓存输入、输出、上下文占用
+- 当前轮次：本轮所有模型调用
+- 任务累计：当前任务的累计 Token
+- 多任务：发现正在运行的任务并切换
+- 本地历史：统计 `sessions` 和 `archived_sessions`
+- 账号：用量、额度窗口、重置时间、剩余时间
+- 费用：按请求和模型费率折算
+- Tibo：预测与确认的公共重置信号
 
-## 数字从哪里来
+## 数据口径
 
-| 显示内容 | 数据来源 | 类型 |
-| --- | --- | --- |
-| 当前上下文 | `last_token_usage` | Codex 原始事件 |
-| 当前轮次 | 本轮累计事件的有效差值 | 确定性计算 |
-| 任务累计 | `total_token_usage` | Codex 原始事件 |
-| 本地历史 | 已索引会话的最终累计值 | 确定性汇总 |
-| 账号用量与额度 | Codex `app-server` | 官方账号数据 |
-| 参考成本 | 完整 Token 明细 × 内置费率 | 估算 |
-| 剩余时间 | 同一额度窗口的历史样本 | 估算 |
+| 项目 | 取值 |
+| --- | --- |
+| 当前请求 | 最新 `last_token_usage` |
+| 当前轮次 | 本轮 `total_token_usage` 的有效增量 |
+| 任务累计 | 最新 `total_token_usage` |
+| 本地历史 | 每个已索引会话的最终累计值 |
+| 账号用量 | Codex `app-server` |
+| 费用 | 完整 Token 明细 × 模型费率 |
+| 剩余时间 | 同一账号、同一额度窗口的历史样本 |
 
-缺少必要字段时显示“不可用”。应用不会根据字符数猜 Token，也不会用本地会话推断账号额度。计算细节见 [Token 计算](docs/calculation-spec.md)。
+无法确认的字段显示“不可用”。不按字符数估算 Token，不用本地会话推算账号额度。详细规则见 [Token 计算](docs/calculation-spec.md)。
 
 ## 账号
 
-支持 Codex OAuth、已有 Codex Home、原始 Token、API Key、`auth.json`、JSON / JSONL、Sub2、CPA / CLIProxyAPI 和 Cockpit。
+导入格式：
 
-切换账号时有两个独立动作：
+- Codex OAuth
+- Codex Home
+- Token / API Key
+- `auth.json`
+- JSON / JSONL
+- Sub2
+- CPA / CLIProxyAPI
+- Cockpit
 
-| 操作 | 结果 |
-| --- | --- |
-| 仅监控 | 读取该账号的数据，不改变 Codex 当前登录 |
-| 登录到 Codex | 备份当前凭据后，替换默认 Codex Home 的登录 |
+切换方式：
+
+- **仅监控**：不修改 Codex 当前登录
+- **登录到 Codex**：备份后替换默认 Codex Home 的登录
 
 ## 构建
 
-需要 macOS 14+、Xcode 16+、[XcodeGen](https://github.com/yonaskolb/XcodeGen)。账号功能还需要本机 Codex CLI。
+依赖：macOS 14+、Xcode 16+、[XcodeGen](https://github.com/yonaskolb/XcodeGen)。账号功能需要 Codex CLI。
 
 ```bash
 git clone https://github.com/Lincb522/CodexTokenLedger.git
@@ -69,19 +62,17 @@ xcodegen generate
 ./scripts/build_app.sh
 ```
 
-应用输出到：
-
 ```text
 build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 ```
 
-生成本地 ad-hoc 签名的应用与 ZIP：
+打包：
 
 ```bash
 ./scripts/package_release.sh
 ```
 
-公开分发仍需 Developer ID 签名和 Apple 公证。
+`package_release.sh` 使用 ad-hoc 签名。公开分发需要 Developer ID 签名和 Apple 公证。
 
 ## 测试
 
@@ -96,20 +87,18 @@ xcodebuild test \
 
 ## 文档
 
-| 文档 | 内容 |
-| --- | --- |
-| [文档索引](docs/README.md) | 全部项目文档 |
-| [产品约束](PRODUCT.md) | 数据、账号与界面边界 |
-| [界面规范](DESIGN.md) | 尺寸、层级、颜色和动画 |
-| [系统结构](docs/architecture.md) | 组件、数据流与本地文件 |
-| [Token 计算](docs/calculation-spec.md) | 去重、聚合、费用和预测公式 |
-| [开发与发布](docs/development.md) | 工程、测试、打包与审计 |
-| [验证记录](VERIFICATION.md) | 当前版本的测试与产物 |
-| [安全说明](SECURITY.md) | 凭据边界与漏洞报告 |
+- [文档索引](docs/README.md)
+- [产品约束](PRODUCT.md)
+- [界面规范](DESIGN.md)
+- [系统结构](docs/architecture.md)
+- [Token 计算](docs/calculation-spec.md)
+- [开发与发布](docs/development.md)
+- [验证记录](VERIFICATION.md)
+- [安全说明](SECURITY.md)
 
 ## 开发者
 
-**Zijiu522**
+Zijiu522
 
 ## 许可
 
