@@ -1,6 +1,8 @@
 # Third-party notices
 
-[Repository](README.md) · [Documentation](docs/README.md)
+[← README](README.md) · [Documentation](docs/README.md)
+
+---
 
 ## Tibo Watch
 

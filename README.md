@@ -4,11 +4,19 @@
 
 <h1 align="center">Codex Token Ledger</h1>
 
-| 概览 | Token 明细 |
-| :---: | :---: |
-| <img src="docs/images/overview-light.png" width="340" alt="概览"> | <img src="docs/images/token-details-light.png" width="340" alt="Token 明细"> |
+<p align="center">
+  <a href="#数据">数据</a> ·
+  <a href="#账号">账号</a> ·
+  <a href="#开发">开发</a> ·
+  <a href="#文档">文档</a>
+</p>
 
-## 数据口径
+<p align="center">
+  <img src="docs/images/overview-light.png" width="330" alt="概览">
+  <img src="docs/images/token-details-light.png" width="330" alt="Token 明细">
+</p>
+
+## 数据
 
 | 项目 | 来源或计算 |
 | --- | --- |
@@ -23,29 +31,28 @@
 | 剩余时间 | 同一账号、同一额度窗口的历史样本 |
 | Tibo | 预测与确认的公共重置信号；不计入账号额度 |
 
-无法确认的字段显示“不可用”。不按字符数估算 Token，不用本地会话推算账号额度。详细规则见 [Token 计算](docs/calculation-spec.md)。
+> [!NOTE]
+> 无法确认的字段显示“不可用”。不按字符数估算 Token，不用本地会话推算账号额度。计算规则见 [Token 计算](docs/calculation-spec.md)。
 
 ## 账号
 
-导入格式：
+| 项目 | 支持内容或结果 |
+| --- | --- |
+| 导入 | OAuth · Codex Home · Token / API Key · `auth.json` · JSON / JSONL · Sub2 · CPA / CLIProxyAPI · Cockpit |
+| 仅监控 | 不修改 Codex 当前登录 |
+| 登录到 Codex | 备份后替换默认 Codex Home 的登录 |
 
-- Codex OAuth
-- Codex Home
-- Token / API Key
-- `auth.json`
-- JSON / JSONL
-- Sub2
-- CPA / CLIProxyAPI
-- Cockpit
+## 开发
 
-切换方式：
+| 依赖 | 版本或用途 |
+| --- | --- |
+| macOS | 14+ |
+| Xcode | 16+ |
+| [XcodeGen](https://github.com/yonaskolb/XcodeGen) | 生成 Xcode 工程 |
+| Codex CLI | 账号功能 |
 
-- **仅监控**：不修改 Codex 当前登录
-- **登录到 Codex**：备份后替换默认 Codex Home 的登录
-
-## 构建
-
-依赖：macOS 14+、Xcode 16+、[XcodeGen](https://github.com/yonaskolb/XcodeGen)。账号功能需要 Codex CLI。
+<details>
+<summary><strong>构建</strong></summary>
 
 ```bash
 git clone https://github.com/Lincb522/CodexTokenLedger.git
@@ -58,15 +65,16 @@ xcodegen generate
 build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 ```
 
-打包：
-
 ```bash
 ./scripts/package_release.sh
 ```
 
 `package_release.sh` 使用 ad-hoc 签名。公开分发需要 Developer ID 签名和 Apple 公证。
 
-## 测试
+</details>
+
+<details>
+<summary><strong>测试</strong></summary>
 
 ```bash
 xcodegen generate
@@ -77,21 +85,22 @@ xcodebuild test \
   -destination 'platform=macOS'
 ```
 
+</details>
+
 ## 文档
 
-- [文档索引](docs/README.md)
-- [产品约束](PRODUCT.md)
-- [界面规范](DESIGN.md)
-- [系统结构](docs/architecture.md)
-- [Token 计算](docs/calculation-spec.md)
-- [开发与发布](docs/development.md)
-- [验证记录](VERIFICATION.md)
-- [安全说明](SECURITY.md)
+| 产品 | 工程 |
+| --- | --- |
+| [产品约束](PRODUCT.md) | [系统结构](docs/architecture.md) |
+| [界面规范](DESIGN.md) | [Token 计算](docs/calculation-spec.md) |
+| [版本记录](CHANGELOG.md) | [开发与发布](docs/development.md) |
+| [安全说明](SECURITY.md) | [验证记录](VERIFICATION.md) |
 
-## 开发者
+[全部文档](docs/README.md)
 
-Zijiu522
+## 项目
 
-## 许可
-
-本项目暂未声明开源许可证。第三方内容见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+| 项目 | 内容 |
+| --- | --- |
+| 开发者 | Zijiu522 |
+| 许可 | 暂未声明项目级开源许可证；[第三方许可](THIRD_PARTY_NOTICES.md) |

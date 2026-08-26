@@ -1,6 +1,8 @@
 # 安全说明
 
-[仓库首页](README.md) · [文档索引](docs/README.md)
+[← README](README.md) · [文档](docs/README.md)
+
+---
 
 ## 报告漏洞
 
