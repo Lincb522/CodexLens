@@ -6,6 +6,12 @@ SOURCE_APP="$ROOT/build/DerivedData/Build/Products/Release/CodexTokenLedger.app"
 DIST="$ROOT/dist"
 APP="$DIST/CodexTokenLedger.app"
 ZIP="$DIST/CodexTokenLedger-menu-bar-macOS.zip"
+IDENTITY="${CODESIGN_IDENTITY:-}"
+
+if [[ "$IDENTITY" != "Developer ID Application:"* ]]; then
+    echo "CODESIGN_IDENTITY must name a Developer ID Application certificate." >&2
+    exit 2
+fi
 
 if [[ ! -d "$SOURCE_APP" ]]; then
   "$ROOT/scripts/build_app.sh"
@@ -27,7 +33,7 @@ PY
 
 /usr/bin/ditto "$SOURCE_APP" "$APP"
 /usr/bin/install -m 0644 "$ROOT/LICENSE" "$APP/Contents/Resources/LICENSE"
-/usr/bin/codesign --force --deep --sign - "$APP"
+/usr/bin/codesign --force --deep --options runtime --timestamp --sign "$IDENTITY" "$APP"
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 

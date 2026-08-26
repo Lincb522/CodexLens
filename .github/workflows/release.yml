@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v* tag
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Check signing inputs
+        env:
+          MACOS_DEVELOPER_ID_P12_BASE64: ${{ secrets.MACOS_DEVELOPER_ID_P12_BASE64 }}
+          MACOS_DEVELOPER_ID_P12_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_P12_PASSWORD }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+        run: |
+          for name in \
+            MACOS_DEVELOPER_ID_P12_BASE64 \
+            MACOS_DEVELOPER_ID_P12_PASSWORD \
+            APP_STORE_CONNECT_KEY_ID \
+            APP_STORE_CONNECT_ISSUER_ID \
+            APP_STORE_CONNECT_PRIVATE_KEY_BASE64
+          do
+            if [[ -z "${!name}" ]]; then
+              echo "Missing signing input: $name" >&2
+              exit 2
+            fi
+          done
+
+      - name: Import Developer ID certificate
+        env:
+          CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_ID_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+
+          printf '%s' "$CERTIFICATE" | base64 --decode -o "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          identity="$(
+            security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+              | sed -n 's/.*"\(Developer ID Application:[^"]*\)".*/\1/p'
+          )"
+          identity_count="$(printf '%s\n' "$identity" | awk 'NF { count++ } END { print count + 0 }')"
+          if [[ "$identity_count" -ne 1 ]]; then
+            echo "Expected exactly one Developer ID Application identity." >&2
+            exit 2
+          fi
+          echo "CODESIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+
+      - name: Test
+        run: |
+          xcodegen generate
+          xcodebuild test \
+            -project CodexTokenLedger.xcodeproj \
+            -scheme CodexTokenLedger \
+            -configuration Debug \
+            -destination 'platform=macOS'
+
+      - name: Build and sign
+        run: |
+          ./scripts/build_app.sh
+          ./scripts/package_release.sh
+          codesign \
+            --force \
+            --deep \
+            --options runtime \
+            --timestamp \
+            --sign "$CODESIGN_IDENTITY" \
+            dist/CodexTokenLedger.app
+          codesign --verify --deep --strict --verbose=2 dist/CodexTokenLedger.app
+          rm dist/CodexTokenLedger-menu-bar-macOS.zip
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist/CodexTokenLedger.app \
+            dist/CodexTokenLedger-menu-bar-macOS.zip
+
+      - name: Notarize and staple
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+        run: |
+          APP="dist/CodexTokenLedger.app"
+          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${KEY_ID}.p8"
+
+          printf '%s' "$PRIVATE_KEY" | base64 --decode -o "$KEY_PATH"
+          xcrun notarytool submit "$ZIP" \
+            --key "$KEY_PATH" \
+            --key-id "$KEY_ID" \
+            --issuer "$ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$APP"
+          xcrun stapler validate "$APP"
+          spctl --assess --type execute --verbose=4 "$APP"
+
+          rm "$ZIP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+          shasum -a 256 "$ZIP" | sed 's#dist/##' > dist/SHA256SUMS.txt
+          unzip -t "$ZIP" >/dev/null
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/SHA256SUMS.txt \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/SHA256SUMS.txt \
+              --verify-tag \
+              --generate-notes \
+              --title "Codex Token Ledger ${TAG#v}"
+          fi

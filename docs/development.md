@@ -45,7 +45,7 @@ xcodebuild test \
 
 ```bash
 ./scripts/build_app.sh
-./scripts/package_release.sh
+CODESIGN_IDENTITY='Developer ID Application: …' ./scripts/package_release.sh
 ```
 
 输出：
@@ -56,7 +56,21 @@ dist/CodexTokenLedger.app
 dist/CodexTokenLedger-menu-bar-macOS.zip
 ```
 
-打包脚本把 `LICENSE` 写入应用资源并使用本地 ad-hoc 签名，产物未经过 Apple 公证。
+打包脚本把 `LICENSE` 写入应用资源，启用 hardened runtime，并要求 Developer ID Application 身份。
+
+## GitHub Actions
+
+`ci.yml` 在 push 和 pull request 上运行测试。`release.yml` 在 `v*` tag 或手动触发时完成签名、公证、票据装订、ZIP 校验和 Release 上传。
+
+Release 仓库 Secrets：
+
+| Secret | 内容 |
+| --- | --- |
+| `MACOS_DEVELOPER_ID_P12_BASE64` | Developer ID Application `.p12` 的 Base64 |
+| `MACOS_DEVELOPER_ID_P12_PASSWORD` | `.p12` 密码 |
+| `APP_STORE_CONNECT_KEY_ID` | App Store Connect API Key ID |
+| `APP_STORE_CONNECT_ISSUER_ID` | App Store Connect Issuer ID |
+| `APP_STORE_CONNECT_PRIVATE_KEY_BASE64` | `.p8` 私钥的 Base64 |
 
 ## 本地化
 

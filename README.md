@@ -82,10 +82,10 @@ build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 ```
 
 ```bash
-./scripts/package_release.sh
+CODESIGN_IDENTITY='Developer ID Application: …' ./scripts/package_release.sh
 ```
 
-`package_release.sh` 使用 ad-hoc 签名，产物未经过 Apple 公证。
+`package_release.sh` 只接受 Developer ID Application 身份。GitHub Release 工作流负责公证和装订票据。
 
 </details>
 
