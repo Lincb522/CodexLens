@@ -6,20 +6,17 @@
 - Xcode 16+
 - XcodeGen
 - Python 3（审计脚本）
-- Pillow（仅重新生成图标时需要）
-
-确认工具：
+- Pillow（重新生成图标时需要）
 
 ```bash
 xcodebuild -version
 swift --version
 xcodegen --version
-/usr/bin/python3 --version
 ```
 
-## 生成工程
+## 工程
 
-`project.yml` 是工程定义的唯一来源。不要直接修改生成后的 `CodexTokenLedger.xcodeproj`。
+`project.yml` 是工程定义，不要直接修改生成的 `CodexTokenLedger.xcodeproj`。
 
 ```bash
 xcodegen generate
@@ -36,84 +33,62 @@ xcodebuild test \
   -destination 'platform=macOS'
 ```
 
-主要测试分区：
+界面改动还要运行 `MenuBarVisualSmokeTests.testRenderOverviewForVisualInspection`，并检查 `build/` 中的浅色、深色、详情展开、长数字和多任务截图。
 
-- Token 结构校验、累计值和费用；
-- rollout 读取、并发任务与标题来源；
-- 本地会话扫描和缓存；
-- 账号 RPC 与额度解析；
-- Token/JSON/JSONL/Sub2/CPA/Cockpit 导入；
-- 凭据原子写入与回滚；
-- 额度剩余时间预测；
-- Tibo 规则和周期状态机；
-- 七种语言与菜单视觉约束。
-
-`MenuBarVisualSmokeTests.testRenderOverviewForVisualInspection` 会把界面夹具输出到 `build/`。检查浅色、深色、展开详情、长数字和固定 340pt 宽度后再提交界面变更。
-
-## 构建
+## 构建与打包
 
 ```bash
 ./scripts/build_app.sh
-```
-
-脚本生成 arm64+x86_64 Release 应用，路径为：
-
-```text
-build/DerivedData/Build/Products/Release/CodexTokenLedger.app
-```
-
-## 打包
-
-```bash
 ./scripts/package_release.sh
 ```
 
 输出：
 
 ```text
+build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 dist/CodexTokenLedger.app
 dist/CodexTokenLedger-menu-bar-macOS.zip
 ```
 
-该脚本只执行本地 ad-hoc 签名。公开分发前仍需使用 Developer ID 签名并完成 Apple 公证。
+打包脚本使用本地 ad-hoc 签名。公开分发需要 Developer ID 签名和 Apple 公证。
 
 ## 本地化
 
-所有用户可见字符串必须进入：
+界面文字位于：
 
 ```text
 Sources/CodexTokenLedger/Resources/Localizable.xcstrings
 ```
 
-每个 key 必须显式覆盖：
+每个 key 需要覆盖：
 
 ```text
 en, zh-Hans, zh-Hant, ja, ko, es, fr
 ```
 
-新增文案后运行完整测试，确认没有返回 key 本身，也没有在 340pt 布局中被截断、换行或缩小。
+新增文字后检查七种语言在 340pt 宽度下没有截断、换行或缩小。
 
 ## 图标
 
-源文件：
+源图：
 
 ```text
 Design/AppIconMaster.png
 Design/BrandMarkMaster.png
 ```
 
-重新生成 Asset Catalog 尺寸：
+生成 Asset Catalog：
 
 ```bash
 /usr/bin/python3 -m pip install Pillow
 ./scripts/generate_icon.py
 ```
 
-应用内图标是透明 PNG Image Assets，不在运行时使用 SVG。
+应用内图标使用透明 PNG Image Assets。
 
-## 审计脚本
+## 审计
 
-### Token 结构
+Token 事件结构：
 
 ```bash
 ./scripts/audit_token_evidence.py \
@@ -121,9 +96,7 @@ Design/BrandMarkMaster.png
   --output build/token-evidence-audit.json
 ```
 
-脚本只检查 `token_count` 结构，不读取或输出聊天正文。
-
-### 账号 RPC
+账号 RPC 字段：
 
 ```bash
 ./scripts/audit_account_rpc.py \
@@ -131,22 +104,20 @@ Design/BrandMarkMaster.png
   --output build/account-rpc-schema-audit.json
 ```
 
-输出只保留字段结构，不保留字段值。该脚本会让本机 Codex 使用正常凭据源；不要在不受信任的构建环境中运行。
-
-### Tibo 公开数据源
+Tibo 公共源：
 
 ```bash
 ./scripts/audit_tibo_signal.sh build/tibo-signal-audit.json
 ```
 
-该命令访问公开网络源，只应在需要验证实时来源时运行。
+前两个脚本不输出聊天正文或凭据值。账号 RPC 审计会使用本机 Codex 的正常凭据源，只能在可信代码状态下手动运行。
 
-## 发布检查
+## 发布前
 
 1. 更新 `MARKETING_VERSION`、`CURRENT_PROJECT_VERSION` 和 `CHANGELOG.md`。
-2. 运行完整测试并检查视觉夹具。
-3. 执行 Release 通用构建。
+2. 运行完整测试并检查界面截图。
+3. 构建 arm64 与 x86_64 Release。
 4. 检查 `lipo -archs`、`codesign --verify` 和 ZIP 完整性。
-5. 确认 String Catalog 七种语言没有缺失项。
-6. 确认提交中没有 `auth.json`、Token、API key、`.env`、构建目录或真实账号导出。
-7. 更新 `VERIFICATION.md` 中的最终命令、哈希和已验证范围。
+5. 检查 String Catalog 的七种语言。
+6. 确认提交中没有凭据、`.env`、构建目录或真实账号导出。
+7. 更新 `VERIFICATION.md`。

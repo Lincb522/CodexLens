@@ -1,133 +1,66 @@
----
-name: Token Pulse
-description: A reference-led real-time Codex context console in the macOS menu bar.
-palette: "Desaturated blue context field with quiet adaptive glass below"
-background: "AppKit-owned native NSMenu glass"
-typography:
-  ui: "SF Pro, system default"
-  data: "SF Mono, system monospaced"
-  minimum: "12pt"
-layout:
-  fixedWidth: "340pt"
-  overview: "Context hero plus one switchable updates surface"
-motion:
-  feedback: "100-150ms ease-out"
-  state: "320-380ms damped spring"
-  progress: "460ms damped spring"
----
+# 界面规范
 
-# Design System: Token Pulse 2.1
+## 尺寸
 
-## Direction
+| 项目 | 数值 |
+| --- | ---: |
+| 菜单宽度 | 340pt |
+| 主页面高度 | 705pt |
+| 最小可见字号 | 12pt |
+| 数据字体 | SF Mono |
+| 界面字体 | 系统字体 |
 
-**Context Daily** translates the supplied mobile health reference into a macOS
-menu-bar utility without copying its phone chrome. The information hierarchy is
-the reference:
+首页、本地账本和控制中心使用相同尺寸。Token 详情在首页内部覆盖展开，不触发 `NSMenu` 重新测量。
 
-1. a calm identity header;
-2. a compact multi-task selector;
-3. one edge-to-edge atmospheric field with a single oversized live value;
-4. three equal supporting metrics;
-5. one lower “Updates” area with a three-way segmented switch;
-6. an independent Tibo cycle row and detail destination;
-7. a compact icon navigation bar.
+## 首页
 
-The interface no longer presents every metric at the same visual weight. Context
-input is the hero. Task, quota and account details share one switchable lower
-surface, so data remains available without becoming a wall of text.
+首页分为四层：
 
-## Overview hierarchy
+1. 品牌、账号、刷新
+2. 运行任务选择
+3. 当前上下文
+4. 任务 / 额度 / 账号动态区
 
-### Identity header
+上下文区域只保留一个大号数值，默认显示最近一次请求的输入 Token。下方三项依次为输入、缓存输入和输出。任务累计通过单独切换查看。
 
-The header contains only product identity, monitored account and refresh. Account
-plan and login-mode badges were removed from the header to preserve the supplied
-reference's simple top rhythm; they remain available in the account menu and
-control center.
+任务、额度和账号共用固定高度区域，切换时只替换内容，不改变页面高度。Tibo 信号位于该区域下方，并可进入独立详情页。
 
-### Multi-task selector
+## 颜色与材质
 
-When multiple tasks are active, the top ribbon exposes up to four real tasks at
-once, with an explicit Task number and each task's live context input. Overflow
-tasks remain reachable from a named menu without adding a scrolling list.
+- 菜单背景由 AppKit 的原生 `NSMenu` 材质提供，SwiftUI 根视图保持透明。
+- 首页上半部分使用蓝色渐变，向下逐渐过渡到菜单背景，不出现硬分界线。
+- 浅色模式使用蓝灰文字；深色模式使用高对比度浅色文字。
+- 绿色只表示有效、在线或健康状态。
+- 黄色和红色只用于警告与错误。
+- 卡片不使用装饰性阴影、彩色描边或多层发光。
 
-### Context hero
+## 文字与数字
 
-The blue-to-cyan field spans the entire upper overview rather than appearing as
-a card. Its blurred vertical gradient continues behind the beginning of the
-Updates region and gradually reaches zero opacity, so there is no rounded edge,
-circle-shaped glow or horizontal seam against the lower light/dark material. It
-contains:
+- 标签和数值必须有明确的上下关系，不能把多个大数挤在同一行。
+- 精确计数显示 `Token` 单位；费率显示 `/ 1M Token`。
+- 文本不使用 `minimumScaleFactor`，不换行，不用省略号替代关键标签。
+- 长任务名使用停顿式横向巡览。
 
-- the real task title with a pause-aware marquee;
-- a live/stale state and details disclosure;
-- a Context / Task Total segmented switch;
-- one 52pt numeric hero value;
-- published context capacity and used percentage;
-- input, cached input and output tiles;
-- published capacity and real request composition.
+## 图标
 
-Expanded evidence stays inside the same hero and separates conversation context,
-current turn and task cumulative usage. Each exact counter occupies its own
-label/value row, followed by accounting evidence and the applicable pricing tier.
+应用图标、品牌标记和内部功能图标均使用 PNG Image Assets。首页品牌标记使用单色透明版本，状态栏使用与当前指标对应的图标。
 
-### Updates
+## 动画
 
-The lower surface exposes Task, Quota and Account as a segmented switch instead
-of stacking three permanent sections.
+- 数字变化使用内容过渡。
+- 分段切换使用局部淡入淡出。
+- 进度条和按钮反馈可使用短弹簧动画。
+- 展开详情只移动详情层和箭头，不改变菜单布局。
+- 开启“减少动态效果”时取消重复和位移动画。
 
-- Task: current turn, task total, API estimate, project and model.
-- Quota: primary remaining percentage, reset evidence, forecast, and up to two
-  additional real quota windows.
-- Account: official daily/lifetime Token and real credits.
+## 检查状态
 
-Tibo remains a separate public reset-cycle row below Updates and also stays
-available in More. It never changes or masquerades as an account quota reset.
+界面改动至少检查：
 
-### Bottom navigation
-
-Overview, local ledger and control center are persistent raster-icon
-destinations with full hover and accessibility labels. More contains Tibo,
-developer information, exports and quit. No unexplained one-letter controls are
-used.
-
-## Surface rules
-
-- AppKit owns the real menu glass through
-  `NSStatusItem -> NSMenu -> NSMenuItem.view -> NSHostingView`.
-- The SwiftUI root remains clear, non-opaque and vibrancy-enabled.
-- Only the upper overview carries a large colour field. It fades continuously
-  into the adaptive translucent lower material; lower cards remain neutral and
-  readable in light and dark appearances.
-- Blue is the navigation/selection accent and also anchors the atmospheric
-  context field. Green is reserved for verified healthy/remaining states;
-  amber and coral remain semantic warning and failure colours.
-- Product and internal icons remain raster Image Assets. No SVG or SF Symbols are
-  used as product icons.
-- Corner radii follow one scale: 12pt tiles and 16-18pt secondary surfaces. The
-  gradient itself has no card outline or bottom radius.
-- Every visible explicit font is at least 12pt.
-
-## Motion
-
-- Live Token values use numeric content transitions.
-- Context/Task and Updates switches use interruptible damped springs.
-- The current progress width retargets with a damped spring.
-- Buttons respond immediately with a small press compression.
-- Long titles and times use a pause-aware reversible marquee instead of ellipsis,
-  wrapping or scale-to-fit.
-- Page transitions preserve direction.
-- Reduce Motion disables repeated motion and substitutes immediate/opacity state
-  changes.
-
-## Constraints
-
-- Fixed popover width: **340pt**.
-- No `ScrollView`, scroll indicator or hidden scroll gesture.
-- Text never uses `minimumScaleFactor` and visible labels never wrap.
-- Task history uses pagination.
-- Missing data stays unavailable; the redesign introduces no demo or inferred
-  values.
-- Structured Tibo predictions and confirmed resets retain their existing
-  evidence-backed state machine.
-- Light and dark mode use the same hierarchy and interaction model.
+- 浅色与深色
+- 详情展开与收起
+- 多任务切换
+- 长任务名
+- 大 Token 数值
+- 七种语言
+- “减少动态效果”
