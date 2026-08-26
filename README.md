@@ -12,6 +12,13 @@
 </p>
 
 <p align="center">
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?style=flat-square&amp;logo=apple&amp;logoColor=white">
+  <img alt="Swift 5.10" src="https://img.shields.io/badge/Swift-5.10-F05138?style=flat-square&amp;logo=swift&amp;logoColor=white">
+  <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
+  <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
+</p>
+
+<p align="center">
   <img src="docs/images/overview-light.png" width="330" alt="概览">
   <img src="docs/images/token-details-light.png" width="330" alt="Token 明细">
 </p>
