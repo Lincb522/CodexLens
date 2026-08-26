@@ -1,0 +1,7 @@
+Use case: logo-brand
+Asset type: production UI icon contact sheet for a macOS menu-bar app; final output is a raster PNG sprite source
+Primary request: Generate exactly 24 cohesive small interface glyphs arranged in a perfectly aligned 4-column × 6-row grid. Use this exact row-major order: row 1 overview/dashboard, live pulse, local ledger, control console; row 2 user account, concurrent tasks, quota ring, credits spark; row 3 appearance sun/moon, language globe, local database, developer code badge; row 4 refresh sync, search, calendar, timer; row 5 folder, export arrow, confirmation check, warning triangle; row 6 arrow left, arrow right, chevron down, horizontal more dots.
+Style/medium: image-generated raster icon family, modern playful rounded geometric glyphs, filled/duotone silhouette translated into one monochrome shape, friendly but precise, strong at 16px, consistent optical weight and corner language, not SF Symbols and not emoji.
+Composition/framing: exact uniform cells, each icon centered at identical scale with generous separation; no icon touches another.
+Color palette: solid near-black navy glyphs only on a truly transparent background.
+Constraints: no words, no letters, no numbers, no labels, no captions, no visible grid, no cell boxes, no decorative background, no gradients, no shadows, no glow, no strokes thinner than 6% of an icon width, no emoji, no Apple/SF Symbols look. Preserve transparency.

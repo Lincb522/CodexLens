@@ -1,0 +1,592 @@
+{
+  "status": "pass",
+  "source": "generated-ui-icon-sheet-v2.png",
+  "sourceSHA256": "ca59e45fd106ae50b5e3c8e3815165db48d25a48d3041d577cb240fef96562ad",
+  "generation": "built-in imagegen raster sheet; Swift crop/scale packaging only",
+  "format": "transparent PNG Image Assets",
+  "iconCount": 24,
+  "scales": [
+    "1x",
+    "2x",
+    "3x"
+  ],
+  "errors": [],
+  "files": [
+    {
+      "file": "pulse.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "56f0f126a5f17c791bcf5e3870a35169826adcef12a496f904d884e994e48d12"
+    },
+    {
+      "file": "pulse@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "701deb13350cc38f547e4c6e28bb8a9075f80a6657bd79cf17d1656c16ce1729"
+    },
+    {
+      "file": "pulse@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "060f077cb819e085e4cc125d29e6c639ccee3849313b6dd68b60b8659a100aac"
+    },
+    {
+      "file": "overview.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "862ac8d072bea4a602a7d8b40fb94bb0eefb624f8f42cfcff2798511a509d38c"
+    },
+    {
+      "file": "overview@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "8c069553048a22c7919ef24e81ec7d05232c49466144ebb088f700237b7602e1"
+    },
+    {
+      "file": "overview@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "db0f7ebad72e67863a218be4788ab3edaf7ba0c13a18fd1be0317156010f2b99"
+    },
+    {
+      "file": "tasks.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "8faedef28c4b614e81a4c293a568ac78a71187a1fbd9eeaedfff7a35dd3b7710"
+    },
+    {
+      "file": "tasks@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "3ed5fa9160da67d26d8702617c5061483efe46c8a7034deebe679ad11a296134"
+    },
+    {
+      "file": "tasks@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "a4e0e5fbfde96ad9c6290f91d20218c6b630ccb5347851c5da81672606cff5e5"
+    },
+    {
+      "file": "account.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "5a8acd31171bb075f936f5d410af4c07058b93108b60581a9044294ab0579570"
+    },
+    {
+      "file": "account@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "cb147b0b753bcc691620a9c6e0fabb68d016702e1f245611c14209c25af0002e"
+    },
+    {
+      "file": "account@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "9006d2aec35ae3c0c9539659e315060fd1c39ca73780287e69f41638e3438b74"
+    },
+    {
+      "file": "quota.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "8f2a0e09fd6e70971244d775e65e1c8a0a79ccc3c8f6ee4c54a0472a90eac7ae"
+    },
+    {
+      "file": "quota@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "efbfb86f043ce9099e3260c794e83f057b7d6ed401c3801ffa57fc094a4acc64"
+    },
+    {
+      "file": "quota@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "03e03cf067408b57fc8095489deb6f8c456362cd81ea15e956a251c701c1b456"
+    },
+    {
+      "file": "credits.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "8623bd18b05925d9561104837b0ae2b787bf37bcbdea8269e93c037a5d260218"
+    },
+    {
+      "file": "credits@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "ac762f7311fe8c7608684866f7c79b91ef64c33876e078f0b02d061a73628c89"
+    },
+    {
+      "file": "credits@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "6fa5a8d02ca33fb9845c5f3b214acedbe855dc2abf566e9bb0ce82169ee5ed99"
+    },
+    {
+      "file": "ledger.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "96b45b6e6c2d1ff66b52f9872b5ca4fd3fdd72af4eb4a94547f4a06134906896"
+    },
+    {
+      "file": "ledger@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "e062d59d6a26722d50f73d8166d970ef8adc59d93ffa4b2f250410d3d2301ecd"
+    },
+    {
+      "file": "ledger@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "a095642212ce2fecc6a34d4f04068bc87db250d6aa70be2777180013f2639cce"
+    },
+    {
+      "file": "console.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "656ea3e72477d485aebfbee3a1d2ca7d746b457c6c8fe6a4d9277c44a41b557b"
+    },
+    {
+      "file": "console@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "3a2283ed0e6cf089c67cf95d081c5e713b039e46d7687cbc3ca4ff45ed21527c"
+    },
+    {
+      "file": "console@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "bed661f6c18716d80da440b29c0428ef55ce291f2d84d08eed9984f90fb41850"
+    },
+    {
+      "file": "appearance.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "6602509f0ad6599a64042d7c7dcf2944cfed97192f2f0c903e1ec2a5ae40735f"
+    },
+    {
+      "file": "appearance@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "22a3a43c79273823389f307b329fe5a034493e46f6d8a4f438feb5f5c3f4cbe0"
+    },
+    {
+      "file": "appearance@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "8945a14457b02d7fbf0466ca76933d7e4bd7fc8317bb45051d3ba5056462f6b1"
+    },
+    {
+      "file": "language.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "775cca25135c45f7096719d6c9e0801b3c1a2050fb05669aa5df6ec74a9911d3"
+    },
+    {
+      "file": "language@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "5bc5aa29f72eb495bbed85486cd6c662d227b00b398dd61d3fc2ea0291544c72"
+    },
+    {
+      "file": "language@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "63d77cb00f7df7747da3090ce6a8d6c17d6f687fa94ac6201667e436555d9c5c"
+    },
+    {
+      "file": "sync.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "179fc6e85c35f55af6434480ceb72b3cfcd7642862371f3f5725c2e97d46703f"
+    },
+    {
+      "file": "sync@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "d0ce3d73b1a170b15fb4855f8325fb857bf2622ea0d387bbe3df22a8a428f03e"
+    },
+    {
+      "file": "sync@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "9af0e45301087f5b5225daa1ba3e53b79f861745f9a3cbcca8cdca81beb14e96"
+    },
+    {
+      "file": "data.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "280842a0d21e5bc44722026efe39ad81059543eb396eecd2c78a31072b53bcb1"
+    },
+    {
+      "file": "data@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "3739d5264f86b849886f6e27c16c6aa1e8d438e2d80cd838990acaa1887b0af5"
+    },
+    {
+      "file": "data@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "23a173580528d2cabc0fee2828ebb535162a5b84d1a13f8efc6c4c66eede4aa6"
+    },
+    {
+      "file": "developer.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "e007bac0f3d2b0f27d97bab4a8df141892c83566b25fb73968e91cf3c7e91a36"
+    },
+    {
+      "file": "developer@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "935a4b120de20caff47b438c764e7e14c8a97a21130638787c10eb3bec02006d"
+    },
+    {
+      "file": "developer@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "6b1888b460852388910710381f41fad5db9340d0694cc73803ff11f25140fcfb"
+    },
+    {
+      "file": "search.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "1e570cacba47df88f202550f0646fad39d68c2e5e437e0412493e4c676bdf803"
+    },
+    {
+      "file": "search@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "763b3c86d33fc880bd34313d39c94c3290ed99a0d141f549b2f0c5a9678532a0"
+    },
+    {
+      "file": "search@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "e1bd5231293356019295104804346573250d66878055a7ebe4eb5ff000d1e7a8"
+    },
+    {
+      "file": "arrow-left.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "c8d2814ccd405d149ba1625c32f266516958ed975421087c5c4615b0b0d0c42d"
+    },
+    {
+      "file": "arrow-left@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "628f4c3d71feb182087c5896ef2acedee5d7b60b27148034840d4c49d80a7376"
+    },
+    {
+      "file": "arrow-left@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "72bc8904a4b4361f244b77b39fc38069f8c954f08e877ac714a04ad29e5f1ac3"
+    },
+    {
+      "file": "arrow-right.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "733b0480a95ca8d8fda6c6f3c95451b54c3876411b2f9853940672e31cdda508"
+    },
+    {
+      "file": "arrow-right@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "d71e8936caea012575a92b6940297c10148758af1fef1cc893864aeadb5bc1e9"
+    },
+    {
+      "file": "arrow-right@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "478aa87ec8068a288973bb3ef97770ff4cd848f2aba319df6b947f0d86fd26c6"
+    },
+    {
+      "file": "chevron-down.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "49b642509abf143596542802c0842ee80054d2b56217da088320f10a167938d6"
+    },
+    {
+      "file": "chevron-down@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "acceb791c979fae5ef9684c2e04ac1048777c26f0e1379b3078eeca7962df9c7"
+    },
+    {
+      "file": "chevron-down@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "d7cc710b9c04617414b0223c6db599713393da41d730071709505f45a3a37d58"
+    },
+    {
+      "file": "more.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "5ee30b6c010559c4f808c8f0be019f9138be963bc52f7f64ea42dd760fd495e1"
+    },
+    {
+      "file": "more@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "e5a6aad44b9f3ad7c029e5e2385b2e20d3588b1750af810c7038d9df88c9b1ea"
+    },
+    {
+      "file": "more@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "f78309f88f4c1d7e486f02e7b8d66a98a19cae895fc1a42efa453e857b3ce467"
+    },
+    {
+      "file": "warning.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "7c05b4ad2eea6a7bc358ddcdf1e9372ade2a9a51ad9944150e81b82749469875"
+    },
+    {
+      "file": "warning@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "369ed65bb93e156e558384b83bb0568e0483931445c3300cbd898516bc67785b"
+    },
+    {
+      "file": "warning@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "1fee967fac9f9e51810848ee366e12f6d4a94e7c8ecadb0223437a92e6df5ac7"
+    },
+    {
+      "file": "export.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "56f72a8c5c27c87f608705fd34e0208d83e16fcb8530ec4f37505b29cdaad75b"
+    },
+    {
+      "file": "export@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "96bb89143db0c6680c873a2e3432ade01d60f525d2a1166873995915e3dd9b34"
+    },
+    {
+      "file": "export@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "1586c7bc7b19bda986a23b2111b86e5cc9b173427f6e2d6ce7ffe63fc43c3a8a"
+    },
+    {
+      "file": "folder.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "3fc86cfa17fc19a14b04423bb065f762c6d5e6deebbb93d3e4afd5d86b4af1ef"
+    },
+    {
+      "file": "folder@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "1c87c8747fe86dd355015bdabd198088e4d90151458f83d876dca95cca647dd9"
+    },
+    {
+      "file": "folder@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "7e0d8fb38ad27469cf437f4eac9869edd8f75b20eb1baffd831364f7026a6a14"
+    },
+    {
+      "file": "timer.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "b7dcb7d5a2aaaa1825da77527cc6a33e122c31cae8814aeaf017e7d723a226fe"
+    },
+    {
+      "file": "timer@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "15fc0f5c89948debfbb18dc77e8b20779c1cdfa3af1cd196f46fc0ee1fd3c5b0"
+    },
+    {
+      "file": "timer@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "01e86b2c70a877a2bf8a2cbfefe59dd8cd8cc1a8b56487632a7b0275a32076b2"
+    },
+    {
+      "file": "calendar.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "2cb171e0a12f132c64e500efabb05310da3195007de468558a3a915282760940"
+    },
+    {
+      "file": "calendar@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "52904add6ba7c5d94a34c326b7aa136de5f32059385cf6029e4a611ee55412b3"
+    },
+    {
+      "file": "calendar@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "afb9823fba649c56dc3fbb070b791177a5e9e91de39ed4887058823e93f87122"
+    },
+    {
+      "file": "check.png",
+      "pixels": [
+        24,
+        24
+      ],
+      "sha256": "82c4aa1787acf1b722765f6147a20c5e05f0e61a41595fa5ddf5a0780f5235ec"
+    },
+    {
+      "file": "check@2x.png",
+      "pixels": [
+        48,
+        48
+      ],
+      "sha256": "87fb453dd88cbad172e2daaaf272e4c7454250a2a0c7b49dbd30b5f28fb05b88"
+    },
+    {
+      "file": "check@3x.png",
+      "pixels": [
+        72,
+        72
+      ],
+      "sha256": "418a46c59f6b5195e2975fc6547c396f39217f976b642c4071043070e46cd210"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Pulse Atelier",
+  "preset": "soft-rounded-technical",
+  "grid": 24,
+  "cornerRadius": 3,
+  "padding": 3,
+  "opticalBalance": true,
+  "iconCount": 24,
+  "icons": [
+    "pulse",
+    "overview",
+    "tasks",
+    "account",
+    "quota",
+    "credits",
+    "ledger",
+    "console",
+    "appearance",
+    "language",
+    "sync",
+    "data",
+    "developer",
+    "search",
+    "arrow-left",
+    "arrow-right",
+    "chevron-down",
+    "more",
+    "warning",
+    "export",
+    "folder",
+    "timer",
+    "calendar",
+    "check"
+  ],
+  "generated": "2026-08-24",
+  "format": "PNG",
+  "source": "raster Image Assets",
+  "sizes": [
+    24,
+    48,
+    72
+  ],
+  "scales": [
+    "1x",
+    "2x",
+    "3x"
+  ]
+}

@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+*.xcresult
+
+# XcodeGen output (project.yml is canonical)
+CodexTokenLedger.xcodeproj/
+
+# Build and release artifacts
+build/
+dist/
+.build/
+.swiftpm/
+
+# Local tools
+.vscode/
+.idea/
+
+# Credentials and environment inputs
+.env
+.env.*
+!.env.example
+auth.json
+*.jsonl
+*.pem
+*.p12
+*.mobileprovision
+.codex/
+Accounts/
+CredentialBackups/
+
+# Local audit output
+*-audit.json
+*.log
