@@ -290,6 +290,10 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             bitmap.size = host.bounds.size
             host.cacheDisplay(in: host.bounds, to: bitmap)
             let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+            try FileManager.default.createDirectory(
+                at: output.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             try png.write(to: output, options: .atomic)
             XCTAssertGreaterThan(png.count, 8_000)
             return fittedSize
