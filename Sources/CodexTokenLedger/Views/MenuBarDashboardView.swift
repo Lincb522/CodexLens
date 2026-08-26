@@ -1969,8 +1969,8 @@ struct MenuBarDashboardView: View {
 
     private var appVersionDisplay: String {
         let info = Bundle.main.infoDictionary
-        let version = info?["CFBundleShortVersionString"] as? String ?? "2.1.0"
-        let build = info?["CFBundleVersion"] as? String ?? "22"
+        let version = info?["CFBundleShortVersionString"] as? String ?? "2.1.1"
+        let build = info?["CFBundleVersion"] as? String ?? "23"
         return "\(version) (\(build))"
     }
 

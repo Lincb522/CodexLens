@@ -18,7 +18,7 @@
   <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
   <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square"></a>
-  <a href="https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.0"><img alt="Download v2.1.0" src="https://img.shields.io/badge/Download-v2.1.0-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
+  <a href="https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.1"><img alt="Download v2.1.1" src="https://img.shields.io/badge/Download-v2.1.1-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -28,9 +28,9 @@
 
 ## 下载
 
-[CodexTokenLedger-menu-bar-macOS.zip](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.0/CodexTokenLedger-menu-bar-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.0/SHA256SUMS.txt)
+[CodexTokenLedger-menu-bar-macOS.zip](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.1/CodexTokenLedger-menu-bar-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.1/SHA256SUMS.txt)
 
-macOS 14+ · x86_64 + arm64 · ad-hoc 签名 · 未经过 Apple 公证
+macOS 14+ · x86_64 + arm64 · Developer ID 签名 · Apple 公证
 
 ## 数据
 
