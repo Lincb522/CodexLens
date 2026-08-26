@@ -44,7 +44,7 @@ Codex Token Ledger 是一款 macOS 菜单栏应用，界面名称为 **Token Pul
 ## 构建
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Lincb522/CodexTokenLedger.git
 cd CodexTokenLedger
 xcodegen generate
 ./scripts/build_app.sh

@@ -3,7 +3,7 @@
 ## 开始
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Lincb522/CodexTokenLedger.git
 cd CodexTokenLedger
 xcodegen generate
 xcodebuild test \
