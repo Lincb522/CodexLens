@@ -57,6 +57,8 @@ docs/images/token-details-light.png
 
 ## Release
 
+[GitHub Release v2.1.0](https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.0)
+
 ```bash
 xcodebuild \
   -project CodexTokenLedger.xcodeproj \
