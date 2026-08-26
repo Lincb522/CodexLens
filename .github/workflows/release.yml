@@ -72,13 +72,6 @@ jobs:
             -P "$CERTIFICATE_PASSWORD" \
             -A -t cert -f pkcs12 \
             -k "$KEYCHAIN_PATH"
-          DEVELOPER_ID_CA="$RUNNER_TEMP/DeveloperIDG2CA.cer"
-          curl --fail --silent --show-error --location \
-            https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer \
-            --output "$DEVELOPER_ID_CA"
-          echo "f16cd3c54c7f83cea4bf1a3e6a0819c8aaa8e4a1528fd144715f350643d2df3a  $DEVELOPER_ID_CA" \
-            | shasum -a 256 --check
-          security import "$DEVELOPER_ID_CA" -k "$KEYCHAIN_PATH"
           security set-key-partition-list \
             -S apple-tool:,apple: \
             -k "$KEYCHAIN_PASSWORD" \
