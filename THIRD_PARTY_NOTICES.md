@@ -1,5 +1,7 @@
 # Third-party notices
 
+[Repository](README.md) · [Documentation](docs/README.md)
+
 ## Tibo Watch
 
 The optional Tibo reset-signal monitor adapts the public FxTwitter source

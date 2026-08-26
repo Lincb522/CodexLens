@@ -1,5 +1,7 @@
 # 系统结构
 
+[仓库首页](../README.md) · [文档索引](README.md)
+
 ## 进程与界面
 
 应用以 `LSUIElement` 运行。`CodexTokenLedgerApp` 启动后，由 `NativeMenuBarController` 创建菜单：

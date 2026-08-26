@@ -1,5 +1,7 @@
 # 产品约束
 
+[仓库首页](README.md) · [文档索引](docs/README.md)
+
 ## 定位
 
 Codex Token Ledger 是 macOS 菜单栏应用。它用于快速查看当前 Codex 任务的上下文、累计用量、账号额度和参考成本，不提供独立主窗口。

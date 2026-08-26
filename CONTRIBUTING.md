@@ -1,5 +1,7 @@
 # 参与开发
 
+[仓库首页](README.md) · [文档索引](docs/README.md)
+
 ## 准备
 
 ```bash
