@@ -56,7 +56,7 @@ dist/CodexTokenLedger.app
 dist/CodexTokenLedger-menu-bar-macOS.zip
 ```
 
-打包脚本使用本地 ad-hoc 签名。公开分发需要 Developer ID 签名和 Apple 公证。
+打包脚本把 `LICENSE` 写入应用资源并使用本地 ad-hoc 签名，产物未经过 Apple 公证。
 
 ## 本地化
 

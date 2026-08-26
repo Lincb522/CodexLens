@@ -21,6 +21,7 @@
 
 - [参与开发](../CONTRIBUTING.md)
 - [安全说明](../SECURITY.md)
+- [MIT License](../LICENSE)
 - [第三方许可](../THIRD_PARTY_NOTICES.md)
 
 ## 代码入口

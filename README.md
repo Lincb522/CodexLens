@@ -16,6 +16,7 @@
   <img alt="Swift 5.10" src="https://img.shields.io/badge/Swift-5.10-F05138?style=flat-square&amp;logo=swift&amp;logoColor=white">
   <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
   <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square"></a>
 </p>
 
 <p align="center">
@@ -76,7 +77,7 @@ build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 ./scripts/package_release.sh
 ```
 
-`package_release.sh` 使用 ad-hoc 签名。公开分发需要 Developer ID 签名和 Apple 公证。
+`package_release.sh` 使用 ad-hoc 签名，产物未经过 Apple 公证。
 
 </details>
 
@@ -110,4 +111,4 @@ xcodebuild test \
 | 项目 | 内容 |
 | --- | --- |
 | 开发者 | Zijiu522 |
-| 许可 | 暂未声明项目级开源许可证；[第三方许可](THIRD_PARTY_NOTICES.md) |
+| 许可 | [MIT](LICENSE) · [第三方许可](THIRD_PARTY_NOTICES.md) |
