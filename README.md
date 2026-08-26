@@ -8,28 +8,20 @@
 | :---: | :---: |
 | <img src="docs/images/overview-light.png" width="340" alt="概览"> | <img src="docs/images/token-details-light.png" width="340" alt="Token 明细"> |
 
-## 功能
-
-- 当前请求：输入、缓存输入、输出、上下文占用
-- 当前轮次：本轮所有模型调用
-- 任务累计：当前任务的累计 Token
-- 多任务：发现正在运行的任务并切换
-- 本地历史：统计 `sessions` 和 `archived_sessions`
-- 账号：用量、额度窗口、重置时间、剩余时间
-- 费用：按请求和模型费率折算
-- Tibo：预测与确认的公共重置信号
-
 ## 数据口径
 
-| 项目 | 取值 |
+| 项目 | 来源或计算 |
 | --- | --- |
+| 活动任务 | `sessions` 中尚未完成的 rollout |
+| 任务标题 | Desktop 目录、rollout 元数据、工作目录 |
 | 当前请求 | 最新 `last_token_usage` |
 | 当前轮次 | 本轮 `total_token_usage` 的有效增量 |
 | 任务累计 | 最新 `total_token_usage` |
-| 本地历史 | 每个已索引会话的最终累计值 |
-| 账号用量 | Codex `app-server` |
+| 本地历史 | `sessions` 与可选 `archived_sessions` 的最终累计值 |
+| 账号用量与额度 | Codex `app-server` |
 | 费用 | 完整 Token 明细 × 模型费率 |
 | 剩余时间 | 同一账号、同一额度窗口的历史样本 |
+| Tibo | 预测与确认的公共重置信号；不计入账号额度 |
 
 无法确认的字段显示“不可用”。不按字符数估算 Token，不用本地会话推算账号额度。详细规则见 [Token 计算](docs/calculation-spec.md)。
 
