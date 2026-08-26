@@ -120,12 +120,18 @@ enum CodexCredentialStore {
         let tokens = root["tokens"] as? [String: Any]
         let accessToken = normalized(tokens?["access_token"] ?? tokens?["accessToken"])
         let idToken = normalized(tokens?["id_token"] ?? tokens?["idToken"])
-        let identity = normalized(tokens?["account_id"] ?? tokens?["accountId"])
-            ?? accountIDClaim(fromJWT: idToken)
-            ?? accountIDClaim(fromJWT: accessToken)
-            ?? accessToken.map { "oauth:\($0)" }
-            ?? idToken.map { "oauth-id:\($0)" }
-            ?? normalized(root["OPENAI_API_KEY"]).map { "api-key:\($0)" }
+        let accountID = normalized(tokens?["account_id"] ?? tokens?["accountId"])
+        let idTokenAccountID = accountIDClaim(fromJWT: idToken)
+        let accessTokenAccountID = accountIDClaim(fromJWT: accessToken)
+        let accessTokenIdentity = accessToken.map { "oauth:\($0)" }
+        let idTokenIdentity = idToken.map { "oauth-id:\($0)" }
+        let apiKeyIdentity = normalized(root["OPENAI_API_KEY"]).map { "api-key:\($0)" }
+        let identity = accountID
+            ?? idTokenAccountID
+            ?? accessTokenAccountID
+            ?? accessTokenIdentity
+            ?? idTokenIdentity
+            ?? apiKeyIdentity
         guard let identity else { return nil }
         let digest = SHA256.hash(data: Data(identity.utf8))
         return digest.prefix(12).map { String(format: "%02x", $0) }.joined()
