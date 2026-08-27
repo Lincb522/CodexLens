@@ -2533,7 +2533,7 @@ struct MenuBarDashboardView: View {
     }
 
     private var appVersionNumber: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.2"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.3"
     }
 
     private var appBuildNumber: String {

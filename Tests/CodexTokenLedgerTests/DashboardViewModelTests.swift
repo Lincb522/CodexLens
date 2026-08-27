@@ -98,6 +98,7 @@ final class DashboardViewModelTests: XCTestCase {
             defaults: defaults,
             launchAtLoginController: controller
         )
+        viewModel.appLanguage = .zhHans
 
         viewModel.setLaunchAtLogin(true)
 
