@@ -10,6 +10,11 @@ on:
         description: Existing v* tag
         required: true
         type: string
+      notarize:
+        description: Submit the package to Apple notarization
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -108,6 +113,7 @@ jobs:
           REQUIRE_DEVELOPER_ID=1 ./scripts/package_dmg.sh
 
       - name: Notarize and staple
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.notarize }}
         env:
           KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -177,6 +183,41 @@ jobs:
           hdiutil verify "$DMG"
           unzip -t "$ZIP" >/dev/null
 
+      - name: Validate Developer ID package
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.notarize }}
+        run: |
+          APP="dist/CodexTokenLedger.app"
+          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
+          DMG="dist/CodexTokenLedger-menu-bar-macOS.dmg"
+
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign --verify --verbose=2 "$DMG"
+          hdiutil verify "$DMG"
+          unzip -t "$ZIP" >/dev/null
+          shasum -a 256 "$DMG" "$ZIP" | sed 's#dist/##' > dist/SHA256SUMS.txt
+
+      - name: Prepare release notes
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+          UNNOTARIZED: ${{ github.event_name == 'workflow_dispatch' && !inputs.notarize }}
+        run: |
+          SOURCE="release-notes/${TAG#v}.md"
+          OUTPUT="$RUNNER_TEMP/release-notes.md"
+          test -s "$SOURCE"
+
+          if [[ "$UNNOTARIZED" == "true" ]]; then
+            head -n 1 "$SOURCE" > "$OUTPUT"
+            cat >> "$OUTPUT" <<'EOF'
+
+          > 此安装包已使用 Developer ID 签名，尚未通过 Apple 公证。首次打开时 macOS 可能要求确认。
+          EOF
+            tail -n +2 "$SOURCE" >> "$OUTPUT"
+          else
+            cp "$SOURCE" "$OUTPUT"
+          fi
+
+          echo "RELEASE_NOTES_PATH=$OUTPUT" >> "$GITHUB_ENV"
+
       - name: Generate update feed
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
@@ -184,7 +225,7 @@ jobs:
         run: |
           APPCAST_DIR="$RUNNER_TEMP/appcast"
           ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
-          NOTES="$GITHUB_WORKSPACE/release-notes/${TAG#v}.md"
+          NOTES="$RELEASE_NOTES_PATH"
           mkdir -p "$APPCAST_DIR"
           test -s "$NOTES"
           cp "$ZIP" "$APPCAST_DIR/"
@@ -215,7 +256,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          NOTES="release-notes/${TAG#v}.md"
+          NOTES="$RELEASE_NOTES_PATH"
           test -s "$NOTES"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --notes-file "$NOTES"

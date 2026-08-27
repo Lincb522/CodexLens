@@ -586,6 +586,8 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(workflow.contains("--embed-release-notes"))
         XCTAssertTrue(workflow.contains("release-notes/${TAG#v}.md"))
         XCTAssertTrue(workflow.contains("--notes-file \"$NOTES\""))
+        XCTAssertTrue(workflow.contains("inputs.notarize"))
+        XCTAssertTrue(workflow.contains("尚未通过 Apple 公证"))
         XCTAssertTrue(workflow.contains("dist/appcast.xml"))
     }
 
