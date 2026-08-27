@@ -9,11 +9,18 @@ import SwiftUI
 @MainActor
 final class CodexTokenLedgerAppDelegate: NSObject, NSApplicationDelegate {
     private let viewModel = DashboardViewModel()
+    private let updateService = AppUpdateService()
     private var menuBarController: NativeMenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        menuBarController = NativeMenuBarController(viewModel: viewModel)
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            updateService.start()
+        }
+        menuBarController = NativeMenuBarController(
+            viewModel: viewModel,
+            updateService: updateService
+        )
         viewModel.loadIfNeeded()
     }
 
@@ -27,6 +34,7 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
     static let contentWidth = MenuBarDashboardView.contentWidth
 
     private let viewModel: DashboardViewModel
+    private let updateService: AppUpdateService
     private let statusItem: NSStatusItem
     private let menu = NativeDashboardMenu()
     private let dashboardItem = NativeDashboardMenuItem()
@@ -39,12 +47,17 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
     private var pollingTimer: Timer?
     private var lastAccountTick = Date.distantPast
 
-    init(viewModel: DashboardViewModel, statusBar: NSStatusBar = .system) {
+    init(
+        viewModel: DashboardViewModel,
+        updateService: AppUpdateService,
+        statusBar: NSStatusBar = .system
+    ) {
         self.viewModel = viewModel
+        self.updateService = updateService
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         hostingView = NativeDashboardHostingView(
             rootView: AnyView(
-                MenuBarDashboardView()
+                MenuBarDashboardView(updateService: updateService)
                     .environmentObject(viewModel)
             )
         )
@@ -74,6 +87,7 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         applyAppearance()
         resizeDashboardIfNeeded(force: true)
+        viewModel.refreshLaunchAtLoginState()
         viewModel.scheduledLiveContextTick()
         DispatchQueue.main.async { [weak self] in
             self?.installMenuTopBridge()

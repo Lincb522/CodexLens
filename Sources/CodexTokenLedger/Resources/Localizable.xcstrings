@@ -1,6 +1,241 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "about.buildValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compilación %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビルド %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "빌드 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "構建 %@"
+          }
+        }
+      }
+    },
+    "about.source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código fuente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code source"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソースコード"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "소스 코드"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开源地址"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開源位址"
+          }
+        }
+      }
+    },
+    "about.versionValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "버전 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        }
+      }
+    },
+    "about.website": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sitio web"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site web"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公式サイト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "웹사이트"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官网"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官網"
+          }
+        }
+      }
+    },
+    "about.websitePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página del proyecto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page du projet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロジェクトページ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프로젝트 페이지"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目主页"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "專案首頁"
+          }
+        }
+      }
+    },
     "account.activateCodex": {
       "extractionState": "manual",
       "localizations": {
@@ -3761,6 +3996,53 @@
         }
       }
     },
+    "activeTasks.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active tasks"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay tareas activas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune tâche active"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中のタスクはありません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실행 중인 작업이 없습니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有运行中的任务"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有執行中的任務"
+          }
+        }
+      }
+    },
     "confidence.high": {
       "extractionState": "manual",
       "localizations": {
@@ -4513,6 +4795,194 @@
         }
       }
     },
+    "console.launchAtLogin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open at Login"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir al iniciar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir à la connexion"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン時に開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인 시 열기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开机自启"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入時啟動"
+          }
+        }
+      }
+    },
+    "console.launchAtLoginApproval": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow this app in Login Items."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite esta app en Ítems de inicio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisez cette app dans les éléments d’ouverture."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「ログイン項目」でこのアプリを許可してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인 항목에서 이 앱을 허용하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在“登录项”中允许此应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請在「登入項目」中允許此應用程式。"
+          }
+        }
+      }
+    },
+    "console.launchAtLoginFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update the login item: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo actualizar el ítem de inicio: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de modifier l’élément d’ouverture : %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン項目を変更できませんでした：%@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로그인 항목을 변경할 수 없습니다: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更改开机自启：%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法更改登入啟動：%@"
+          }
+        }
+      }
+    },
+    "console.launchAtLoginMoveToApplications": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move the app to Applications first."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mueve la app a Aplicaciones primero."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacez d’abord l’app dans Applications."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先にアプリを「アプリケーション」へ移動してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "먼저 앱을 응용 프로그램으로 옮기세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖到“应用程序”后再开启"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移到「應用程式」後再開啟"
+          }
+        }
+      }
+    },
     "console.live": {
       "extractionState": "manual",
       "localizations": {
@@ -4838,6 +5308,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "即時任務依 Codex 生命週期探索；模型容量、執行上下文與逐次長上下文費率分開追蹤。"
+          }
+        }
+      }
+    },
+    "console.openLoginItems": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Réglages"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 열기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟設定"
           }
         }
       }
@@ -5453,53 +5970,6 @@
         }
       }
     },
-    "developer.project": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Project"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Proyecto"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Projet"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プロジェクト"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "프로젝트"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "项目"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "專案"
-          }
-        }
-      }
-    },
     "developer.product": {
       "extractionState": "manual",
       "localizations": {
@@ -5547,49 +6017,49 @@
         }
       }
     },
-    "developer.tagline": {
+    "developer.project": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse puts Codex usage in your menu bar."
+            "value": "Project"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse muestra el uso de Codex en la barra."
+            "value": "Proyecto"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse affiche l’usage de Codex dans la barre."
+            "value": "Projet"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse で Codex の使用量をメニューバーに。"
+            "value": "プロジェクト"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse로 Codex 사용량을 메뉴 막대에."
+            "value": "프로젝트"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse，把 Codex 用量放进菜单栏。"
+            "value": "项目"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse，把 Codex 用量放進選單列。"
+            "value": "專案"
           }
         }
       }
@@ -5637,6 +6107,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "獨立 macOS 開發者"
+          }
+        }
+      }
+    },
+    "developer.tagline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse puts Codex usage in your menu bar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse muestra el uso de Codex en la barra."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse affiche l’usage de Codex dans la barre."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse で Codex の使用量をメニューバーに。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse로 Codex 사용량을 메뉴 막대에."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse，把 Codex 用量放进菜单栏。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token Pulse，把 Codex 用量放進選單列。"
           }
         }
       }
@@ -7662,6 +8179,570 @@
         }
       }
     },
+    "legal.disclaimer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disclaimer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aviso legal"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clause de non-responsabilité"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免責事項"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "면책 조항"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免责条款"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免責條款"
+          }
+        }
+      }
+    },
+    "legal.disclaimer.page1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage and cost\n\nContext totals derived from local Codex events describe the records available on this Mac. API-equivalent costs are estimates calculated from published model rates; they are not an invoice, account balance, or promise of future pricing. Quota values come from the connected service when available, while time-remaining forecasts depend on observed usage and may change."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso y coste\n\nLos totales de contexto derivados de eventos locales de Codex describen los registros disponibles en este Mac. Los costes equivalentes a la API son estimaciones basadas en tarifas publicadas; no son una factura, un saldo de cuenta ni una promesa de precios futuros. Las cuotas proceden del servicio conectado cuando están disponibles, y las previsiones dependen del uso observado y pueden cambiar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation et coût\n\nLes totaux de contexte issus des événements Codex locaux décrivent les enregistrements disponibles sur ce Mac. Les coûts équivalents API sont des estimations fondées sur les tarifs publiés ; ils ne constituent ni une facture, ni un solde, ni une promesse de tarifs futurs. Les quotas proviennent du service connecté lorsqu’ils sont disponibles, et les prévisions dépendent de l’utilisation observée."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用量とコスト\n\nローカルの Codex イベントから算出されるコンテキスト合計は、この Mac で取得できた記録を示します。API 相当コストは公開モデル料金に基づく推定であり、請求書、残高、将来の料金の保証ではありません。クォータ値は取得可能な場合に接続先サービスから読み取り、残り時間の予測は観測された使用量に依存するため変化します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용량 및 비용\n\n로컬 Codex 이벤트에서 계산된 컨텍스트 합계는 이 Mac에서 확인 가능한 기록을 나타냅니다. API 환산 비용은 공개된 모델 요금에 따른 추정치이며 청구서, 계정 잔액 또는 향후 가격에 대한 약속이 아닙니다. 할당량은 가능한 경우 연결된 서비스에서 가져오며, 남은 시간 예측은 관찰된 사용량에 따라 달라질 수 있습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量与花费\n\n根据本机 Codex 事件计算的上下文总量，只代表这台 Mac 上能够读取到的记录。API 等价花费按公开模型费率估算，不是账单、账号余额或未来价格承诺。额度数据在可用时来自已连接服务；可用时长预测依赖已观察到的消耗，结果可能变化。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用量與花費\n\n根據本機 Codex 事件計算的上下文總量，只代表這台 Mac 上能夠讀取到的記錄。API 等價花費按公開模型費率估算，不是帳單、帳號餘額或未來價格承諾。額度資料在可用時來自已連線服務；可用時長預測依賴已觀察到的消耗，結果可能變化。"
+          }
+        }
+      }
+    },
+    "legal.disclaimer.page2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "External information\n\nTibo reset signals are interpretations of public posts and are separate from account quota reset times. External services, release feeds, and public posts may be delayed, changed, or unavailable. Verify important billing, account, and service decisions with the official source. To the extent permitted by law, the authors are not liable for losses arising from reliance on estimates, third-party data, or unavailable services."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Información externa\n\nLas señales de restablecimiento de Tibo interpretan publicaciones públicas y son independientes del restablecimiento de cuota de la cuenta. Los servicios externos, feeds y publicaciones pueden retrasarse, cambiar o no estar disponibles. Confirma decisiones importantes de facturación, cuenta o servicio con la fuente oficial. En la medida permitida por la ley, los autores no responden por pérdidas derivadas de estimaciones, datos de terceros o servicios no disponibles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informations externes\n\nLes signaux de réinitialisation Tibo interprètent des publications publiques et sont distincts des dates de réinitialisation des quotas du compte. Les services externes, flux et publications peuvent être retardés, modifiés ou indisponibles. Vérifiez les décisions importantes de facturation, de compte ou de service auprès de la source officielle. Dans les limites autorisées par la loi, les auteurs ne répondent pas des pertes liées aux estimations, aux données tierces ou aux services indisponibles."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外部情報\n\nTibo リセットシグナルは公開投稿の解釈であり、アカウントのクォータリセット時刻とは別です。外部サービス、配信フィード、公開投稿は遅延、変更、または利用不能になる場合があります。請求、アカウント、サービスに関する重要な判断は公式情報で確認してください。法令で認められる範囲において、推定値、第三者データ、サービス停止への依存から生じる損失について、作者は責任を負いません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "외부 정보\n\nTibo 재설정 신호는 공개 게시물에 대한 해석이며 계정 할당량 재설정 시간과 별개입니다. 외부 서비스, 릴리스 피드 및 공개 게시물은 지연되거나 변경되거나 사용할 수 없을 수 있습니다. 결제, 계정 및 서비스와 관련된 중요한 결정은 공식 출처에서 확인하세요. 법이 허용하는 범위에서 작성자는 추정치, 제3자 데이터 또는 서비스 중단에 의존하여 발생한 손실에 책임을 지지 않습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外部信息\n\nTibo 重置信号是对公开消息的解释，与账号额度重置时间相互独立。外部服务、更新源与公开消息可能延迟、变化或不可用。涉及账单、账号和服务的重要决定，应当以官方来源为准。在法律允许的范围内，作者不对因依赖估算、第三方数据或服务不可用造成的损失承担责任。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外部資訊\n\nTibo 重設訊號是對公開訊息的解釋，與帳號額度重設時間相互獨立。外部服務、更新來源與公開訊息可能延遲、變化或不可用。涉及帳單、帳號和服務的重要決定，應當以官方來源為準。在法律允許的範圍內，作者不對因依賴估算、第三方資料或服務不可用造成的損失承擔責任。"
+          }
+        }
+      }
+    },
+    "legal.openSource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-source License"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia de código abierto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licence open source"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オープンソースライセンス"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오픈 소스 라이선스"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开源协议"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開源協議"
+          }
+        }
+      }
+    },
+    "legal.openSource.page1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIT License\n\nCopyright (c) 2026 Zijiu522\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:"
+          }
+        }
+      }
+    },
+    "legal.openSource.page2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\nSparkle and the Tibo Watch adaptation retain their respective MIT notices in the app bundle."
+          }
+        }
+      }
+    },
+    "legal.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de privacidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Politique de confidentialité"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーポリシー"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인정보 처리방침"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私协议"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隱私協議"
+          }
+        }
+      }
+    },
+    "legal.privacy.page1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local data\n\nToken Pulse reads Codex session files and account usage on this Mac. Parsed usage, preferences, and indexes stay in the app’s local container. Imported credentials are written only to the Codex home selected for that account. Raw tokens are not placed in usage exports or app logs.\n\nThe app has no advertising SDK, behavioral analytics, or cross-app tracking. CSV and JSON exports are created only when you choose an export action."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos locales\n\nToken Pulse lee archivos de sesión y uso de cuentas de Codex en este Mac. El uso analizado, las preferencias y los índices permanecen en el contenedor local de la app. Las credenciales importadas solo se escriben en el directorio Codex elegido para esa cuenta. Los tokens sin procesar no se incluyen en exportaciones ni registros.\n\nLa app no contiene publicidad, analítica de comportamiento ni seguimiento entre apps. Las exportaciones CSV y JSON solo se crean cuando eliges exportar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Données locales\n\nToken Pulse lit les fichiers de session et l’utilisation des comptes Codex sur ce Mac. Les données analysées, préférences et index restent dans le conteneur local de l’app. Les identifiants importés sont écrits uniquement dans le dossier Codex choisi pour ce compte. Les jetons bruts ne figurent ni dans les exports ni dans les journaux.\n\nL’app ne contient ni publicité, ni analyse comportementale, ni suivi entre applications. Les exports CSV et JSON sont créés uniquement à votre demande."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルデータ\n\nToken Pulse は、この Mac 上の Codex セッションファイルとアカウント使用量を読み取ります。解析した使用量、設定、インデックスはアプリのローカルコンテナに保存されます。インポートした認証情報は、そのアカウント用に選択した Codex ホームにのみ書き込まれます。生のトークンは使用量の書き出しやアプリログに含まれません。\n\n広告 SDK、行動分析、アプリ横断トラッキングはありません。CSV と JSON は、書き出し操作を選んだ場合にのみ作成されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 데이터\n\nToken Pulse는 이 Mac의 Codex 세션 파일과 계정 사용량을 읽습니다. 분석된 사용량, 환경 설정 및 인덱스는 앱의 로컬 컨테이너에 보관됩니다. 가져온 자격 증명은 해당 계정에 선택된 Codex 홈에만 기록됩니다. 원본 토큰은 사용량 내보내기나 앱 로그에 포함되지 않습니다.\n\n광고 SDK, 행동 분석 또는 앱 간 추적 기능이 없습니다. CSV와 JSON 내보내기는 사용자가 내보내기를 선택한 경우에만 생성됩니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地数据\n\nToken Pulse 会读取这台 Mac 上的 Codex 会话文件和账号使用量。解析后的用量、偏好设置与索引保存在应用的本地容器中。导入的凭据只会写入该账号所选的 Codex Home。原始 Token 不会进入用量导出或应用日志。\n\n应用不包含广告 SDK、行为分析或跨应用跟踪。CSV 与 JSON 文件只会在你主动选择导出时生成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本機資料\n\nToken Pulse 會讀取這台 Mac 上的 Codex 工作階段檔案和帳號使用量。解析後的用量、偏好設定與索引保存在應用程式的本機容器中。匯入的憑據只會寫入該帳號所選的 Codex Home。原始 Token 不會進入用量匯出或應用程式日誌。\n\n應用程式不包含廣告 SDK、行為分析或跨應用程式追蹤。CSV 與 JSON 檔案只會在你主動選擇匯出時產生。"
+          }
+        }
+      }
+    },
+    "legal.privacy.page2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network access\n\nFor account usage, the local Codex client uses its normal credential source to contact the official service. The optional Tibo monitor reads public reset posts. Software Update reads the project’s GitHub appcast and downloads a signed release only after an update is available.\n\nDeleting the app does not automatically delete Codex files, isolated account homes, or files you exported. Remove those separately if you no longer need them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso a la red\n\nPara consultar el uso de la cuenta, el cliente local de Codex usa su fuente normal de credenciales para contactar con el servicio oficial. El monitor opcional de Tibo lee publicaciones públicas de restablecimiento. Actualización de software consulta el appcast del proyecto en GitHub y solo descarga una versión firmada cuando hay una actualización.\n\nEliminar la app no borra automáticamente los archivos de Codex, los directorios aislados de cuentas ni los archivos exportados. Elimínalos por separado si ya no los necesitas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès réseau\n\nPour l’utilisation du compte, le client Codex local utilise sa source d’identifiants habituelle pour contacter le service officiel. Le moniteur Tibo facultatif lit des messages publics de réinitialisation. La mise à jour logicielle consulte l’appcast GitHub du projet et ne télécharge qu’une version signée lorsqu’elle est disponible.\n\nSupprimer l’app ne supprime pas automatiquement les fichiers Codex, les dossiers de comptes isolés ni vos exports. Supprimez-les séparément si nécessaire."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ネットワークアクセス\n\nアカウント使用量の取得では、ローカルの Codex クライアントが通常の認証情報を使って公式サービスに接続します。任意の Tibo モニターは公開されたリセット投稿を読み取ります。ソフトウェアアップデートはプロジェクトの GitHub appcast を取得し、更新がある場合にのみ署名済みリリースをダウンロードします。\n\nアプリを削除しても、Codex ファイル、分離アカウントホーム、書き出したファイルは自動削除されません。不要になった場合は別途削除してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "네트워크 접근\n\n계정 사용량을 확인할 때 로컬 Codex 클라이언트는 기존 자격 증명 소스로 공식 서비스에 연결합니다. 선택형 Tibo 모니터는 공개된 재설정 게시물을 읽습니다. 소프트웨어 업데이트는 프로젝트의 GitHub appcast를 확인하고 업데이트가 있을 때 서명된 릴리스만 다운로드합니다.\n\n앱을 삭제해도 Codex 파일, 분리된 계정 홈 또는 내보낸 파일은 자동으로 삭제되지 않습니다. 필요하지 않다면 별도로 삭제하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络访问\n\n读取账号用量时，本机 Codex 客户端会使用原有凭据源连接官方服务。可选的 Tibo 监控会读取公开的重置消息。软件更新会读取项目的 GitHub appcast，并只在发现更新后下载已签名的发行包。\n\n删除应用不会自动删除 Codex 文件、隔离账号目录或你导出的文件；不再需要时请单独删除。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "網路存取\n\n讀取帳號用量時，本機 Codex 用戶端會使用原有憑據來源連線官方服務。可選的 Tibo 監控會讀取公開的重設訊息。軟體更新會讀取專案的 GitHub appcast，並只在發現更新後下載已簽署的發行包。\n\n刪除應用程式不會自動刪除 Codex 檔案、隔離帳號目錄或你匯出的檔案；不再需要時請單獨刪除。"
+          }
+        }
+      }
+    },
+    "legal.userAgreement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "User Agreement"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acuerdo de usuario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions d’utilisation"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用規約"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용자 계약"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户协议"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用者協議"
+          }
+        }
+      }
+    },
+    "legal.userAgreement.page1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effective: August 27, 2026\n\nToken Pulse is a macOS menu bar utility that reads local Codex usage records and displays context, quota, and API-equivalent cost estimates. By installing, launching, or continuing to use the app, you accept this agreement.\n\nYou may use, copy, and modify the app subject to applicable law and its open-source license. You may not use it to access accounts, data, or systems without authorization, or to bypass rules imposed by Codex, OpenAI, or another service."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vigente desde el 27 de agosto de 2026\n\nToken Pulse es una utilidad de barra de menús para macOS que lee registros locales de uso de Codex y muestra contexto, cuota y estimaciones de coste equivalentes a la API. Al instalar, abrir o seguir usando la app, aceptas este acuerdo.\n\nPuedes usar, copiar y modificar la app conforme a la ley aplicable y a su licencia de código abierto. No puedes usarla para acceder sin autorización a cuentas, datos o sistemas, ni para eludir las reglas de Codex, OpenAI u otro servicio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En vigueur le 27 août 2026\n\nToken Pulse est un utilitaire de barre des menus macOS qui lit les journaux locaux de Codex et affiche le contexte, les quotas et des estimations de coût équivalent API. En installant, lançant ou continuant à utiliser l’app, vous acceptez ces conditions.\n\nVous pouvez utiliser, copier et modifier l’app dans le respect de la loi et de sa licence open source. Vous ne pouvez pas l’utiliser pour accéder sans autorisation à des comptes, données ou systèmes, ni pour contourner les règles de Codex, OpenAI ou d’un autre service."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "適用日：2026年8月27日\n\nToken Pulse は、ローカルの Codex 利用記録を読み取り、コンテキスト、クォータ、API 相当コストの推定値を表示する macOS メニューバーユーティリティです。インストール、起動、または利用の継続により、本規約に同意したものとみなされます。\n\n適用法およびオープンソースライセンスに従って、本アプリを利用、複製、変更できます。権限のないアカウント、データ、システムへのアクセスや、Codex、OpenAI、その他のサービスの規則を回避する目的には使用できません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시행일: 2026년 8월 27일\n\nToken Pulse는 로컬 Codex 사용 기록을 읽고 컨텍스트, 할당량 및 API 환산 비용 추정치를 표시하는 macOS 메뉴 막대 유틸리티입니다. 앱을 설치하거나 실행하거나 계속 사용하면 본 계약에 동의한 것으로 간주됩니다.\n\n관련 법률과 오픈 소스 라이선스에 따라 앱을 사용, 복사, 수정할 수 있습니다. 권한 없이 계정, 데이터 또는 시스템에 접근하거나 Codex, OpenAI 또는 다른 서비스의 규칙을 우회하는 데 사용할 수 없습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生效日期：2026年8月27日\n\nToken Pulse 是一款 macOS 菜单栏工具，用于读取本机 Codex 使用记录，并展示上下文、额度与 API 等价花费估算。安装、启动或继续使用本应用，即表示你接受本协议。\n\n你可以在遵守适用法律及开源许可的前提下使用、复制和修改本应用。不得利用本应用访问未经授权的账号、数据或系统，也不得绕过 Codex、OpenAI 或其他服务的规则。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生效日期：2026年8月27日\n\nToken Pulse 是一款 macOS 選單列工具，用於讀取本機 Codex 使用記錄，並顯示上下文、額度與 API 等價花費估算。安裝、啟動或繼續使用本應用程式，即表示你接受本協議。\n\n你可以在遵守適用法律及開源授權的前提下使用、複製和修改本應用程式。不得利用本應用程式存取未經授權的帳號、資料或系統，也不得繞過 Codex、OpenAI 或其他服務的規則。"
+          }
+        }
+      }
+    },
+    "legal.userAgreement.page2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accounts and data\n\nYou are responsible for ensuring that every imported account and credential belongs to you or is used with permission. Switching the Codex login changes the current Codex credential on this Mac; the app identifies that action before it runs.\n\nThe app is provided “as is.” You may stop using and remove it at any time. If these terms change, a later version will contain the revised text. Continuing to use that version means accepting the revised terms."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuentas y datos\n\nDebes asegurarte de que cada cuenta y credencial importada sea tuya o se use con permiso. Cambiar el inicio de sesión de Codex modifica la credencial actual de Codex en este Mac; la app identifica esa acción antes de ejecutarla.\n\nLa app se ofrece «tal cual». Puedes dejar de usarla y eliminarla en cualquier momento. Si estas condiciones cambian, una versión posterior incluirá el texto revisado. Seguir usando esa versión supone aceptar las nuevas condiciones."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comptes et données\n\nVous devez vous assurer que chaque compte et identifiant importé vous appartient ou est utilisé avec autorisation. Changer la connexion Codex modifie l’identifiant Codex actuel sur ce Mac ; l’app indique cette action avant de l’exécuter.\n\nL’app est fournie « en l’état ». Vous pouvez cesser de l’utiliser et la supprimer à tout moment. Si ces conditions changent, une version ultérieure contiendra le texte révisé. Continuer à utiliser cette version vaut acceptation des nouvelles conditions."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントとデータ\n\nインポートする各アカウントと認証情報が本人のもの、または許可を得たものであることを確認してください。Codex ログインの切り替えは、この Mac の現在の Codex 認証情報を変更します。アプリは実行前にその操作を明示します。\n\n本アプリは「現状有姿」で提供されます。いつでも利用を中止し、削除できます。本規約が変更された場合、以後のバージョンに改訂文を収録します。そのバージョンを継続して使用すると、改訂後の規約に同意したものとみなされます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 및 데이터\n\n가져온 모든 계정과 자격 증명이 본인 소유이거나 사용 권한을 받은 것인지 확인해야 합니다. Codex 로그인을 전환하면 이 Mac의 현재 Codex 자격 증명이 변경되며, 앱은 실행 전에 해당 작업을 표시합니다.\n\n앱은 “있는 그대로” 제공됩니다. 언제든 사용을 중단하고 삭제할 수 있습니다. 약관이 변경되면 이후 버전에 수정된 내용이 포함됩니다. 해당 버전을 계속 사용하면 수정된 약관에 동의한 것으로 간주됩니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号与数据\n\n你应当确保导入的账号和凭据属于你或已获授权。切换 Codex 登录会修改这台 Mac 当前使用的 Codex 凭据；应用会在执行前明确标出该操作。\n\n应用按“现状”提供。你可以随时停止使用并删除应用。若本协议发生变化，后续版本会内置修订后的文本；继续使用该版本即表示接受修订内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號與資料\n\n你應當確保匯入的帳號和憑據屬於你或已獲授權。切換 Codex 登入會修改這台 Mac 目前使用的 Codex 憑據；應用程式會在執行前明確標出該操作。\n\n應用程式按「現狀」提供。你可以隨時停止使用並刪除應用程式。若本協議發生變化，後續版本會內建修訂後的文本；繼續使用該版本即表示接受修訂內容。"
+          }
+        }
+      }
+    },
     "live.apiEstimate": {
       "extractionState": "manual",
       "localizations": {
@@ -7756,6 +8837,53 @@
         }
       }
     },
+    "live.cacheWithinInput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cached portion"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parte en caché"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cache inclus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力内キャッシュ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력 내 캐시"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入内缓存"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入內快取"
+          }
+        }
+      }
+    },
     "live.cached": {
       "extractionState": "manual",
       "localizations": {
@@ -7799,6 +8927,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "其中快取"
+          }
+        }
+      }
+    },
+    "live.calls": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d model calls"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d llamadas al modelo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d appels modèle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル呼び出し %d 回"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모델 호출 %d회"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 次模型调用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 次模型呼叫"
           }
         }
       }
@@ -7897,6 +9072,335 @@
         }
       }
     },
+    "live.contextInput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Context input"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrada de contexto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrée de contexte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンテキスト入力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "컨텍스트 입력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文输入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文輸入"
+          }
+        }
+      }
+    },
+    "live.contextLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Context limit %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite de contexto %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de contexte %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コンテキスト上限 %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "컨텍스트 한도 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文上限 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上下文上限 %@"
+          }
+        }
+      }
+    },
+    "live.cumulativeCache": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative cache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caché acumulada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cache cumulé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累積キャッシュ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누적 캐시"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计缓存"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累計快取"
+          }
+        }
+      }
+    },
+    "live.cumulativeInput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative input"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrada acumulada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrée cumulée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累積入力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누적 입력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计输入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累計輸入"
+          }
+        }
+      }
+    },
+    "live.cumulativeOutput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative output"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salida acumulada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortie cumulée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累積出力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누적 출력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计输出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累計輸出"
+          }
+        }
+      }
+    },
+    "live.currentContext": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversation context"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contexto actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contexte actuel"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会話コンテキスト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "대화 컨텍스트"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前对话上下文"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前對話上下文"
+          }
+        }
+      }
+    },
+    "live.currentContextInput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest request context input"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contexto de la última solicitud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contexte de la dernière requête"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新リクエストのコンテキスト入力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최신 요청 컨텍스트 입력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前对话最新请求的上下文输入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前對話最新請求的上下文輸入"
+          }
+        }
+      }
+    },
     "live.currentTurn": {
       "extractionState": "manual",
       "localizations": {
@@ -7940,6 +9444,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "目前輪次"
+          }
+        }
+      }
+    },
+    "live.duplicatesIgnored": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d duplicates ignored"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d duplicados ignorados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d doublons ignorés"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重複 %d 件を除外"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중복 %d개 제외"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已忽略 %d 条重复事件"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已忽略 %d 筆重複事件"
           }
         }
       }
@@ -8273,6 +9824,100 @@
         }
       }
     },
+    "live.inputIncludesCache": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input already includes cached tokens; they are not added twice"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La entrada ya incluye la caché; no se suma dos veces"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’entrée inclut déjà le cache ; il n’est pas additionné deux fois"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力にはキャッシュが含まれ、重複加算されません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입력에 캐시가 포함되어 중복 합산하지 않습니다"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入已包含缓存，缓存不会重复相加"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輸入已包含快取，快取不會重複相加"
+          }
+        }
+      }
+    },
+    "live.latestRequest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest request"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitud reciente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière requête"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新リクエスト"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최신 요청"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新请求"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新請求"
+          }
+        }
+      }
+    },
     "live.longRate": {
       "extractionState": "manual",
       "localizations": {
@@ -8316,6 +9961,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "標準 %@ · 長上下文 %@ / 1M"
+          }
+        }
+      }
+    },
+    "live.longTier": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long %@ · %d calls"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extendido %@ · %d llamadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long %@ · %d appels"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超長 %@ · %d 回"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "초장문 %@ · %d회"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超长 %@ · %d 次"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超長 %@ · %d 次"
           }
         }
       }
@@ -8461,6 +10153,100 @@
         }
       }
     },
+    "live.perMillionTokens": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1M tokens"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1 M tokens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1 M Token"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1M Token"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1M Token"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1M Token"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ 1M Token"
+          }
+        }
+      }
+    },
+    "live.rateOrder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rates / 1M · input / cache / output"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarifas / 1M · entrada / caché / salida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarifs / 1M · entrée / cache / sortie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "料金 / 1M · 入力 / キャッシュ / 出力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요금 / 1M · 입력 / 캐시 / 출력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "费率 / 1M · 输入 / 缓存 / 输出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "費率 / 1M · 輸入 / 快取 / 輸出"
+          }
+        }
+      }
+    },
     "live.remaining": {
       "extractionState": "manual",
       "localizations": {
@@ -8504,6 +10290,100 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入容量剩餘 %@"
+          }
+        }
+      }
+    },
+    "live.requestContextInput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest request context input"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrada de contexto reciente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrée contexte récente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新リクエストの入力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최신 요청 컨텍스트 입력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新请求上下文输入"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新請求上下文輸入"
+          }
+        }
+      }
+    },
+    "live.requestOutput": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request output"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salida de solicitud"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sortie de la requête"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リクエスト出力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "요청 출력"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次输出"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次輸出"
           }
         }
       }
@@ -8649,6 +10529,100 @@
         }
       }
     },
+    "live.standardTier": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estándar %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準 %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "표준 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标准 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準 %@"
+          }
+        }
+      }
+    },
+    "live.taskUsageTotal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task usage total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso total de la tarea"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation totale de la tâche"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タスク総使用量"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "작업 총사용량"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务总用量"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任務總用量"
+          }
+        }
+      }
+    },
     "live.tasks": {
       "extractionState": "manual",
       "localizations": {
@@ -8692,6 +10666,100 @@
           "stringUnit": {
             "state": "translated",
             "value": "%d 個任務 · 輸入 %@"
+          }
+        }
+      }
+    },
+    "live.tokenDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token detail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalle de Token"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détail des Token"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 明細"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 상세"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 明细"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 明細"
+          }
+        }
+      }
+    },
+    "live.tokenValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ tokens"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ tokens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Token"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Token"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Token"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Token"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Token"
           }
         }
       }
@@ -8743,6 +10811,53 @@
         }
       }
     },
+    "live.totalTokens": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ total"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ au total"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合計 %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "총 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总计 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "總計 %@"
+          }
+        }
+      }
+    },
     "live.turn": {
       "extractionState": "manual",
       "localizations": {
@@ -8786,6 +10901,100 @@
           "stringUnit": {
             "state": "translated",
             "value": "目前輪次 · %d 次呼叫"
+          }
+        }
+      }
+    },
+    "live.usageNotContext": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cumulative usage · not context size"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso acumulado · no es el tamaño del contexto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation cumulée · pas la taille du contexte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累積使用量 · コンテキストサイズではありません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누적 사용량 · 컨텍스트 크기가 아님"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计用量 · 不是上下文大小"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累計用量 · 不是上下文大小"
+          }
+        }
+      }
+    },
+    "live.usedValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ used"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ usado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ utilisé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 사용"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用 %@"
           }
         }
       }
@@ -9401,6 +11610,100 @@
         }
       }
     },
+    "page.about": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアプリについて"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정보"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關於"
+          }
+        }
+      }
+    },
+    "page.activeTasks": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active Tasks"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tareas activas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tâches actives"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "実行中のタスク"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실행 중인 작업"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行中的任务"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "執行中的任務"
+          }
+        }
+      }
+    },
     "page.console": {
       "extractionState": "manual",
       "localizations": {
@@ -9542,6 +11845,53 @@
         }
       }
     },
+    "page.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "더보기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
     "page.overview": {
       "extractionState": "manual",
       "localizations": {
@@ -9679,6 +12029,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "Connexion par token"
+          }
+        }
+      }
+    },
+    "page.updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Software Update"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualización"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mise à jour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソフトウェアアップデート"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "소프트웨어 업데이트"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "软件更新"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "軟體更新"
           }
         }
       }
@@ -10713,6 +13110,53 @@
           "stringUnit": {
             "state": "translated",
             "value": "Analyseur universel d’identifiants"
+          }
+        }
+      }
+    },
+    "subtitle.updates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download and install new releases"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga e instala nuevas versiones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger et installer les nouvelles versions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいリリースをダウンロードしてインストール"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 릴리스 다운로드 및 설치"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载并安装新版本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下載並安裝新版本"
           }
         }
       }
@@ -14193,1130 +16637,848 @@
         }
       }
     },
-    "live.latestRequest": {
+    "update.automatic": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest request"
+            "value": "AUTOMATIC UPDATES"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solicitud reciente"
+            "value": "ACTUALIZACIONES AUTOMÁTICAS"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dernière requête"
+            "value": "MISES À JOUR AUTOMATIQUES"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新リクエスト"
+            "value": "自動アップデート"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최신 요청"
+            "value": "자동 업데이트"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新请求"
+            "value": "自动更新"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新請求"
+            "value": "自動更新"
           }
         }
       }
     },
-    "live.requestContextInput": {
+    "update.automaticChecks": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest request context input"
+            "value": "Check automatically"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entrada de contexto reciente"
+            "value": "Buscar automáticamente"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entrée contexte récente"
+            "value": "Rechercher automatiquement"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新リクエストの入力"
+            "value": "自動的に確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최신 요청 컨텍스트 입력"
+            "value": "자동으로 확인"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新请求上下文输入"
+            "value": "自动检查"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新請求上下文輸入"
+            "value": "自動檢查"
           }
         }
       }
     },
-    "live.contextLimit": {
+    "update.automaticDownloads": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Context limit %@"
+            "value": "Download automatically"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Límite de contexto %@"
+            "value": "Descargar automáticamente"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limite de contexte %@"
+            "value": "Télécharger automatiquement"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "コンテキスト上限 %@"
+            "value": "自動的にダウンロード"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "컨텍스트 한도 %@"
+            "value": "자동으로 다운로드"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上下文上限 %@"
+            "value": "自动下载"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "上下文上限 %@"
+            "value": "自動下載"
           }
         }
       }
     },
-    "live.usedValue": {
+    "update.available": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ used"
+            "value": "Version %@ is available"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ usado"
+            "value": "La versión %@ está disponible"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ utilisé"
+            "value": "La version %@ est disponible"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 使用"
+            "value": "バージョン %@ を利用できます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 사용"
+            "value": "버전 %@ 사용 가능"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已用 %@"
+            "value": "发现新版本 %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已用 %@"
+            "value": "發現新版本 %@"
           }
         }
       }
     },
-    "live.tokenDetail": {
+    "update.availableShort": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token detail"
+            "value": "Available"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Detalle de Token"
+            "value": "Disponible"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Détail des Token"
+            "value": "Disponible"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 明細"
+            "value": "利用可能"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 상세"
+            "value": "사용 가능"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 明细"
+            "value": "有新版本"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 明細"
+            "value": "有新版本"
           }
         }
       }
     },
-    "live.totalTokens": {
+    "update.check": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ total"
+            "value": "Check for Updates"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ total"
+            "value": "Buscar actualizaciones"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ au total"
+            "value": "Rechercher les mises à jour"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "合計 %@"
+            "value": "アップデートを確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "총 %@"
+            "value": "업데이트 확인"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "总计 %@"
+            "value": "检查更新"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "總計 %@"
+            "value": "檢查更新"
           }
         }
       }
     },
-    "live.tokenValue": {
+    "update.checkNow": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ tokens"
+            "value": "Check Now"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ tokens"
+            "value": "Buscar ahora"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Token"
+            "value": "Vérifier maintenant"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Token"
+            "value": "今すぐ確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Token"
+            "value": "지금 확인"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Token"
+            "value": "立即检查"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Token"
+            "value": "立即檢查"
           }
         }
       }
     },
-    "live.perMillionTokens": {
+    "update.checking": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1M tokens"
+            "value": "Checking for updates…"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1 M tokens"
+            "value": "Buscando actualizaciones…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1 M Token"
+            "value": "Recherche des mises à jour…"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1M Token"
+            "value": "アップデートを確認中…"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1M Token"
+            "value": "업데이트 확인 중…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1M Token"
+            "value": "正在检查更新…"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ 1M Token"
+            "value": "正在檢查更新…"
           }
         }
       }
     },
-    "live.inputIncludesCache": {
+    "update.checkingShort": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Input already includes cached tokens; they are not added twice"
+            "value": "Checking"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La entrada ya incluye la caché; no se suma dos veces"
+            "value": "Buscando"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’entrée inclut déjà le cache ; il n’est pas additionné deux fois"
+            "value": "Vérification"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "入力にはキャッシュが含まれ、重複加算されません"
+            "value": "確認中"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "입력에 캐시가 포함되어 중복 합산하지 않습니다"
+            "value": "확인 중"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入已包含缓存，缓存不会重复相加"
+            "value": "检查中"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "輸入已包含快取，快取不會重複相加"
+            "value": "檢查中"
           }
         }
       }
     },
-    "live.calls": {
+    "update.current": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d model calls"
+            "value": "You’re up to date"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d llamadas al modelo"
+            "value": "Tienes la última versión"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d appels modèle"
+            "value": "Vous êtes à jour"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "モデル呼び出し %d 回"
+            "value": "最新バージョンです"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "모델 호출 %d회"
+            "value": "최신 버전입니다"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d 次模型调用"
+            "value": "已是最新版本"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d 次模型呼叫"
+            "value": "已是最新版本"
           }
         }
       }
     },
-    "live.duplicatesIgnored": {
+    "update.currentShort": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d duplicates ignored"
+            "value": "Up to date"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d duplicados ignorados"
+            "value": "Actualizado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d doublons ignorés"
+            "value": "À jour"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "重複 %d 件を除外"
+            "value": "最新"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "중복 %d개 제외"
+            "value": "최신"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已忽略 %d 条重复事件"
+            "value": "最新"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "已忽略 %d 筆重複事件"
+            "value": "最新"
           }
         }
       }
     },
-    "live.rateOrder": {
+    "update.failed": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rates / 1M · input / cache / output"
+            "value": "Couldn’t check for updates"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarifas / 1M · entrada / caché / salida"
+            "value": "No se pudo buscar actualizaciones"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarifs / 1M · entrée / cache / sortie"
+            "value": "Impossible de rechercher les mises à jour"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "料金 / 1M · 入力 / キャッシュ / 出力"
+            "value": "アップデートを確認できませんでした"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "요금 / 1M · 입력 / 캐시 / 출력"
+            "value": "업데이트를 확인할 수 없습니다"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "费率 / 1M · 输入 / 缓存 / 输出"
+            "value": "检查更新失败"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "費率 / 1M · 輸入 / 快取 / 輸出"
+            "value": "檢查更新失敗"
           }
         }
       }
     },
-    "live.standardTier": {
+    "update.failedShort": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard %@"
+            "value": "Retry"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estándar %@"
+            "value": "Reintentar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard %@"
+            "value": "Réessayer"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "標準 %@"
+            "value": "再試行"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "표준 %@"
+            "value": "다시 시도"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标准 %@"
+            "value": "重试"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "標準 %@"
+            "value": "重試"
           }
         }
       }
     },
-    "live.longTier": {
+    "update.installOnQuit": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Long %@ · %d calls"
+            "value": "Downloaded updates are installed when the app quits."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Extendido %@ · %d llamadas"
+            "value": "Las actualizaciones descargadas se instalan al salir de la app."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Long %@ · %d appels"
+            "value": "Les mises à jour téléchargées sont installées à la fermeture de l’app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "超長 %@ · %d 回"
+            "value": "ダウンロード済みのアップデートはアプリ終了時にインストールされます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "초장문 %@ · %d회"
+            "value": "다운로드한 업데이트는 앱 종료 시 설치됩니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "超长 %@ · %d 次"
+            "value": "更新下载完成后，将在退出应用时安装。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "超長 %@ · %d 次"
+            "value": "更新下載完成後，將在退出應用程式時安裝。"
           }
         }
       }
     },
-    "live.currentContext": {
+    "update.lastChecked": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conversation context"
+            "value": "Last checked"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contexto actual"
+            "value": "Última búsqueda"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contexte actuel"
+            "value": "Dernière vérification"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "会話コンテキスト"
+            "value": "最終確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "대화 컨텍스트"
+            "value": "마지막 확인"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前对话上下文"
+            "value": "上次检查"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "目前對話上下文"
+            "value": "上次檢查"
           }
         }
       }
     },
-    "live.taskUsageTotal": {
+    "update.never": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Task usage total"
+            "value": "Never"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uso total de la tarea"
+            "value": "Nunca"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilisation totale de la tâche"
+            "value": "Jamais"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "タスク総使用量"
+            "value": "未確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "작업 총사용량"
+            "value": "확인 안 함"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "任务总用量"
+            "value": "从未"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "任務總用量"
+            "value": "從未"
           }
         }
       }
     },
-    "live.currentContextInput": {
+    "update.ready": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Latest request context input"
+            "value": "Ready to check"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contexto de la última solicitud"
+            "value": "Listo para buscar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contexte de la dernière requête"
+            "value": "Prêt à vérifier"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最新リクエストのコンテキスト入力"
+            "value": "確認できます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최신 요청 컨텍스트 입력"
+            "value": "확인할 수 있음"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前对话最新请求的上下文输入"
+            "value": "可以检查更新"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "目前對話最新請求的上下文輸入"
+            "value": "可以檢查更新"
           }
         }
       }
     },
-    "live.usageNotContext": {
+    "update.readyShort": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cumulative usage · not context size"
+            "value": "Ready"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uso acumulado · no es el tamaño del contexto"
+            "value": "Listo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilisation cumulée · pas la taille du contexte"
+            "value": "Prêt"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "累積使用量 · コンテキストサイズではありません"
+            "value": "確認可能"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "누적 사용량 · 컨텍스트 크기가 아님"
+            "value": "확인 가능"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "累计用量 · 不是上下文大小"
+            "value": "可检查"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "累計用量 · 不是上下文大小"
-          }
-        }
-      }
-    },
-    "live.contextInput": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Context input"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrada de contexto"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrée de contexte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "コンテキスト入力"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "컨텍스트 입력"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上下文输入"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上下文輸入"
-          }
-        }
-      }
-    },
-    "live.cacheWithinInput": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cached portion"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parte en caché"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cache inclus"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入力内キャッシュ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "입력 내 캐시"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入内缓存"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "輸入內快取"
-          }
-        }
-      }
-    },
-    "live.requestOutput": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Request output"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salida de solicitud"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sortie de la requête"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "リクエスト出力"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "요청 출력"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本次输出"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本次輸出"
-          }
-        }
-      }
-    },
-    "live.cumulativeInput": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cumulative input"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrada acumulada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrée cumulée"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累積入力"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누적 입력"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累计输入"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累計輸入"
-          }
-        }
-      }
-    },
-    "live.cumulativeCache": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cumulative cache"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Caché acumulada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cache cumulé"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累積キャッシュ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누적 캐시"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累计缓存"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累計快取"
-          }
-        }
-      }
-    },
-    "live.cumulativeOutput": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cumulative output"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salida acumulada"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sortie cumulée"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累積出力"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누적 출력"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累计输出"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累計輸出"
+            "value": "可檢查"
           }
         }
       }

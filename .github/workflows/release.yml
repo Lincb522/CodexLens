@@ -41,13 +41,15 @@ jobs:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           for name in \
             MACOS_DEVELOPER_ID_P12_BASE64 \
             MACOS_DEVELOPER_ID_P12_PASSWORD \
             APP_STORE_CONNECT_KEY_ID \
             APP_STORE_CONNECT_ISSUER_ID \
-            APP_STORE_CONNECT_PRIVATE_KEY_BASE64
+            APP_STORE_CONNECT_PRIVATE_KEY_BASE64 \
+            SPARKLE_PRIVATE_KEY
           do
             if [[ -z "${!name}" ]]; then
               echo "Missing signing input: $name" >&2
@@ -102,18 +104,8 @@ jobs:
         run: |
           ./scripts/build_app.sh
           ./scripts/package_release.sh
-          codesign \
-            --force \
-            --deep \
-            --options runtime \
-            --timestamp \
-            --sign "$CODESIGN_IDENTITY" \
-            dist/CodexTokenLedger.app
           codesign --verify --deep --strict --verbose=2 dist/CodexTokenLedger.app
-          rm dist/CodexTokenLedger-menu-bar-macOS.zip
-          ditto -c -k --sequesterRsrc --keepParent \
-            dist/CodexTokenLedger.app \
-            dist/CodexTokenLedger-menu-bar-macOS.zip
+          REQUIRE_DEVELOPER_ID=1 ./scripts/package_dmg.sh
 
       - name: Notarize and staple
         env:
@@ -123,38 +115,123 @@ jobs:
         run: |
           APP="dist/CodexTokenLedger.app"
           ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
+          DMG="dist/CodexTokenLedger-menu-bar-macOS.dmg"
           KEY_PATH="$RUNNER_TEMP/AuthKey_${KEY_ID}.p8"
 
           printf '%s' "$PRIVATE_KEY" | base64 --decode -o "$KEY_PATH"
-          xcrun notarytool submit "$ZIP" \
+          submission="$(xcrun notarytool submit "$DMG" \
             --key "$KEY_PATH" \
             --key-id "$KEY_ID" \
             --issuer "$ISSUER_ID" \
-            --wait
+            --output-format json)"
+          submission_id="$(
+            printf '%s' "$submission" \
+              | /usr/bin/python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])'
+          )"
+          echo "Notary submission: $submission_id"
+
+          deadline=$((SECONDS + 18000))
+          while (( SECONDS < deadline )); do
+            if info="$(xcrun notarytool info "$submission_id" \
+              --key "$KEY_PATH" \
+              --key-id "$KEY_ID" \
+              --issuer "$ISSUER_ID" \
+              --output-format json)"
+            then
+              status="$(
+                printf '%s' "$info" \
+                  | /usr/bin/python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])'
+              )"
+              echo "Notary status: $status"
+              case "$status" in
+                Accepted)
+                  break
+                  ;;
+                Invalid|Rejected)
+                  xcrun notarytool log "$submission_id" \
+                    --key "$KEY_PATH" \
+                    --key-id "$KEY_ID" \
+                    --issuer "$ISSUER_ID"
+                  exit 1
+                  ;;
+              esac
+            else
+              echo "Notary status request failed; retrying."
+            fi
+            sleep 30
+          done
+          if [[ "${status:-}" != "Accepted" ]]; then
+            echo "Notarization did not finish before the release timeout." >&2
+            exit 1
+          fi
+
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
           xcrun stapler staple "$APP"
           xcrun stapler validate "$APP"
           spctl --assess --type execute --verbose=4 "$APP"
 
           rm "$ZIP"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
-          shasum -a 256 "$ZIP" | sed 's#dist/##' > dist/SHA256SUMS.txt
+          shasum -a 256 "$DMG" "$ZIP" | sed 's#dist/##' > dist/SHA256SUMS.txt
+          hdiutil verify "$DMG"
           unzip -t "$ZIP" >/dev/null
+
+      - name: Generate update feed
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          APPCAST_DIR="$RUNNER_TEMP/appcast"
+          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
+          NOTES="$GITHUB_WORKSPACE/release-notes/${TAG#v}.md"
+          mkdir -p "$APPCAST_DIR"
+          test -s "$NOTES"
+          cp "$ZIP" "$APPCAST_DIR/"
+          cp "$NOTES" "$APPCAST_DIR/CodexTokenLedger-menu-bar-macOS.md"
+
+          GENERATE_APPCAST="$(
+            find build/DerivedData/SourcePackages/artifacts/sparkle \
+              -type f -name generate_appcast -perm -111 -print -quit
+          )"
+          if [[ -z "$GENERATE_APPCAST" ]]; then
+            echo "Sparkle generate_appcast was not found." >&2
+            exit 2
+          fi
+
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$GENERATE_APPCAST" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/Lincb522/CodexTokenLedger/releases/download/$TAG/" \
+            --embed-release-notes \
+            --maximum-versions 3 \
+            --maximum-deltas 0 \
+            -o "$GITHUB_WORKSPACE/dist/appcast.xml" \
+            "$APPCAST_DIR"
+
+          test -s dist/appcast.xml
 
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
+          NOTES="release-notes/${TAG#v}.md"
+          test -s "$NOTES"
           if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file "$NOTES"
             gh release upload "$TAG" \
+              dist/CodexTokenLedger-menu-bar-macOS.dmg \
               dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/appcast.xml \
               dist/SHA256SUMS.txt \
               --clobber
           else
             gh release create "$TAG" \
+              dist/CodexTokenLedger-menu-bar-macOS.dmg \
               dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/appcast.xml \
               dist/SHA256SUMS.txt \
               --verify-tag \
-              --generate-notes \
+              --notes-file "$NOTES" \
               --title "Codex Token Ledger ${TAG#v}"
           fi

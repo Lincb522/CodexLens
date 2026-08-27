@@ -240,6 +240,39 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                 isTaskActive: true
             ),
         ]
+        for taskNumber in 3...6 {
+            viewModel.liveContexts.append(
+                CodexLiveContextSnapshot(
+                    id: "preview-live-thread-\(taskNumber)",
+                    sourcePath: "/Users/demo/.codex/sessions/live-\(taskNumber).jsonl",
+                    projectPath: "/Projects/Workspace\(taskNumber)",
+                    threadTitle: "任务 \(taskNumber) · 校准实时上下文与项目识别",
+                    titleSource: .desktopCatalog,
+                    turnID: "preview-turn-\(taskNumber)",
+                    model: taskNumber.isMultiple(of: 2) ? "gpt-5.6-sol" : "gpt-5.6-terra",
+                    reasoningEffort: taskNumber.isMultiple(of: 2) ? "xhigh" : "high",
+                    updatedAt: now.addingTimeInterval(Double(-taskNumber)),
+                    lastRequest: TokenUsage(
+                        inputTokens: Int64(118_000 + taskNumber * 9_400),
+                        cachedInputTokens: Int64(102_000 + taskNumber * 8_100),
+                        outputTokens: Int64(180 + taskNumber * 24)
+                    ),
+                    currentTurnUsage: TokenUsage(
+                        inputTokens: Int64(640_000 + taskNumber * 72_000),
+                        cachedInputTokens: Int64(580_000 + taskNumber * 66_000),
+                        outputTokens: Int64(2_800 + taskNumber * 310)
+                    ),
+                    currentTurnCalls: [],
+                    taskTotal: TokenUsage(
+                        inputTokens: Int64(8_400_000 + taskNumber * 1_100_000),
+                        outputTokens: Int64(64_000 + taskNumber * 7_600)
+                    ),
+                    modelContextWindow: 258_400,
+                    duplicateEventsIgnored: 0,
+                    isTaskActive: true
+                )
+            )
+        }
         viewModel.selectedLiveContextID = viewModel.liveContext?.id
 
         let projectRoot = URL(fileURLWithPath: #filePath)
@@ -247,6 +280,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let requestedDarkOutput = ProcessInfo.processInfo.environment["CODEX_LEDGER_PREVIEW_PATH"].map(URL.init(fileURLWithPath:))
+        let updateService = AppUpdateService()
         @discardableResult
         func render(
             page: MenuPopoverPage,
@@ -256,13 +290,16 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             maximumHeight: CGFloat = 900,
             consolePanel: ConsolePanel = .appearance,
             credentialText: String = "",
+            legalDocument: LegalDocument = .userAgreement,
             initiallyExpandedLiveDetails: Bool = false
         ) throws -> CGSize {
             viewModel.appTheme = theme
             let view = MenuBarDashboardView(
+                updateService: updateService,
                 initialPage: page,
                 initialConsolePanel: consolePanel,
                 initialCredentialText: credentialText,
+                initialLegalDocument: legalDocument,
                 initiallyExpandedLiveDetails: initiallyExpandedLiveDetails
             )
                 .environmentObject(viewModel)
@@ -310,6 +347,38 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             if theme == .dark { darkOverviewHeight = size.height }
             if theme == .light { lightOverviewHeight = size.height }
         }
+        let activeTasksLightSize = try render(
+            page: .activeTasks,
+            theme: .light,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-active-tasks-light.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(activeTasksLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let activeTasksDarkSize = try render(
+            page: .activeTasks,
+            theme: .dark,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-active-tasks-dark.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(activeTasksDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        let moreLightSize = try render(
+            page: .more,
+            theme: .light,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-more-light.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(moreLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let moreDarkSize = try render(
+            page: .more,
+            theme: .dark,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-more-dark.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(moreDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
         let lightSessionsSize = try render(
             page: .sessions,
             theme: .light,
@@ -364,20 +433,22 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             accuracy: 0.5,
             "The Light detail drawer must never resize the native NSMenu window"
         )
-        try render(
+        let tiboLightSize = try render(
             page: .tiboSignal,
             theme: .light,
             output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-tibo-signal-light.png"),
-            minimumHeight: 230,
-            maximumHeight: 300
+            minimumHeight: 650,
+            maximumHeight: 750
         )
-        try render(
+        XCTAssertEqual(tiboLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let tiboDarkSize = try render(
             page: .tiboSignal,
             theme: .dark,
             output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-tibo-signal-dark.png"),
-            minimumHeight: 230,
-            maximumHeight: 300
+            minimumHeight: 650,
+            maximumHeight: 750
         )
+        XCTAssertEqual(tiboDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
         let darkConsoleSize = try render(page: .settings, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-console-dark.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(darkConsoleSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
         let lightConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-console-light.png"), minimumHeight: 650, maximumHeight: 750)
@@ -392,12 +463,22 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let dataConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-data-settings-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .data)
         XCTAssertEqual(dataConsoleSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
         let tokenFixture = #"{"provider":"openai","credentials":{"accessToken":"preview-access-token","accountId":"preview-account"}}"#
-        try render(page: .tokenLogin, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-token-login-dark.png"), minimumHeight: 400, maximumHeight: 500, credentialText: tokenFixture)
-        try render(page: .tokenLogin, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-token-login-light.png"), minimumHeight: 400, maximumHeight: 500, credentialText: tokenFixture)
-        let lightDeveloperSize = try render(page: .developer, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-developer.png"), minimumHeight: 650, maximumHeight: 750)
+        let tokenDarkSize = try render(page: .tokenLogin, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-token-login-dark.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
+        XCTAssertEqual(tokenDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        let tokenLightSize = try render(page: .tokenLogin, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-token-login-light.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
+        XCTAssertEqual(tokenLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let lightDeveloperSize = try render(page: .about, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-about-light.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(lightDeveloperSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let darkDeveloperSize = try render(page: .developer, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-developer-dark.png"), minimumHeight: 650, maximumHeight: 750)
+        let darkDeveloperSize = try render(page: .about, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-about-dark.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(darkDeveloperSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        let lightUpdateSize = try render(page: .updates, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-updates-light.png"), minimumHeight: 650, maximumHeight: 750)
+        XCTAssertEqual(lightUpdateSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let darkUpdateSize = try render(page: .updates, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-updates-dark.png"), minimumHeight: 650, maximumHeight: 750)
+        XCTAssertEqual(darkUpdateSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        let lightLegalSize = try render(page: .legal, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-legal-light.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .privacy)
+        XCTAssertEqual(lightLegalSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let darkLegalSize = try render(page: .legal, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-legal-dark.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .openSource)
+        XCTAssertEqual(darkLegalSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
     }
 
     func testMenuPopoverContainsNoScrollContainer() throws {
@@ -413,7 +494,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertFalse(contents.contains("scrollIndicators"))
     }
 
-    func testLedgerAndSettingsUseTheFixedPageHeight() throws {
+    func testEveryPageUsesTheFixedPageHeight() throws {
         let projectRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -424,6 +505,9 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
 
         XCTAssertTrue(source.contains("private let sessionsPerPage = 8"))
+        XCTAssertTrue(source.contains("private static let overviewPageContentHeight = primaryPageHeight - footerHeight"))
+        XCTAssertTrue(source.contains("? Self.overviewPageContentHeight"))
+        XCTAssertTrue(source.contains(": Self.primaryPageContentHeight"))
         XCTAssertTrue(source.contains("Spacer(minLength: 0)"))
         XCTAssertTrue(
             source.contains(
@@ -432,7 +516,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         )
     }
 
-    func testDeveloperPageUsesLocalizedProjectAndBundleVersion() throws {
+    func testAboutPageProvidesVersionUpdateLinksAndLegalDocuments() throws {
         let projectRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -441,20 +525,68 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
         )
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
-        let start = try XCTUnwrap(source.range(of: "private var developer: some View"))
+        let start = try XCTUnwrap(source.range(of: "private var about: some View"))
         let end = try XCTUnwrap(
             source.range(
                 of: "private var sessionPageCount",
                 range: start.upperBound..<source.endIndex
             )
         )
-        let developer = source[start.lowerBound..<end.lowerBound]
+        let about = source[start.lowerBound..<end.lowerBound]
 
-        XCTAssertTrue(developer.contains("developer.project"))
-        XCTAssertTrue(developer.contains("developer.product"))
-        XCTAssertTrue(developer.contains("developer.tagline"))
-        XCTAssertTrue(developer.contains("appVersionDisplay"))
+        XCTAssertTrue(about.contains("developer.product"))
+        XCTAssertTrue(about.contains("about.versionValue"))
+        XCTAssertTrue(about.contains("about.buildValue"))
+        XCTAssertTrue(about.contains("page = .updates"))
+        XCTAssertTrue(about.contains("Self.websiteURL"))
+        XCTAssertTrue(about.contains("Self.sourceURL"))
+        XCTAssertTrue(about.contains("ForEach(LegalDocument.allCases)"))
+        XCTAssertTrue(about.contains("private var legalViewer"))
+        XCTAssertTrue(about.contains("appVersionDisplay"))
         XCTAssertFalse(source.contains("\"1.9.0 (20)\""))
+    }
+
+    func testUpdatePipelineUsesSparkleAndPublishesAnAppcast() throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let project = try String(
+            contentsOf: projectRoot.appendingPathComponent("project.yml"),
+            encoding: .utf8
+        )
+        let service = try String(
+            contentsOf: projectRoot.appendingPathComponent(
+                "Sources/CodexTokenLedger/Services/AppUpdateService.swift"
+            ),
+            encoding: .utf8
+        )
+        let infoData = try Data(
+            contentsOf: projectRoot.appendingPathComponent("Config/Info.plist")
+        )
+        let info = try XCTUnwrap(
+            try PropertyListSerialization.propertyList(from: infoData, format: nil) as? [String: Any]
+        )
+        let workflow = try String(
+            contentsOf: projectRoot.appendingPathComponent(".github/workflows/release.yml"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(project.contains("exactVersion: 2.9.6"))
+        XCTAssertEqual(
+            info["SUFeedURL"] as? String,
+            "https://github.com/Lincb522/CodexTokenLedger/releases/latest/download/appcast.xml"
+        )
+        XCTAssertNotNil(info["SUPublicEDKey"] as? String)
+        XCTAssertEqual(info["SUVerifyUpdateBeforeExtraction"] as? Bool, true)
+        XCTAssertTrue(service.contains("SPUStandardUpdaterController"))
+        XCTAssertTrue(service.contains("checkForUpdates"))
+        XCTAssertTrue(workflow.contains("SPARKLE_PRIVATE_KEY"))
+        XCTAssertTrue(workflow.contains("--ed-key-file -"))
+        XCTAssertTrue(workflow.contains("--embed-release-notes"))
+        XCTAssertTrue(workflow.contains("release-notes/${TAG#v}.md"))
+        XCTAssertTrue(workflow.contains("--notes-file \"$NOTES\""))
+        XCTAssertTrue(workflow.contains("dist/appcast.xml"))
     }
 
     func testWholePopoverUsesCodexBarStyleNativeMenuGlass() throws {
@@ -680,7 +812,34 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertNotNil(overviewBody.range(of: "liveContextCard"))
         XCTAssertNotNil(overviewBody.range(of: "overviewUpdates(account)"))
         XCTAssertNotNil(overviewBody.range(of: "tiboGlobalSignalRow"))
-        XCTAssertTrue(source.contains("Button(viewModel.t(\"page.tiboSignal\")) { page = .tiboSignal }"))
+        XCTAssertTrue(source.contains("Button { page = .tiboSignal } label:"))
+    }
+
+    func testOverflowAndMoreUseInMenuPages() throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = projectRoot.appendingPathComponent(
+            "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
+        )
+        let source = try String(contentsOf: sourceURL, encoding: .utf8)
+
+        let switcherStart = try XCTUnwrap(source.range(of: "private var liveTaskSwitcher"))
+        let switcherEnd = try XCTUnwrap(
+            source.range(of: "private func cycleLiveTask", range: switcherStart.upperBound..<source.endIndex)
+        )
+        let switcher = source[switcherStart.lowerBound..<switcherEnd.lowerBound]
+        XCTAssertTrue(switcher.contains("page = .activeTasks"))
+        XCTAssertFalse(switcher.contains("Menu {"))
+
+        let footerStart = try XCTUnwrap(source.range(of: "private var footer"))
+        let footerEnd = try XCTUnwrap(
+            source.range(of: "private func footerTab", range: footerStart.upperBound..<source.endIndex)
+        )
+        let footer = source[footerStart.lowerBound..<footerEnd.lowerBound]
+        XCTAssertTrue(footer.contains("page = .more"))
+        XCTAssertFalse(footer.contains("Menu {"))
     }
 
     func testConsolePageRemeasuresNativeMenuAndCoversItsRoot() throws {
@@ -752,7 +911,10 @@ final class MenuBarVisualSmokeTests: XCTestCase {
 
         let viewModel = DashboardViewModel(defaults: defaults)
         viewModel.appTheme = .dark
-        let controller = NativeMenuBarController(viewModel: viewModel)
+        let controller = NativeMenuBarController(
+            viewModel: viewModel,
+            updateService: AppUpdateService()
+        )
         defer { controller.stop() }
 
         XCTAssertEqual(

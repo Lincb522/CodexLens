@@ -3,11 +3,42 @@ import SwiftUI
 
 enum MenuPopoverPage: String {
     case overview
+    case activeTasks
     case tiboSignal
     case sessions
     case settings
     case tokenLogin
-    case developer
+    case about
+    case updates
+    case legal
+    case more
+}
+
+enum LegalDocument: String, CaseIterable, Identifiable {
+    case userAgreement
+    case privacy
+    case openSource
+    case disclaimer
+
+    var id: String { rawValue }
+
+    var titleKey: String {
+        switch self {
+        case .userAgreement: "legal.userAgreement"
+        case .privacy: "legal.privacy"
+        case .openSource: "legal.openSource"
+        case .disclaimer: "legal.disclaimer"
+        }
+    }
+
+    var pageKeys: [String] {
+        switch self {
+        case .userAgreement: ["legal.userAgreement.page1", "legal.userAgreement.page2"]
+        case .privacy: ["legal.privacy.page1", "legal.privacy.page2"]
+        case .openSource: ["legal.openSource.page1", "legal.openSource.page2"]
+        case .disclaimer: ["legal.disclaimer.page1", "legal.disclaimer.page2"]
+        }
+    }
 }
 
 enum ConsolePanel: String, CaseIterable, Identifiable {
@@ -177,34 +208,44 @@ struct MenuBarDashboardView: View {
     static let primaryPageHeight: CGFloat = 705
     private static let secondaryHeaderHeight: CGFloat = 58
     private static let footerHeight: CGFloat = 46
+    private static let overviewPageContentHeight = primaryPageHeight - footerHeight
     private static let primaryPageContentHeight = primaryPageHeight - secondaryHeaderHeight - footerHeight
     private static let overviewPanelHeight: CGFloat = 142
 
     @EnvironmentObject private var viewModel: DashboardViewModel
+    @ObservedObject private var updateService: AppUpdateService
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var systemColorScheme
     @State private var page: MenuPopoverPage
+    @State private var activeTaskPage = 0
     @State private var sessionPage = 0
     @State private var consolePanel: ConsolePanel = .appearance
     @State private var credentialText: String
     @State private var credentialMode: AccountSwitchMode = .activateCodex
     @State private var overviewPanel: OverviewPanel = .quota
+    @State private var legalDocument: LegalDocument
+    @State private var legalPage = 0
     private let initiallyExpandedLiveDetails: Bool
 
     // Eight 52pt rows use the fixed primary page height instead of leaving the
     // lower half of the ledger empty. Pagination remains explicit and the page
     // still contains no scrolling surface.
     private let sessionsPerPage = 8
+    private let activeTasksPerPage = 8
 
     init(
+        updateService: AppUpdateService,
         initialPage: MenuPopoverPage = .overview,
         initialConsolePanel: ConsolePanel = .appearance,
         initialCredentialText: String = "",
+        initialLegalDocument: LegalDocument = .userAgreement,
         initiallyExpandedLiveDetails: Bool = false
     ) {
+        _updateService = ObservedObject(wrappedValue: updateService)
         _page = State(initialValue: initialPage)
         _consolePanel = State(initialValue: initialConsolePanel)
         _credentialText = State(initialValue: initialCredentialText)
+        _legalDocument = State(initialValue: initialLegalDocument)
         self.initiallyExpandedLiveDetails = initiallyExpandedLiveDetails
     }
 
@@ -217,15 +258,25 @@ struct MenuBarDashboardView: View {
             Group {
                 switch page {
                 case .overview: overview
+                case .activeTasks: activeTasks
                 case .tiboSignal: tiboSignalDetail
                 case .sessions: sessions
                 case .settings: settings
                 case .tokenLogin: tokenLogin
-                case .developer: developer
+                case .about: about
+                case .updates: updates
+                case .legal: legalViewer
+                case .more: moreActions
                 }
             }
             .id(page)
             .frame(maxWidth: .infinity)
+            .frame(
+                height: page == .overview
+                    ? Self.overviewPageContentHeight
+                    : Self.primaryPageContentHeight,
+                alignment: .top
+            )
             .transition(pageTransition)
 
             footer
@@ -243,6 +294,10 @@ struct MenuBarDashboardView: View {
         .onChange(of: viewModel.filteredSessions.count) { _, _ in
             sessionPage = min(sessionPage, max(0, sessionPageCount - 1))
         }
+        .onChange(of: viewModel.activeTaskCount) { _, _ in
+            activeTaskPage = min(activeTaskPage, max(0, activeTaskPageCount - 1))
+        }
+        .onChange(of: legalDocument) { _, _ in legalPage = 0 }
         .onAppear { viewModel.menuPageChanged(isOverview: page == .overview) }
         .onChange(of: page) { _, newPage in
             viewModel.menuPageChanged(isOverview: newPage == .overview)
@@ -279,6 +334,8 @@ struct MenuBarDashboardView: View {
                 if page == .tokenLogin {
                     consolePanel = .account
                     page = .settings
+                } else if page == .updates || page == .legal {
+                    page = .about
                 } else if page != .overview {
                     page = .overview
                 }
@@ -399,22 +456,30 @@ struct MenuBarDashboardView: View {
     private var pageTitle: String {
         switch page {
         case .overview: viewModel.t("page.overview")
+        case .activeTasks: viewModel.t("page.activeTasks")
         case .tiboSignal: viewModel.t("page.tiboSignal")
         case .sessions: viewModel.t("page.ledger")
         case .settings: viewModel.t("page.console")
         case .tokenLogin: viewModel.t("page.tokenLogin")
-        case .developer: viewModel.t("page.developer")
+        case .about: viewModel.t("page.about")
+        case .updates: viewModel.t("page.updates")
+        case .legal: viewModel.t(legalDocument.titleKey)
+        case .more: viewModel.t("page.more")
         }
     }
 
     private var pageSubtitle: String {
         switch page {
         case .overview: ""
+        case .activeTasks: ""
         case .tiboSignal: viewModel.t("subtitle.tiboSignal")
         case .sessions: viewModel.t("subtitle.ledger")
         case .settings: viewModel.t("subtitle.console")
         case .tokenLogin: viewModel.t("subtitle.tokenLogin")
-        case .developer: ""
+        case .about: ""
+        case .updates: viewModel.t("subtitle.updates")
+        case .legal: ""
+        case .more: ""
         }
     }
 
@@ -840,19 +905,20 @@ struct MenuBarDashboardView: View {
             }
 
             if viewModel.activeTaskCount > 4 {
-                Menu {
-                    ForEach(viewModel.activeLiveContexts.dropFirst(4)) { context in
-                        Button(context.displayTitle) { viewModel.selectLiveContext(context.id) }
-                    }
+                Button {
+                    activeTaskPage = 0
+                    page = .activeTasks
                 } label: {
                     Text("+\(viewModel.activeTaskCount - 4)")
                         .font(.system(size: 12, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.heroInk)
                         .frame(width: 34, height: 39)
+                        .contentShape(Rectangle())
                 }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
+                .buttonStyle(PulsePressStyle())
+                .help(viewModel.t("page.activeTasks"))
+                .accessibilityLabel(viewModel.t("page.activeTasks"))
+                .accessibilityIdentifier("Overview.ActiveTasks")
             }
         }
     }
@@ -1382,6 +1448,201 @@ struct MenuBarDashboardView: View {
         .frame(height: Self.primaryPageContentHeight, alignment: .top)
     }
 
+    private var activeTaskPageCount: Int {
+        max(1, Int(ceil(Double(viewModel.activeTaskCount) / Double(activeTasksPerPage))))
+    }
+
+    private var visibleActiveTasks: [CodexLiveContextSnapshot] {
+        let safePage = min(activeTaskPage, max(0, activeTaskPageCount - 1))
+        let start = safePage * activeTasksPerPage
+        guard start < viewModel.activeLiveContexts.count else { return [] }
+        let end = min(start + activeTasksPerPage, viewModel.activeLiveContexts.count)
+        return Array(viewModel.activeLiveContexts[start..<end])
+    }
+
+    private var activeTasks: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Text("\(viewModel.t("overview.tab.task")) \(viewModel.activeTaskCount)")
+                Spacer(minLength: 8)
+                Text(viewModel.t("live.contextInput"))
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(PulsePalette.muted)
+            .padding(.horizontal, 4)
+            .frame(height: 22)
+
+            if visibleActiveTasks.isEmpty {
+                Text(viewModel.t("activeTasks.empty"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(PulsePalette.muted)
+                    .frame(maxWidth: .infinity, minHeight: 78)
+                    .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            } else {
+                ForEach(Array(visibleActiveTasks.enumerated()), id: \.element.id) { offset, context in
+                    let selected = context.id == viewModel.liveContext?.id
+                    let taskNumber = activeTaskPage * activeTasksPerPage + offset + 1
+                    Button {
+                        viewModel.selectLiveContext(context.id)
+                        page = .overview
+                    } label: {
+                        HStack(spacing: 9) {
+                            Text("\(taskNumber)")
+                                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(selected ? strongSelectionInk : PulsePalette.muted)
+                                .frame(width: 25, height: 25)
+                                .background(selected ? strongSelection : PulsePalette.surfaceRaised, in: Circle())
+
+                            VStack(alignment: .leading, spacing: 1) {
+                                MarqueeLabel(
+                                    text: context.displayTitle,
+                                    font: .system(size: 13, weight: .semibold, design: .default),
+                                    color: PulsePalette.ink
+                                )
+                                MarqueeLabel(
+                                    text: activeTaskSubtitle(context),
+                                    font: .system(size: 12, weight: .medium, design: .default),
+                                    color: PulsePalette.muted
+                                )
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Text(DisplayFormat.tokens(context.contextInputTokens))
+                                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(PulsePalette.ink)
+                                .monospacedDigit()
+                                .frame(width: 62, alignment: .trailing)
+
+                            PulseIcon(name: "arrow-right")
+                                .frame(width: 8, height: 8)
+                                .foregroundStyle(PulsePalette.faint)
+                        }
+                        .padding(.horizontal, 10)
+                        .frame(height: 56)
+                        .background(
+                            selected ? PulsePalette.accent.opacity(0.12) : PulsePalette.surface,
+                            in: RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    }
+                    .buttonStyle(PulsePressStyle())
+                    .accessibilityLabel("\(context.displayTitle), \(viewModel.t("metric.context")) \(DisplayFormat.tokens(context.contextInputTokens))")
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            if activeTaskPageCount > 1 {
+                HStack(spacing: 12) {
+                    Button {
+                        activeTaskPage = max(0, activeTaskPage - 1)
+                    } label: {
+                        PulseIcon(name: "arrow-left").frame(width: 12, height: 12)
+                    }
+                    .disabled(activeTaskPage == 0)
+
+                    Text("\(activeTaskPage + 1) / \(activeTaskPageCount)")
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(PulsePalette.muted)
+
+                    Button {
+                        activeTaskPage = min(activeTaskPageCount - 1, activeTaskPage + 1)
+                    } label: {
+                        PulseIcon(name: "arrow-right").frame(width: 12, height: 12)
+                    }
+                    .disabled(activeTaskPage >= activeTaskPageCount - 1)
+                }
+                .buttonStyle(PulseTextButtonStyle())
+                .frame(height: 28)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .frame(height: Self.primaryPageContentHeight, alignment: .top)
+    }
+
+    private func activeTaskSubtitle(_ context: CodexLiveContextSnapshot) -> String {
+        var parts: [String] = []
+        if context.displayTitle != context.projectName {
+            parts.append(context.projectName)
+        }
+        parts.append(context.model)
+        if let reasoningEffort = context.reasoningEffort, !reasoningEffort.isEmpty {
+            parts.append(reasoningEffort)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private var moreActions: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 0) {
+                moreActionButton(
+                    title: viewModel.t("page.tiboSignal"),
+                    icon: "calendar",
+                    showsChevron: true
+                ) { page = .tiboSignal }
+                settingsDivider
+                moreActionButton(
+                    title: viewModel.t("page.about"),
+                    icon: "developer",
+                    showsChevron: true
+                ) { page = .about }
+            }
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            VStack(spacing: 0) {
+                moreActionButton(title: viewModel.t("action.exportCSV"), icon: "export", action: viewModel.exportCSV)
+                settingsDivider
+                moreActionButton(title: viewModel.t("action.exportJSON"), icon: "export", action: viewModel.exportJSON)
+            }
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            moreActionButton(title: viewModel.t("action.quit"), icon: "more", destructive: true) {
+                NSApp.terminate(nil)
+            }
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .frame(height: Self.primaryPageContentHeight, alignment: .top)
+    }
+
+    private func moreActionButton(
+        title: String,
+        icon: String,
+        destructive: Bool = false,
+        showsChevron: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 11) {
+                PulseIcon(name: icon)
+                    .frame(width: 15, height: 15)
+                    .foregroundStyle(destructive ? PulsePalette.coral : PulsePalette.accent)
+                    .frame(width: 30, height: 30)
+                    .background(
+                        (destructive ? PulsePalette.coral : PulsePalette.accent).opacity(0.10),
+                        in: RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    )
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(destructive ? PulsePalette.coral : PulsePalette.ink)
+                Spacer(minLength: 8)
+                if showsChevron {
+                    PulseIcon(name: "arrow-right")
+                        .frame(width: 9, height: 9)
+                        .foregroundStyle(PulsePalette.faint)
+                }
+            }
+            .padding(.horizontal, 11)
+            .frame(height: 48)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PulsePressStyle())
+    }
+
     private var settings: some View {
         VStack(alignment: .leading, spacing: 8) {
             consolePanelStrip
@@ -1473,6 +1734,31 @@ struct MenuBarDashboardView: View {
                 settingsDivider
                 SettingsToggleRow(title: viewModel.t("console.taskCount"), isOn: $viewModel.showConcurrentTaskCount) {
                     viewModel.persistPreferences()
+                }
+                settingsDivider
+                SettingsActionToggleRow(
+                    title: viewModel.t("console.launchAtLogin"),
+                    isOn: viewModel.launchAtLoginEnabled,
+                    changed: viewModel.setLaunchAtLogin
+                )
+                if viewModel.launchAtLoginRequiresApproval || viewModel.launchAtLoginErrorMessage != nil {
+                    settingsDivider
+                    HStack(spacing: 8) {
+                        Text(
+                            viewModel.launchAtLoginErrorMessage
+                                ?? viewModel.t("console.launchAtLoginApproval")
+                        )
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(PulsePalette.muted)
+                        .lineLimit(1)
+                        Spacer(minLength: 4)
+                        if viewModel.launchAtLoginRequiresApproval {
+                            Button(viewModel.t("console.openLoginItems"), action: viewModel.openLoginItemsSettings)
+                                .buttonStyle(PulseTextButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, 13)
+                    .frame(height: 34)
                 }
             }
         }
@@ -1639,11 +1925,9 @@ struct MenuBarDashboardView: View {
             }
 
             PulseSettingsGroup(title: viewModel.t("console.about")) {
-                Button { page = .developer } label: {
-                    SettingsValueRow(title: viewModel.t("console.developer"), value: "Zijiu522", showsChevron: true)
+                Button { page = .about } label: {
+                    SettingsValueRow(title: viewModel.t("page.about"), value: appVersionDisplay, showsChevron: true)
                 }.buttonStyle(PulsePressStyle())
-                settingsDivider
-                SettingsValueRow(title: viewModel.t("console.version"), value: appVersionDisplay)
             }
         }
         .frame(maxHeight: .infinity, alignment: .top)
@@ -1883,95 +2167,377 @@ struct MenuBarDashboardView: View {
         .contentShape(Rectangle())
     }
 
-    private var developer: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 34)
-
-            ZStack {
-                Circle()
-                    .fill(PulsePalette.accent.opacity(isLightAppearance ? 0.08 : 0.13))
-                    .frame(width: 204, height: 204)
-
-                Circle()
-                    .fill(PulsePalette.surfaceRaised)
-                    .frame(width: 166, height: 166)
-
-                Image("DeveloperAvatar")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 146, height: 146)
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 30, style: .continuous)
-                            .stroke(PulsePalette.surfaceRaised, lineWidth: 3)
-                    }
-            }
-            .frame(height: 210)
-
-            VStack(spacing: 7) {
-                Text("Zijiu522")
-                    .font(.system(size: 28, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                Text(viewModel.t("developer.role"))
-                    .font(.system(size: 14, weight: .medium, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
-                Text(viewModel.t("developer.tagline"))
-                    .font(.system(size: 13, weight: .medium, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-            }
-
-            Spacer(minLength: 34)
-
-            HStack(spacing: 13) {
+    private var about: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 12) {
                 Image("TokenPulseAppIcon")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 50, height: 50)
                     .accessibilityHidden(true)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.t("developer.project"))
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(PulsePalette.muted)
+                VStack(alignment: .leading, spacing: 7) {
                     Text(viewModel.t("developer.product"))
-                        .font(.system(size: 15, weight: .semibold, design: .default))
+                        .font(.system(size: 17, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.ink)
+                    HStack(spacing: 6) {
+                        versionBadge(viewModel.t("about.versionValue", appVersionNumber))
+                        versionBadge(viewModel.t("about.buildValue", appBuildNumber))
+                    }
                 }
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 15)
-            .frame(height: 78)
+            .padding(.horizontal, 14)
+            .frame(height: 76)
             .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
             }
 
-            HStack(spacing: 8) {
-                Text(viewModel.t("console.version"))
-                    .font(.system(size: 12, weight: .medium, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
-                Spacer(minLength: 8)
-                Text(appVersionDisplay)
-                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(PulsePalette.ink)
-                    .monospacedDigit()
+            VStack(spacing: 0) {
+                aboutNavigationRow(
+                    title: viewModel.t("update.check"),
+                    value: updateStatusShortText,
+                    icon: "sync"
+                ) { page = .updates }
             }
-            .padding(.horizontal, 4)
-            .frame(height: 44)
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            Spacer(minLength: 14)
+            VStack(spacing: 0) {
+                aboutNavigationRow(
+                    title: viewModel.t("about.website"),
+                    value: viewModel.t("about.websitePlaceholder"),
+                    icon: "export"
+                ) { openURL(Self.websiteURL) }
+                settingsDivider
+                aboutNavigationRow(
+                    title: viewModel.t("about.source"),
+                    value: "GitHub",
+                    icon: "developer"
+                ) { openURL(Self.sourceURL) }
+            }
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                spacing: 8
+            ) {
+                ForEach(LegalDocument.allCases) { document in
+                    Button {
+                        legalDocument = document
+                        legalPage = 0
+                        page = .legal
+                    } label: {
+                        HStack(spacing: 8) {
+                            PulseIcon(name: legalIcon(document))
+                                .frame(width: 14, height: 14)
+                                .foregroundStyle(PulsePalette.accent)
+                            Text(viewModel.t(document.titleKey))
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(PulsePalette.ink)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 11)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    }
+                    .buttonStyle(PulsePressStyle())
+                }
+            }
+
+            HStack(spacing: 10) {
+                Image("DeveloperAvatar")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 34, height: 34)
+                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Zijiu522")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(PulsePalette.ink)
+                    Text(viewModel.t("developer.role"))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(PulsePalette.muted)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 54)
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            Spacer(minLength: 0)
         }
-        .frame(width: Self.contentWidth - 24, height: Self.primaryPageContentHeight)
         .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .frame(height: Self.primaryPageContentHeight, alignment: .top)
     }
 
+    private var updates: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 7) {
+                ZStack {
+                    Circle()
+                        .fill(updateStatusColor.opacity(0.12))
+                    PulseIcon(name: updateStatusIcon)
+                        .frame(width: 20, height: 20)
+                        .foregroundStyle(updateStatusColor)
+                }
+                .frame(width: 48, height: 48)
+
+                Text(updateStatusTitle)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(PulsePalette.ink)
+                Text(appVersionDisplay)
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PulsePalette.muted)
+                    .monospacedDigit()
+            }
+            .frame(maxWidth: .infinity, minHeight: 122)
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+            Button(action: updateService.checkForUpdates) {
+                HStack(spacing: 8) {
+                    AnimatedRefreshIcon(
+                        isSpinning: updateService.phase == .checking,
+                        idleColor: strongSelectionInk,
+                        spinningColor: strongSelectionInk
+                    )
+                    Text(viewModel.t("update.checkNow"))
+                }
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(strongSelectionInk)
+                .frame(maxWidth: .infinity, minHeight: 42)
+                .background(strongSelection, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+            }
+            .buttonStyle(PulsePressStyle())
+            .disabled(!updateService.canCheckForUpdates || updateService.phase == .checking)
+            .opacity(updateService.canCheckForUpdates ? 1 : 0.55)
+
+            PulseSettingsGroup(title: viewModel.t("update.automatic")) {
+                SettingsToggleRow(
+                    title: viewModel.t("update.automaticChecks"),
+                    isOn: Binding(
+                        get: { updateService.automaticallyChecksForUpdates },
+                        set: updateService.setAutomaticallyChecksForUpdates
+                    )
+                ) {}
+                settingsDivider
+                SettingsToggleRow(
+                    title: viewModel.t("update.automaticDownloads"),
+                    isOn: Binding(
+                        get: { updateService.automaticallyDownloadsUpdates },
+                        set: updateService.setAutomaticallyDownloadsUpdates
+                    )
+                ) {}
+                .disabled(!updateService.automaticallyChecksForUpdates)
+            }
+
+            HStack(spacing: 8) {
+                Text(viewModel.t("update.lastChecked"))
+                    .foregroundStyle(PulsePalette.muted)
+                Spacer(minLength: 8)
+                Text(lastUpdateCheckText)
+                    .foregroundStyle(PulsePalette.ink)
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .padding(.horizontal, 13)
+            .frame(height: 42)
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+
+            Text(viewModel.t("update.installOnQuit"))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(PulsePalette.muted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .frame(height: Self.primaryPageContentHeight, alignment: .top)
+    }
+
+    private var legalViewer: some View {
+        VStack(spacing: 10) {
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)],
+                spacing: 6
+            ) {
+                ForEach(LegalDocument.allCases) { document in
+                    let selected = legalDocument == document
+                    Button {
+                        legalDocument = document
+                    } label: {
+                        Text(viewModel.t(document.titleKey))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(selected ? strongSelectionInk : PulsePalette.ink)
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                            .background(
+                                selected ? strongSelection : PulsePalette.surface,
+                                in: RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            )
+                    }
+                    .buttonStyle(PulsePressStyle())
+                }
+            }
+
+            Text(viewModel.t(legalDocument.pageKeys[legalPage]))
+                .font(.system(size: 12.5, weight: .regular))
+                .foregroundStyle(PulsePalette.ink)
+                .lineSpacing(4)
+                .lineLimit(nil)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(15)
+                .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
+                }
+
+            HStack(spacing: 14) {
+                Button {
+                    legalPage = max(0, legalPage - 1)
+                } label: {
+                    PulseIcon(name: "arrow-left").frame(width: 12, height: 12)
+                }
+                .disabled(legalPage == 0)
+
+                Text("\(legalPage + 1) / \(legalDocument.pageKeys.count)")
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PulsePalette.muted)
+
+                Button {
+                    legalPage = min(legalDocument.pageKeys.count - 1, legalPage + 1)
+                } label: {
+                    PulseIcon(name: "arrow-right").frame(width: 12, height: 12)
+                }
+                .disabled(legalPage >= legalDocument.pageKeys.count - 1)
+            }
+            .buttonStyle(PulseTextButtonStyle())
+            .frame(height: 28)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 10)
+        .frame(height: Self.primaryPageContentHeight, alignment: .top)
+    }
+
+    private func versionBadge(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+            .foregroundStyle(PulsePalette.muted)
+            .padding(.horizontal, 7)
+            .frame(height: 21)
+            .background(PulsePalette.surfaceRaised, in: Capsule())
+    }
+
+    private func aboutNavigationRow(
+        title: String,
+        value: String,
+        icon: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                PulseIcon(name: icon)
+                    .frame(width: 14, height: 14)
+                    .foregroundStyle(PulsePalette.accent)
+                    .frame(width: 28, height: 28)
+                    .background(PulsePalette.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(PulsePalette.ink)
+                Spacer(minLength: 8)
+                Text(value)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(PulsePalette.muted)
+                PulseIcon(name: "arrow-right")
+                    .frame(width: 8, height: 8)
+                    .foregroundStyle(PulsePalette.faint)
+            }
+            .padding(.horizontal, 11)
+            .frame(height: 46)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PulsePressStyle())
+    }
+
+    private func legalIcon(_ document: LegalDocument) -> String {
+        switch document {
+        case .userAgreement: "check"
+        case .privacy: "account"
+        case .openSource: "developer"
+        case .disclaimer: "warning"
+        }
+    }
+
+    private var updateStatusTitle: String {
+        switch updateService.phase {
+        case .idle: viewModel.t("update.ready")
+        case .checking: viewModel.t("update.checking")
+        case .current: viewModel.t("update.current")
+        case let .available(version): viewModel.t("update.available", version)
+        case .failed: viewModel.t("update.failed")
+        }
+    }
+
+    private var updateStatusShortText: String {
+        switch updateService.phase {
+        case .idle: viewModel.t("update.readyShort")
+        case .checking: viewModel.t("update.checkingShort")
+        case .current: viewModel.t("update.currentShort")
+        case .available: viewModel.t("update.availableShort")
+        case .failed: viewModel.t("update.failedShort")
+        }
+    }
+
+    private var updateStatusIcon: String {
+        switch updateService.phase {
+        case .failed: "warning"
+        case .available: "export"
+        case .current: "check"
+        case .idle, .checking: "sync"
+        }
+    }
+
+    private var updateStatusColor: Color {
+        switch updateService.phase {
+        case .failed: PulsePalette.coral
+        case .available: PulsePalette.warning
+        case .current: PulsePalette.lime
+        case .idle, .checking: PulsePalette.accent
+        }
+    }
+
+    private var lastUpdateCheckText: String {
+        guard let date = updateService.lastUpdateCheckDate else {
+            return viewModel.t("update.never")
+        }
+        return date.formatted(
+            Date.FormatStyle(date: .abbreviated, time: .shortened)
+                .locale(Locale(identifier: viewModel.appLanguage.localeIdentifier))
+        )
+    }
+
+    private func openURL(_ url: URL) {
+        NSWorkspace.shared.open(url)
+    }
+
+    private static let websiteURL = URL(string: "https://github.com/Lincb522/CodexTokenLedger#readme")!
+    private static let sourceURL = URL(string: "https://github.com/Lincb522/CodexTokenLedger")!
+
     private var appVersionDisplay: String {
-        let info = Bundle.main.infoDictionary
-        let version = info?["CFBundleShortVersionString"] as? String ?? "2.1.1"
-        let build = info?["CFBundleVersion"] as? String ?? "23"
-        return "\(version) (\(build))"
+        "\(appVersionNumber) (\(appBuildNumber))"
+    }
+
+    private var appVersionNumber: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.2"
+    }
+
+    private var appBuildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "23"
     }
 
     private var sessionPageCount: Int {
@@ -2019,30 +2585,26 @@ struct MenuBarDashboardView: View {
 
             Spacer(minLength: 12)
 
-            Menu {
-                Button(viewModel.t("page.tiboSignal")) { page = .tiboSignal }
-                Button(viewModel.t("page.developer")) { page = .developer }
-                Divider()
-                Button(viewModel.t("action.exportCSV"), action: viewModel.exportCSV)
-                Button(viewModel.t("action.exportJSON"), action: viewModel.exportJSON)
-                Divider()
-                Button(viewModel.t("action.quit")) { NSApp.terminate(nil) }
+            Button {
+                page = .more
             } label: {
                 ZStack(alignment: .topTrailing) {
                     PulseIcon(name: "more")
                         .frame(width: 15, height: 15)
-                        .foregroundStyle(PulsePalette.selectionInk)
+                        .foregroundStyle(page == .more ? strongSelectionInk : PulsePalette.ink)
                         .frame(width: 34, height: 34)
-                        .background(PulsePalette.ink, in: Circle())
+                        .background(page == .more ? strongSelection : PulsePalette.surfaceRaised, in: Circle())
                     Circle()
                         .fill(viewModel.isScanning ? PulsePalette.warning : PulsePalette.lime)
                         .frame(width: 6, height: 6)
                         .overlay(Circle().stroke(PulsePalette.ink, lineWidth: 2))
                 }
+                .contentShape(Circle())
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
+            .buttonStyle(PulsePressStyle())
+            .help(viewModel.t("page.more"))
+            .accessibilityLabel(viewModel.t("page.more"))
+            .accessibilityIdentifier("Footer.More")
         }
         .frame(height: 46)
         .padding(.horizontal, 18)
@@ -3288,6 +3850,28 @@ private struct SettingsToggleRow: View {
         .frame(height: 38)
         .contentShape(Rectangle())
         .onChange(of: isOn) { _, _ in changed() }
+    }
+}
+
+private struct SettingsActionToggleRow: View {
+    let title: String
+    let isOn: Bool
+    let changed: (Bool) -> Void
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            PulseToggle(
+                isOn: Binding(
+                    get: { isOn },
+                    set: changed
+                )
+            )
+        }
+        .padding(.horizontal, 13)
+        .frame(height: 38)
+        .contentShape(Rectangle())
     }
 }
 

@@ -18,7 +18,7 @@
   <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
   <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square"></a>
-  <a href="https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.1"><img alt="Download v2.1.1" src="https://img.shields.io/badge/Download-v2.1.1-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
+  <a href="https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.2"><img alt="Download v2.1.2" src="https://img.shields.io/badge/Download-v2.1.2-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -28,7 +28,7 @@
 
 ## 下载
 
-[CodexTokenLedger-menu-bar-macOS.zip](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.1/CodexTokenLedger-menu-bar-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.1/SHA256SUMS.txt)
+[CodexTokenLedger-menu-bar-macOS.dmg](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.2/CodexTokenLedger-menu-bar-macOS.dmg) · [ZIP](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.2/CodexTokenLedger-menu-bar-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.2/SHA256SUMS.txt)
 
 macOS 14+ · x86_64 + arm64 · Developer ID 签名 · Apple 公证
 
@@ -82,10 +82,12 @@ build/DerivedData/Build/Products/Release/CodexTokenLedger.app
 ```
 
 ```bash
-CODESIGN_IDENTITY='Developer ID Application: …' ./scripts/package_release.sh
+export CODESIGN_IDENTITY='Developer ID Application: …'
+./scripts/package_release.sh
+./scripts/package_dmg.sh
 ```
 
-`package_release.sh` 只接受 Developer ID Application 身份。GitHub Release 工作流负责公证和装订票据。
+`package_release.sh` 只接受 Developer ID Application 身份。`package_dmg.sh` 生成包含“应用程序”快捷入口的 DMG。GitHub Release 工作流负责签名、公证和装订票据。
 
 </details>
 

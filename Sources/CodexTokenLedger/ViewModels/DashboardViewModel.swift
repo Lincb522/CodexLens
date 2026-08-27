@@ -95,6 +95,9 @@ final class DashboardViewModel: ObservableObject {
     @Published var privacyMode: Bool
     @Published var restartCodexAfterSwitch: Bool
     @Published var tiboMonitoringEnabled: Bool
+    @Published private(set) var launchAtLoginEnabled: Bool
+    @Published private(set) var launchAtLoginRequiresApproval: Bool
+    @Published private(set) var launchAtLoginErrorMessage: String?
     @Published private(set) var tiboSignalSnapshot: TiboResetMonitorSnapshot
     @Published private(set) var tiboSignalErrorMessage: String?
     @Published private(set) var isTiboSignalRefreshing: Bool
@@ -113,13 +116,16 @@ final class DashboardViewModel: ObservableObject {
     private var accountCredentialHomes: [String: String]
     private let liveContextMonitor = CodexLiveContextMonitor()
     private let tiboResetSignalService = TiboResetSignalService()
+    private let launchAtLoginController: LaunchAtLoginControlling
 
     init(
         defaults: UserDefaults = .standard,
         initialQuotaHistorySamples: [QuotaUsageSample]? = nil,
-        initialTiboSignalSnapshot: TiboResetMonitorSnapshot? = nil
+        initialTiboSignalSnapshot: TiboResetMonitorSnapshot? = nil,
+        launchAtLoginController: LaunchAtLoginControlling = LaunchAtLoginService()
     ) {
         self.defaults = defaults
+        self.launchAtLoginController = launchAtLoginController
         let cachedAccounts = CodexAccountUsageStore.load()
         let defaultHome = ProcessInfo.processInfo.environment["CODEX_HOME"]
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex").path
@@ -172,6 +178,10 @@ final class DashboardViewModel: ObservableObject {
         privacyMode = defaults.object(forKey: "privacyMode") as? Bool ?? false
         restartCodexAfterSwitch = defaults.object(forKey: "restartCodexAfterSwitch") as? Bool ?? true
         tiboMonitoringEnabled = defaults.object(forKey: "tiboMonitoringEnabled") as? Bool ?? true
+        let launchAtLoginStatus = launchAtLoginController.status
+        launchAtLoginEnabled = launchAtLoginStatus == .enabled || launchAtLoginStatus == .requiresApproval
+        launchAtLoginRequiresApproval = launchAtLoginStatus == .requiresApproval
+        launchAtLoginErrorMessage = nil
         tiboSignalSnapshot = initialTiboSignalSnapshot ?? TiboResetSignalStore.load()
         tiboSignalErrorMessage = nil
         isTiboSignalRefreshing = false
@@ -840,6 +850,36 @@ final class DashboardViewModel: ObservableObject {
         defaults.set(privacyMode, forKey: "privacyMode")
         defaults.set(restartCodexAfterSwitch, forKey: "restartCodexAfterSwitch")
         defaults.set(tiboMonitoringEnabled, forKey: "tiboMonitoringEnabled")
+    }
+
+    func refreshLaunchAtLoginState() {
+        let status = launchAtLoginController.status
+        launchAtLoginEnabled = status == .enabled || status == .requiresApproval
+        launchAtLoginRequiresApproval = status == .requiresApproval
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        if enabled, launchAtLoginController.registrationIssue == .readOnlyVolume {
+            launchAtLoginErrorMessage = t("console.launchAtLoginMoveToApplications")
+            refreshLaunchAtLoginState()
+            return
+        }
+
+        do {
+            if enabled {
+                try launchAtLoginController.register()
+            } else {
+                try launchAtLoginController.unregister()
+            }
+            launchAtLoginErrorMessage = nil
+        } catch {
+            launchAtLoginErrorMessage = t("console.launchAtLoginFailed", error.localizedDescription)
+        }
+        refreshLaunchAtLoginState()
+    }
+
+    func openLoginItemsSettings() {
+        launchAtLoginController.openSystemSettings()
     }
 
     func rebuildIndex() {

@@ -14,3 +14,9 @@ completion rule for observed “reset has been propagated” evidence.
 
 Tibo Watch is licensed under the MIT License. The complete license is bundled
 in `Sources/CodexTokenLedger/Resources/TiboWatch-LICENSE.txt`.
+
+## Sparkle
+
+Software Update uses [Sparkle](https://github.com/sparkle-project/Sparkle),
+version 2.9.6. Sparkle is licensed under the MIT License and includes its own
+third-party notices in the embedded framework.

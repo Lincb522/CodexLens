@@ -62,6 +62,51 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testLaunchAtLoginUsesSystemServiceState() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.LaunchAtLogin.\(UUID().uuidString)"))
+        let controller = LaunchAtLoginControllerStub(status: .disabled)
+        let viewModel = DashboardViewModel(
+            defaults: defaults,
+            launchAtLoginController: controller
+        )
+
+        XCTAssertFalse(viewModel.launchAtLoginEnabled)
+
+        viewModel.setLaunchAtLogin(true)
+        XCTAssertEqual(controller.registerCount, 1)
+        XCTAssertTrue(viewModel.launchAtLoginEnabled)
+        XCTAssertFalse(viewModel.launchAtLoginRequiresApproval)
+
+        controller.status = .requiresApproval
+        viewModel.refreshLaunchAtLoginState()
+        XCTAssertTrue(viewModel.launchAtLoginEnabled)
+        XCTAssertTrue(viewModel.launchAtLoginRequiresApproval)
+
+        viewModel.setLaunchAtLogin(false)
+        XCTAssertEqual(controller.unregisterCount, 1)
+        XCTAssertFalse(viewModel.launchAtLoginEnabled)
+    }
+
+    @MainActor
+    func testLaunchAtLoginExplainsReadOnlyDiskImage() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.LaunchAtLoginReadOnly.\(UUID().uuidString)"))
+        let controller = LaunchAtLoginControllerStub(
+            status: .disabled,
+            registrationIssue: .readOnlyVolume
+        )
+        let viewModel = DashboardViewModel(
+            defaults: defaults,
+            launchAtLoginController: controller
+        )
+
+        viewModel.setLaunchAtLogin(true)
+
+        XCTAssertEqual(controller.registerCount, 0)
+        XCTAssertEqual(viewModel.launchAtLoginErrorMessage, "拖到“应用程序”后再开启")
+        XCTAssertFalse(viewModel.launchAtLoginEnabled)
+    }
+
+    @MainActor
     func testCredentialProfileMappingIsSeparateFromMonitoringSnapshotHome() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.CredentialHomes.\(UUID().uuidString)"))
         defaults.set(["account-a": "/tmp/private-profile/.codex"], forKey: "accountCredentialHomes")
@@ -120,4 +165,31 @@ final class DashboardViewModelTests: XCTestCase {
             isTaskActive: true
         )
     }
+}
+
+private final class LaunchAtLoginControllerStub: LaunchAtLoginControlling {
+    var status: LaunchAtLoginStatus
+    var registrationIssue: LaunchAtLoginRegistrationIssue?
+    private(set) var registerCount = 0
+    private(set) var unregisterCount = 0
+
+    init(
+        status: LaunchAtLoginStatus,
+        registrationIssue: LaunchAtLoginRegistrationIssue? = nil
+    ) {
+        self.status = status
+        self.registrationIssue = registrationIssue
+    }
+
+    func register() throws {
+        registerCount += 1
+        status = .enabled
+    }
+
+    func unregister() throws {
+        unregisterCount += 1
+        status = .disabled
+    }
+
+    func openSystemSettings() {}
 }
