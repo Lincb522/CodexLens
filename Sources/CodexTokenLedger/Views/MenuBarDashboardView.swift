@@ -2316,6 +2316,36 @@ struct MenuBarDashboardView: View {
             .disabled(!updateService.canCheckForUpdates || updateService.phase == .checking)
             .opacity(updateService.canCheckForUpdates ? 1 : 0.55)
 
+            VStack(alignment: .leading, spacing: 9) {
+                HStack(spacing: 8) {
+                    Text(viewModel.t("update.releaseNotes"))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(PulsePalette.ink)
+                    Spacer(minLength: 8)
+                    versionBadge(appVersionDisplay)
+                }
+
+                Rectangle()
+                    .fill(PulsePalette.divider)
+                    .frame(height: 1)
+
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(currentReleaseNoteKeys, id: \.self) { key in
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(PulsePalette.accent)
+                                .frame(width: 4, height: 4)
+                            Text(viewModel.t(key))
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(PulsePalette.ink)
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            }
+            .padding(12)
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+
             PulseSettingsGroup(title: viewModel.t("update.automatic")) {
                 SettingsToggleRow(
                     title: viewModel.t("update.automaticChecks"),
@@ -2532,12 +2562,20 @@ struct MenuBarDashboardView: View {
         "\(appVersionNumber) (\(appBuildNumber))"
     }
 
+    private var currentReleaseNoteKeys: [String] {
+        [
+            "update.releaseNote.history",
+            "update.releaseNote.localized",
+            "update.releaseNote.fixedHeight",
+        ]
+    }
+
     private var appVersionNumber: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.3"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.4"
     }
 
     private var appBuildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "23"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "26"
     }
 
     private var sessionPageCount: Int {

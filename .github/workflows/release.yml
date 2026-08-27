@@ -113,7 +113,7 @@ jobs:
           REQUIRE_DEVELOPER_ID=1 ./scripts/package_dmg.sh
 
       - name: Notarize and staple
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.notarize }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.notarize }}
         env:
           KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -184,7 +184,7 @@ jobs:
           unzip -t "$ZIP" >/dev/null
 
       - name: Validate Developer ID package
-        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.notarize }}
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.notarize }}
         run: |
           APP="dist/CodexTokenLedger.app"
           ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
@@ -199,7 +199,7 @@ jobs:
       - name: Prepare release notes
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
-          UNNOTARIZED: ${{ github.event_name == 'workflow_dispatch' && !inputs.notarize }}
+          UNNOTARIZED: ${{ github.event_name != 'workflow_dispatch' || !inputs.notarize }}
         run: |
           SOURCE="release-notes/${TAG#v}.md"
           OUTPUT="$RUNNER_TEMP/release-notes.md"

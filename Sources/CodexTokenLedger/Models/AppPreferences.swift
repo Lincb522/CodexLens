@@ -465,6 +465,10 @@ enum LocalizationCatalog {
         "update.installOnQuit",
         "update.lastChecked",
         "update.never",
+        "update.releaseNote.fixedHeight",
+        "update.releaseNote.history",
+        "update.releaseNote.localized",
+        "update.releaseNotes",
         "update.ready",
         "update.readyShort"
     ]

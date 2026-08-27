@@ -30,8 +30,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tokenledger.CodexTokenLedger
-        MARKETING_VERSION: 2.1.3
-        CURRENT_PROJECT_VERSION: 25
+        MARKETING_VERSION: 2.1.4
+        CURRENT_PROJECT_VERSION: 26
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Config/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

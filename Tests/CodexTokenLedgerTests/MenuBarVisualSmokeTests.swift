@@ -591,6 +591,48 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(workflow.contains("dist/appcast.xml"))
     }
 
+    func testUpdatePageShowsTheCurrentVersionNotes() throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let source = try String(
+            contentsOf: projectRoot.appendingPathComponent(
+                "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
+            ),
+            encoding: .utf8
+        )
+        let start = try XCTUnwrap(source.range(of: "private var updates: some View"))
+        let end = try XCTUnwrap(
+            source.range(
+                of: "private var legalViewer",
+                range: start.upperBound..<source.endIndex
+            )
+        )
+        let updates = source[start.lowerBound..<end.lowerBound]
+
+        XCTAssertTrue(updates.contains("update.releaseNotes"))
+        XCTAssertTrue(updates.contains("currentReleaseNoteKeys"))
+        XCTAssertTrue(updates.contains("versionBadge(appVersionDisplay)"))
+    }
+
+    func testLocalizedVersionNotesFitTheUpdateCard() {
+        let font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        let keys = [
+            "update.releaseNote.history",
+            "update.releaseNote.localized",
+            "update.releaseNote.fixedHeight",
+        ]
+
+        for language in AppLanguage.allCases where language != .system {
+            for key in keys {
+                let value = LocalizationCatalog.text(key, language: language)
+                let width = (value as NSString).size(withAttributes: [.font: font]).width
+                XCTAssertLessThanOrEqual(width, 280, "\(language) \(key): \(value)")
+            }
+        }
+    }
+
     func testWholePopoverUsesCodexBarStyleNativeMenuGlass() throws {
         let projectRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
