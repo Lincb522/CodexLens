@@ -67,3 +67,45 @@ jobs:
             echo "- Created: \`$created\`"
             echo "- Status: **$status**"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          case "$status" in
+            Invalid|Rejected)
+              LOG_PATH="$RUNNER_TEMP/notarization-log.json"
+              xcrun notarytool log "$SUBMISSION_ID" "$LOG_PATH" \
+                --key "$KEY_PATH" \
+                --key-id "$KEY_ID" \
+                --issuer "$ISSUER_ID"
+
+              /usr/bin/python3 - "$LOG_PATH" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+
+          log_path, summary_path = sys.argv[1:]
+          with open(log_path, encoding="utf-8") as source:
+              report = json.load(source)
+
+          summary = report.get("statusSummary", "No status summary returned.")
+          issues = report.get("issues") or []
+          print(f"Summary: {summary}")
+          for issue in issues:
+              severity = issue.get("severity", "unknown")
+              message = issue.get("message", "Unknown issue")
+              path = issue.get("path")
+              print(f"Issue [{severity}]: {message}")
+              if path:
+                  print(f"Path: {path}")
+
+          with open(summary_path, "a", encoding="utf-8") as summary_file:
+              summary_file.write(f"- Summary: {summary}\n")
+              if issues:
+                  summary_file.write("\n### Issues\n")
+              for issue in issues:
+                  severity = issue.get("severity", "unknown")
+                  message = issue.get("message", "Unknown issue")
+                  path = issue.get("path")
+                  summary_file.write(f"- **{severity}**: {message}\n")
+                  if path:
+                      summary_file.write(f"  - Path: `{path}`\n")
+          PY
+              ;;
+          esac
