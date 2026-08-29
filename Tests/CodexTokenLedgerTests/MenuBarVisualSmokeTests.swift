@@ -17,7 +17,12 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertLessThanOrEqual(usdWidth, estimateTileWidth, usdValue)
 
         for language in AppLanguage.allCases where language != .system {
-            for key in ["quota.periodWeek", "quota.periodMonth"] {
+            for key in [
+                "quota.periodWeek",
+                "quota.periodMonth",
+                "quota.currentAvailable",
+                "quota.fullCapacity",
+            ] {
                 let period = LocalizationCatalog.text(key, language: language)
                 let periodWidth = (period as NSString).size(withAttributes: [.font: estimateFont]).width
                 XCTAssertLessThanOrEqual(periodWidth, estimateTileWidth, "\(language.rawValue): \(period)")
@@ -390,6 +395,22 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             maximumHeight: 750
         )
         XCTAssertEqual(activeTasksDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        let quotaDetailsLightSize = try render(
+            page: .quotaDetails,
+            theme: .light,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-quota-details-light.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(quotaDetailsLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
+        let quotaDetailsDarkSize = try render(
+            page: .quotaDetails,
+            theme: .dark,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-quota-details-dark.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(quotaDetailsDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
         let moreLightSize = try render(
             page: .more,
             theme: .light,
@@ -859,7 +880,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
         )
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
-        let forecastStart = try XCTUnwrap(source.range(of: "private func quotaForecastRow"))
+        let forecastStart = try XCTUnwrap(source.range(of: "private var quotaDetails"))
         let signalStart = try XCTUnwrap(
             source.range(of: "private var tiboGlobalSignalRow", range: forecastStart.upperBound..<source.endIndex)
         )
