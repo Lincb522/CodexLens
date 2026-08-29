@@ -18,9 +18,16 @@ struct PricingCatalog: Sendable {
     /// input tokens use 2× input-side and 1.5× output-side pricing for the
     /// entire request. The threshold is deliberately request-scoped.
     static let apiRates: [TokenRate] = [
-        api("gpt-5.6-sol", "GPT-5.6 Sol", 4, 0.4, 20),
-        api("gpt-5.6-terra", "GPT-5.6 Terra", 2, 0.2, 12),
-        api("gpt-5.6-luna", "GPT-5.6 Luna", 0.2, 0.02, 1.2)
+        api("gpt-5.6-sol", "GPT-5.6 Sol", 4, 0.4, 20, hasLongContextTier: true),
+        api("gpt-5.6-terra", "GPT-5.6 Terra", 2, 0.2, 12, hasLongContextTier: true),
+        api("gpt-5.6-luna", "GPT-5.6 Luna", 0.2, 0.02, 1.2, hasLongContextTier: true),
+        api("gpt-5.5", "GPT-5.5", 5, 0.5, 30),
+        api("daybreak-blue", "Daybreak Blue", 4, 0.4, 20),
+        api("daybreak-red", "Daybreak Red", 12.5, 1.25, 75),
+        api("gpt-5.4", "GPT-5.4", 2.5, 0.25, 15),
+        api("gpt-5.4-mini", "GPT-5.4 Mini", 0.75, 0.075, 4.5),
+        api("gpt-5.3-codex", "GPT-5.3 Codex", 1.75, 0.175, 14),
+        api("gpt-5.2", "GPT-5.2", 1.75, 0.175, 14)
     ]
 
     static func rate(for rawModel: String) -> TokenRate? {
@@ -38,6 +45,8 @@ struct PricingCatalog: Sendable {
         if model.contains("5.5") { return "gpt-5.5" }
         if model.contains("5.4-mini") { return "gpt-5.4-mini" }
         if model.contains("5.4") { return "gpt-5.4" }
+        if model.contains("5.3-codex") { return "gpt-5.3-codex" }
+        if model.contains("5.2") { return "gpt-5.2" }
         return model
     }
 
@@ -46,7 +55,8 @@ struct PricingCatalog: Sendable {
         _ name: String,
         _ input: Decimal,
         _ cached: Decimal,
-        _ output: Decimal
+        _ output: Decimal,
+        hasLongContextTier: Bool = false
     ) -> TokenRate {
         TokenRate(
             modelKey: key,
@@ -55,10 +65,10 @@ struct PricingCatalog: Sendable {
             cachedInputPerMillion: cached,
             cacheWritePerMillion: input * Decimal(string: "1.25")!,
             outputPerMillion: output,
-            longContextThreshold: 272_000,
+            longContextThreshold: hasLongContextTier ? 272_000 : nil,
             longContextInputMultiplier: 2,
             longContextOutputMultiplier: Decimal(string: "1.5")!,
-            sourceNote: "OpenAI API model pricing, verified 2026-08-24"
+            sourceNote: "OpenAI API and ChatGPT rate cards, verified 2026-08-29"
         )
     }
 }

@@ -132,7 +132,6 @@ struct CodexLiveContextReader: Sendable {
         var latestTotal: TokenUsage?
         var latestTimestamp = parseDate(taskObject["timestamp"]) ?? fallbackDate
         var calls: [CodexModelCallUsage] = []
-        var turnUsage = TokenUsage()
         var duplicatesIgnored = 0
 
         walkLines(in: data, range: taskLine.lowerBound..<data.endIndex) { line in
@@ -161,11 +160,24 @@ struct CodexLiveContextReader: Sendable {
             let eventTimestamp = parseDate(object["timestamp"]) ?? latestTimestamp
 
             let accepted: TokenUsage?
-            if let previousCumulative {
-                if total == previousCumulative || total.totalTokens == previousCumulative.totalTokens {
+            if let previous = previousCumulative {
+                if total == previous || total.totalTokens == previous.totalTokens {
                     duplicatesIgnored += 1
-                    accepted = nil
-                } else if let delta = total.subtracting(previousCumulative) {
+                    self.updateDuplicateCall(
+                        in: &calls,
+                        turnID: turnID,
+                        sessionID: sessionID,
+                        timestamp: eventTimestamp,
+                        model: currentModel,
+                        emittedLast: emittedLast,
+                        total: total
+                    )
+                    if emittedLast.hasCompleteBreakdown { latestCall = emittedLast }
+                    latestTotal = total
+                    latestTimestamp = eventTimestamp
+                    previousCumulative = total
+                    return
+                } else if let delta = total.subtracting(previous) {
                     accepted = delta
                 } else {
                     // A cumulative session counter is monotonic. Ignore stale
@@ -185,7 +197,6 @@ struct CodexLiveContextReader: Sendable {
             latestTimestamp = eventTimestamp
 
             guard accepted.totalTokens > 0 else { return }
-            turnUsage += accepted
             calls.append(
                 CodexModelCallUsage(
                     id: "\(turnID ?? sessionID)|\(total.totalTokens)",
@@ -206,6 +217,7 @@ struct CodexLiveContextReader: Sendable {
                 fallbackDate: fallbackDate
             )
         }
+        let turnUsage = calls.reduce(into: TokenUsage()) { $0 += $1.usage }
 
         return CodexLiveContextSnapshot(
             id: sessionID,
@@ -224,6 +236,28 @@ struct CodexLiveContextReader: Sendable {
             modelContextWindow: contextWindow,
             duplicateEventsIgnored: duplicatesIgnored,
             isTaskActive: taskIsActive(in: data)
+        )
+    }
+
+    private func updateDuplicateCall(
+        in calls: inout [CodexModelCallUsage],
+        turnID: String?,
+        sessionID: String,
+        timestamp: Date,
+        model: String,
+        emittedLast: TokenUsage,
+        total: TokenUsage
+    ) {
+        guard let index = calls.lastIndex(where: {
+            $0.cumulativeTaskUsage.totalTokens == total.totalTokens
+        }) else { return }
+        let usage = emittedLast.hasCompleteBreakdown ? emittedLast : calls[index].usage
+        calls[index] = CodexModelCallUsage(
+            id: "\(turnID ?? sessionID)|\(total.totalTokens)",
+            timestamp: timestamp,
+            model: model,
+            usage: usage,
+            cumulativeTaskUsage: total
         )
     }
 

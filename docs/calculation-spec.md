@@ -50,7 +50,7 @@ GPT-5.6 Sol、Terra 和 Luna 的内置公开容量为 1,050,000 Token。`model_c
 工具调用可能让一个 turn 内出现多次模型请求。每次收到累计事件时按以下规则处理：
 
 ```text
-current == previous       → 重复，忽略
+current == previous       → 不增加 Token；完整明细可修正同一累计点的输入/缓存/输出拆分
 current >= previous       → 接受差值并更新 previous
 current < previous        → 回退或旧事件，忽略
 ```
@@ -95,6 +95,8 @@ component_total = input + output
 session_id + timestamp + model + input + cached_input + output + total
 ```
 
+同一会话同时出现在 `archived_sessions` 和 `sessions` 时，优先采用累计 Token 更大的记录；累计值相同则采用时间更新的记录。存在现代累计计数时，只叠加确实晚于该累计点的旧格式事件。
+
 本地历史是已索引会话的总和，不归属到后来切换的账号。索引只保存计量元数据，不保存消息正文。
 
 ## 账号用量与额度
@@ -108,6 +110,46 @@ session_id + timestamp + model + input + cached_input + output + total
 | `account/rateLimits/read` | `usedPercent`、窗口长度、`resetsAt`、积分 |
 
 账号累计直接使用 `lifetimeTokens`。每日桶按服务端给出的日期显示，不假设最后一项就是用户本地的今天。
+
+### 总额度 Token 估算
+
+订阅额度没有公开的固定 Token 上限。应用把同一账号、同一额度窗口、同一重置周期内同时取得的两个官方计数配对：
+
+```text
+tokens_per_percent = Δsummary.lifetimeTokens / ΔusedPercent
+estimated_total_tokens = median(tokens_per_percent) × 100
+estimated_remaining_tokens = median(tokens_per_percent) × remainingPercent
+```
+
+样本必须相隔至少 120 秒，额度变化至少 1 个百分点，且 Token 与额度都单调增加。额度或累计 Token 回退后只使用新的单调区间。这个数会随模型和请求负载变化，属于当前账号实际使用结构下的经验估算，不是官方承诺的额度。
+
+账号累计计数尚未更新时，当前已加载账号改用本周期的本地精确事件：完整落在周期内的会话采用累计计数；跨越重置时刻的会话重新读取周期内的 `last_token_usage`。计算式为：
+
+```text
+estimated_total_tokens = local_cycle_tokens / usedPercent × 100
+estimated_remaining_tokens = estimated_total_tokens × remainingPercent
+```
+
+本地文件缺失、额度使用不足 1% 或当前账号未加载时不生成这个估算。
+
+套餐页使用账号的周额度窗口。Plus、Pro 5×、Pro 20× 等名称表示服务额度档位，不等于一个固定 Token 数；应用不会直接把倍率乘成 Token。月度值按平均公历月换算：
+
+```text
+estimated_monthly_tokens = estimated_weekly_tokens × 365.2425 / 12 / 7
+```
+
+### 账号额度的 API 美元等价
+
+美元值使用当前账号 Codex Home 中可计价的本地历史，不读取当前任务，也不使用当前任务的模型。每条历史记录先按自身模型及输入、缓存、缓存写入、输出结构计算 API 参考成本：
+
+```text
+account_usd_per_token = Σpriceable_local_api_cost / Σpriceable_local_tokens
+weekly_api_equivalent = estimated_weekly_tokens × account_usd_per_token
+monthly_api_equivalent = weekly_api_equivalent × 365.2425 / 12 / 7
+remaining_api_equivalent = estimated_remaining_tokens × account_usd_per_token
+```
+
+界面同时显示参与计价的本地 Token、模型数和本地 Token 覆盖率。周额度样本不足、当前选择的账号不是已加载账号，或本地历史没有已公布费率的模型时，美元值不可用。它表示以该账号历史使用结构按 API 费率购买同等文本 Token 的估算成本，不是订阅价格、余额或 OpenAI 承诺的现金价值。
 
 ## 剩余时间
 
@@ -149,7 +191,7 @@ time_to_exhaustion = remaining_percent / rate × 3600
 | 中 | 4 个样本、30 分钟跨度、1 个百分点变化 |
 | 低 | 已满足最低计算条件，但未达到以上条件 |
 
-订阅额度没有公开的 Token 固定换算，因此预测不使用 Token 数。
+剩余时间只使用官方额度百分比的变化率；总额度 Token 估算单独显示，不参与耗尽时间判断。
 
 ## API 参考成本
 
@@ -169,10 +211,17 @@ cost = uncached_input / 1M × input_rate
 | GPT-5.6 Sol | $4.00 | $0.40 | $20.00 |
 | GPT-5.6 Terra | $2.00 | $0.20 | $12.00 |
 | GPT-5.6 Luna | $0.20 | $0.02 | $1.20 |
+| GPT-5.5 | $5.00 | $0.50 | $30.00 |
+| Daybreak Blue | $4.00 | $0.40 | $20.00 |
+| Daybreak Red | $12.50 | $1.25 | $75.00 |
+| GPT-5.4 | $2.50 | $0.25 | $15.00 |
+| GPT-5.4 Mini | $0.75 | $0.075 | $4.50 |
+| GPT-5.3 Codex | $1.75 | $0.175 | $14.00 |
+| GPT-5.2 | $1.75 | $0.175 | $14.00 |
 
 缓存写入按未缓存输入费率的 1.25 倍计算。单次请求输入严格大于 272,000 Token 时，该请求输入侧乘 2，输出侧乘 1.5。
 
-当前轮次保留请求边界，所以先逐请求计算再相加。历史会话没有请求边界，只按标准费率计算。任一记录缺少完整拆分或模型费率时，包含它的聚合费用也为 `unavailable`。
+当前请求和当前轮次保留请求边界，所以逐请求选择费率后相加。详情中的“对话累计”直接使用当前会话的累计 Token 拆分；累计事件没有完整请求边界，因此按标准费率估算。历史项目同样只按标准费率计算。任一记录缺少完整拆分或模型费率时，包含它的聚合费用为 `unavailable`。
 
 图片、Web Search、Computer Use 等非文本计费项不包含在公式内。最终账单、订阅包含额度、企业折扣和服务端规则以账号系统为准。
 
@@ -188,18 +237,28 @@ source host in {x.com, twitter.com}
 正文命中已版本化规则
 ```
 
-状态包括候选、结构化预测和已确认。没有明确时间窗口的 `tomorrow`、`soon` 等文字不会生成精确时间。
+数据同时取自 Tibo 的公开动态时间线和独立公共预测接口。两路都可用时合并；一路失败或数据过期时标记为降级，不把旧结果伪装成新信号。
+
+状态分为：
+
+| 状态 | 含义 |
+| --- | --- |
+| 候选 | 提到了重置，但没有可验证时间 |
+| 预测 | 暗示性文字推导出的有界时间窗口 |
+| 已公布 | 动态明确给出了计划时间 |
+| 已确认 | 动态明确表示重置已经传播或完成 |
+
+相对时间按 Tibo 所在的 `America/Los_Angeles` 日历解释。例如 “Soon, but not today” 只生成当地下一自然日的预测窗口，不生成具体时刻。较高证据等级不能被后来的低等级解析覆盖。
 
 周期计算：
 
 ```text
 lastConfirmedAt = 最近一次非 banked 的确认时间
-lastObservedResetAt = max(lastConfirmedAt, 已到达的结构化预测开始时间)
-baselineNextResetAt = lastObservedResetAt + 7 days
-displayedNextResetAt = 有效预测开始时间 ?? baselineNextResetAt
+lastObservedResetAt = lastConfirmedAt
+displayedNextResetAt = 有效“预测”或“已公布”窗口的开始时间
 ```
 
-确认动态出现后，以实际发布时间重新锚定，并清除该确认之前已兑现的预测。缓存只保存动态 ID、URL、时间、状态、规则和正文 SHA-256，不保存正文。
+预测窗口到达不会自动变成“已确认”。只有确认动态才更新最近重置事实，并清除该确认之前的预测。Tibo 重置与账号 5 小时/周额度重置分别显示；确认后不会凭空生成下一周时间。缓存只保存动态 ID、URL、时间、状态、规则和正文 SHA-256，不保存正文。
 
 ## 任务标题
 

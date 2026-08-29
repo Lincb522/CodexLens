@@ -82,10 +82,66 @@ final class TiboResetSignalTests: XCTestCase {
         XCTAssertEqual(snapshot.latestSignal?.contentHash.count, 64)
         XCTAssertEqual(snapshot.latestSignal?.ruleVersion, TiboResetSignalService.ruleVersion)
         XCTAssertEqual(snapshot.signals.map(\.postID), ["confirmed", "expected"])
-        XCTAssertEqual(snapshot.signals.map(\.status), [.confirmed, .candidate])
+        XCTAssertEqual(snapshot.signals.map(\.status), [.confirmed, .expected])
     }
 
-    func testConfirmedResetAnchorsSevenDayBaseline() throws {
+    func testForecastPayloadKeepsConfirmedFactAndBoundedTeaseSeparate() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "updated_at": "2026-08-29T09:27:00.868Z",
+            "last_reset_at": "2026-08-27T16:35:05.000Z",
+            "evidence": [[
+                "code": "last_reset",
+                "href": "https://x.com/thsottiaux/status/2093014447833116908",
+            ]],
+            "official_signal": NSNull(),
+            "teased_window": [
+                "tweet_id": "2093551005711679557",
+                "summary": "There is a place and a time for resets. Soon, but not today",
+                "url": "https://x.com/thsottiaux/status/2093551005711679557",
+                "at": "2026-08-29T04:07:10.000Z",
+                "window": [
+                    "start_at": "2026-08-29T07:00:00.000Z",
+                    "end_at": "2026-08-30T06:59:59.999Z",
+                    "time_zone": "America/Los_Angeles",
+                ],
+            ],
+        ])
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-29T09:27:01Z"))
+        let snapshot = try TiboResetSignalService.decodeForecast(data, now: now)
+        let cycle = snapshot.cycle(now: now)
+
+        XCTAssertEqual(snapshot.sourceStatus, .healthy)
+        XCTAssertEqual(snapshot.latestSignal?.postID, "2093551005711679557")
+        XCTAssertEqual(snapshot.latestSignal?.status, .forecast)
+        XCTAssertEqual(cycle.lastConfirmedSignal?.postID, "2093014447833116908")
+        XCTAssertEqual(cycle.activePrediction?.postID, "2093551005711679557")
+        XCTAssertEqual(
+            cycle.displayedNextResetAt,
+            isoDate("2026-08-29T07:00:00Z")
+        )
+        XCTAssertEqual(
+            cycle.displayedNextResetEnd,
+            isoDate("2026-08-30T06:59:59.999Z")
+        )
+    }
+
+    func testSoonButNotTodayUsesTiboLocalDayAsForecastWindow() throws {
+        let postedAt = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-29T04:07:10Z"))
+        let result = TiboResetRuleEngine.evaluate(
+            "There is a place and a time for resets. Soon, but not today",
+            postedAt: postedAt
+        )
+
+        XCTAssertEqual(result.status, .forecast)
+        XCTAssertEqual(result.expectedStart, isoDate("2026-08-29T07:00:00Z"))
+        XCTAssertEqual(
+            try XCTUnwrap(result.expectedEnd).timeIntervalSince1970,
+            try XCTUnwrap(isoDate("2026-08-30T06:59:59.999Z")).timeIntervalSince1970,
+            accuracy: 0.002
+        )
+    }
+
+    func testConfirmedResetDoesNotCreateFutureSchedule() throws {
         let confirmedAt = try XCTUnwrap(
             ISO8601DateFormatter().date(from: "2026-08-13T01:01:37Z")
         )
@@ -94,11 +150,10 @@ final class TiboResetSignalTests: XCTestCase {
 
         XCTAssertEqual(cycle.lastConfirmedSignal?.postID, "done")
         XCTAssertEqual(cycle.lastObservedResetAt, confirmedAt)
-        XCTAssertEqual(cycle.baselineNextResetAt, confirmedAt.addingTimeInterval(7 * 86_400))
-        XCTAssertFalse(cycle.baselineIsProvisional)
+        XCTAssertNil(cycle.displayedNextResetAt)
     }
 
-    func testNewStructuredPredictionOverridesBaselineButKeepsConfirmation() throws {
+    func testNewStructuredPredictionKeepsConfirmation() throws {
         let confirmedAt = try XCTUnwrap(
             ISO8601DateFormatter().date(from: "2026-08-13T01:01:37Z")
         )
@@ -117,7 +172,6 @@ final class TiboResetSignalTests: XCTestCase {
         XCTAssertEqual(cycle.activePrediction?.postID, "promise")
         XCTAssertEqual(cycle.displayedNextResetAt, expectedAt)
         XCTAssertTrue(cycle.usesSignalPrediction)
-        XCTAssertEqual(cycle.baselineNextResetAt, confirmedAt.addingTimeInterval(7 * 86_400))
     }
 
     func testConfirmationClearsFulfilledPredictionImmediately() throws {
@@ -143,13 +197,10 @@ final class TiboResetSignalTests: XCTestCase {
 
         XCTAssertNil(cycle.activePrediction)
         XCTAssertEqual(cycle.lastConfirmedSignal?.postID, "done")
-        XCTAssertEqual(
-            cycle.baselineNextResetAt,
-            confirmation.postedAt.addingTimeInterval(7 * 86_400)
-        )
+        XCTAssertNil(cycle.displayedNextResetAt)
     }
 
-    func testReachedPredictionCreatesClearlyProvisionalBaseline() throws {
+    func testExpiredPredictionDoesNotBecomeAResetFact() throws {
         let predictedAt = try XCTUnwrap(
             ISO8601DateFormatter().date(from: "2026-08-13T00:00:00Z")
         )
@@ -161,15 +212,14 @@ final class TiboResetSignalTests: XCTestCase {
         prediction.expectedStart = predictedAt
         prediction.expectedEnd = predictedAt.addingTimeInterval(7_200)
         let cycle = monitor(signals: [prediction])
-            .cycle(now: predictedAt.addingTimeInterval(60))
+            .cycle(now: predictedAt.addingTimeInterval(7_201))
 
-        XCTAssertTrue(cycle.baselineIsProvisional)
-        XCTAssertEqual(cycle.lastObservedResetAt, predictedAt)
-        XCTAssertEqual(cycle.baselineNextResetAt, predictedAt.addingTimeInterval(7 * 86_400))
-        XCTAssertEqual(cycle.activePrediction?.postID, "promise")
+        XCTAssertNil(cycle.lastObservedResetAt)
+        XCTAssertNil(cycle.activePrediction)
+        XCTAssertNil(cycle.displayedNextResetAt)
     }
 
-    func testCandidateDoesNotMoveConfirmedBaseline() throws {
+    func testCandidateDoesNotCreateFutureWindow() throws {
         let confirmedAt = try XCTUnwrap(
             ISO8601DateFormatter().date(from: "2026-08-13T01:01:37Z")
         )
@@ -184,7 +234,7 @@ final class TiboResetSignalTests: XCTestCase {
 
         XCTAssertEqual(cycle.activeCandidate?.postID, "candidate")
         XCTAssertNil(cycle.activePrediction)
-        XCTAssertEqual(cycle.baselineNextResetAt, confirmedAt.addingTimeInterval(7 * 86_400))
+        XCTAssertNil(cycle.displayedNextResetAt)
     }
 
     func testRemoteRefreshKeepsOlderConfirmedFacts() throws {
@@ -202,6 +252,17 @@ final class TiboResetSignalTests: XCTestCase {
 
         XCTAssertEqual(merged.signals.map(\.postID), ["new-candidate", "old-confirmed"])
         XCTAssertEqual(merged.cycle(now: current.postedAt).lastConfirmedSignal?.postID, "old-confirmed")
+    }
+
+    func testRemoteRefreshCannotDowngradeConfirmedPost() throws {
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-14T00:00:00Z"))
+        let confirmed = signal(id: "same", at: date, status: .confirmed)
+        let candidate = signal(id: "same", at: date, status: .candidate)
+
+        let merged = monitor(signals: [confirmed]).mergingRemote(monitor(signals: [candidate]))
+
+        XCTAssertEqual(merged.signals.count, 1)
+        XCTAssertEqual(merged.latestSignal?.status, .confirmed)
     }
 
     func testStoreRoundTripsWithoutPostBody() throws {
@@ -280,7 +341,8 @@ final class TiboResetSignalTests: XCTestCase {
             "tibo.cycle.lastConfirmed",
             "tibo.cycle.currentSignal",
             "tibo.cycle.predictedTime",
-            "tibo.cycle.weeklyBaseline",
+            "tibo.cycle.forecastWindow",
+            "tibo.cycle.nextSignal",
         ]
 
         for language in AppLanguage.allCases where language != .system {
@@ -301,6 +363,12 @@ final class TiboResetSignalTests: XCTestCase {
             "created_at": date,
             "author": ["screen_name": author],
         ]
+    }
+
+    private func isoDate(_ value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
     }
 
     private func signal(

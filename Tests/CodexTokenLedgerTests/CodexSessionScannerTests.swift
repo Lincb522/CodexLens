@@ -51,6 +51,65 @@ final class CodexSessionScannerTests: XCTestCase {
         XCTAssertEqual(snapshot.sessions.first?.projectName, "fast")
     }
 
+    func testQuotaCycleUsageReplaysCallsForASessionThatCrossesTheResetBoundary() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedgerQuotaCycle-\(UUID().uuidString)", isDirectory: true)
+        let sessions = root.appendingPathComponent("sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: sessions, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let fixture = #"""
+        {"timestamp":"2026-08-23T00:00:00.000Z","type":"session_meta","payload":{"id":"crossing"}}
+        {"timestamp":"2026-08-23T00:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-23T00:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":900,"cached_input_tokens":0,"output_tokens":100},"last_token_usage":{"input_tokens":900,"cached_input_tokens":0,"output_tokens":100}}}}
+        {"timestamp":"2026-08-23T01:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1440,"cached_input_tokens":0,"output_tokens":160},"last_token_usage":{"input_tokens":540,"cached_input_tokens":0,"output_tokens":60}}}}
+        {"timestamp":"2026-08-23T02:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1800,"cached_input_tokens":0,"output_tokens":200},"last_token_usage":{"input_tokens":360,"cached_input_tokens":0,"output_tokens":40}}}}
+        """#
+        let file = sessions.appendingPathComponent("crossing.jsonl")
+        try fixture.write(to: file, atomically: true, encoding: .utf8)
+
+        let scanner = CodexSessionScanner()
+        let snapshot = try scanner.scan(codexHome: root, includeArchived: false)
+        let cycleStart = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T01:00:00Z"))
+        let observedAt = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T03:00:00Z"))
+        let usage = try XCTUnwrap(scanner.quotaCycleUsage(
+            snapshot: snapshot,
+            window: CodexQuotaWindow(
+                id: "weekly",
+                title: "Weekly",
+                usedPercent: 40,
+                windowMinutes: 10_080,
+                resetsAt: cycleStart.addingTimeInterval(7 * 24 * 3_600)
+            ),
+            observedAt: observedAt
+        ))
+
+        XCTAssertEqual(snapshot.totalUsage.totalTokens, 2_000)
+        XCTAssertEqual(usage.totalTokens, 1_000)
+        XCTAssertEqual(usage.sessionCount, 1)
+
+        let laterEvent = #"{"timestamp":"2026-08-23T03:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":2250,"cached_input_tokens":0,"output_tokens":250},"last_token_usage":{"input_tokens":450,"cached_input_tokens":0,"output_tokens":50}}}}"#
+        let handle = try FileHandle(forWritingTo: file)
+        try handle.seekToEnd()
+        try handle.write(contentsOf: Data(("\n" + laterEvent).utf8))
+        try handle.close()
+        let updatedSnapshot = try scanner.scan(codexHome: root, includeArchived: false)
+        try FileManager.default.removeItem(at: file)
+        let advanced = try XCTUnwrap(scanner.quotaCycleUsage(
+            snapshot: updatedSnapshot,
+            window: CodexQuotaWindow(
+                id: "weekly",
+                title: "Weekly",
+                usedPercent: 50,
+                windowMinutes: 10_080,
+                resetsAt: cycleStart.addingTimeInterval(7 * 24 * 3_600)
+            ),
+            observedAt: try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T04:00:00Z")),
+            previous: usage
+        ))
+        XCTAssertEqual(advanced.totalTokens, 1_500)
+    }
+
     func testScannerReadsIncrementalTokenEventsAndIgnoresMessageBodies() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedgerTests-\(UUID().uuidString)", isDirectory: true)
@@ -108,6 +167,80 @@ final class CodexSessionScannerTests: XCTestCase {
         XCTAssertEqual(snapshot.totalUsage.totalTokens, 110)
     }
 
+    func testScannerPrefersNewerActiveCumulativeTotalOverArchivedCopy() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedgerRolloutCopies-\(UUID().uuidString)", isDirectory: true)
+        let active = root.appendingPathComponent("sessions", isDirectory: true)
+        let archived = root.appendingPathComponent("archived_sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: active, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: archived, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let archivedFixture = cumulativeFixture(
+            sessionID: "same-cumulative",
+            timestamp: "2026-08-23T01:00:02.000Z",
+            input: 100,
+            output: 10
+        )
+        let activeFixture = cumulativeFixture(
+            sessionID: "same-cumulative",
+            timestamp: "2026-08-23T01:00:04.000Z",
+            input: 300,
+            output: 30
+        )
+        try archivedFixture.write(
+            to: archived.appendingPathComponent("archived.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+        try activeFixture.write(
+            to: active.appendingPathComponent("active.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let snapshot = try CodexSessionScanner().scan(codexHome: root, includeArchived: true)
+
+        XCTAssertEqual(snapshot.records.count, 1)
+        XCTAssertEqual(snapshot.totalUsage.totalTokens, 330)
+        XCTAssertTrue(snapshot.records.first?.sourcePath.hasSuffix("/sessions/active.jsonl") == true)
+    }
+
+    func testCumulativeSummarySupersedesOlderDetailedEventsForSameSession() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedgerMixedCounters-\(UUID().uuidString)", isDirectory: true)
+        let sessions = root.appendingPathComponent("sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: sessions, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let detailed = #"""
+        {"timestamp":"2026-08-23T01:00:00.000Z","type":"session_meta","payload":{"id":"mixed"}}
+        {"timestamp":"2026-08-23T01:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-23T01:00:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":100,"cached_input_tokens":0,"output_tokens":10}}}}
+        """#
+        try detailed.write(
+            to: sessions.appendingPathComponent("legacy.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+        try cumulativeFixture(
+            sessionID: "mixed",
+            timestamp: "2026-08-23T01:00:04.000Z",
+            input: 300,
+            output: 30
+        ).write(
+            to: sessions.appendingPathComponent("modern.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let snapshot = try CodexSessionScanner().scan(codexHome: root, includeArchived: false)
+
+        XCTAssertEqual(snapshot.records.count, 1)
+        XCTAssertTrue(snapshot.records[0].isCumulativeSessionSummary)
+        XCTAssertEqual(snapshot.totalUsage.totalTokens, 330)
+    }
+
     func testIncrementalCacheIsReusableAndInvalidatesWhenFileGrows() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedgerCache-\(UUID().uuidString)", isDirectory: true)
@@ -140,5 +273,18 @@ final class CodexSessionScannerTests: XCTestCase {
         let refreshed = try scanner.scanWithCache(codexHome: root, includeArchived: false, cache: reused.cache)
         XCTAssertEqual(refreshed.snapshot.records.count, 2)
         XCTAssertEqual(refreshed.snapshot.totalUsage.totalTokens, 330)
+    }
+
+    private func cumulativeFixture(
+        sessionID: String,
+        timestamp: String,
+        input: Int64,
+        output: Int64
+    ) -> String {
+        #"""
+        {"timestamp":"2026-08-23T01:00:00.000Z","type":"session_meta","payload":{"id":"\#(sessionID)"}}
+        {"timestamp":"2026-08-23T01:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"\#(timestamp)","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":\#(input),"cached_input_tokens":0,"cache_write_input_tokens":0,"output_tokens":\#(output),"reasoning_output_tokens":0},"last_token_usage":{"input_tokens":\#(input),"cached_input_tokens":0,"output_tokens":\#(output)}}}}
+        """#
     }
 }

@@ -2,6 +2,62 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class CodexAccountServiceTests: XCTestCase {
+    func testDecodesLegacyQuotaWindowWithoutScopeMetadata() throws {
+        let data = try XCTUnwrap(
+            #"{"id":"primary","title":"Weekly quota","usedPercent":48,"windowMinutes":10080,"resetsAt":null}"#
+                .data(using: .utf8)
+        )
+        let window = try JSONDecoder().decode(CodexQuotaWindow.self, from: data)
+
+        XCTAssertEqual(window.remainingPercent, 52)
+        XCTAssertNil(window.limitID)
+        XCTAssertNil(window.limitName)
+    }
+
+    func testKeepsAccountQuotaSeparateFromModelSpecificCycles() throws {
+        let rootWindow: [String: Any] = [
+            "usedPercent": 48,
+            "windowDurationMins": 10_080,
+            "resetsAt": 1_788_452_686,
+        ]
+        let modelFiveHour: [String: Any] = [
+            "usedPercent": 0,
+            "windowDurationMins": 300,
+            "resetsAt": 1_788_036_856,
+        ]
+        let modelWeekly: [String: Any] = [
+            "usedPercent": 0,
+            "windowDurationMins": 10_080,
+            "resetsAt": 1_788_623_656,
+        ]
+        let snapshot = try CodexAccountService.parse(
+            accountResult: ["account": ["planType": "pro"]],
+            rateLimitsResult: [
+                "rateLimits": [
+                    "planType": "pro",
+                    "limitId": "codex",
+                    "primary": rootWindow,
+                ],
+                "rateLimitsByLimitId": [
+                    "codex": ["limitId": "codex", "primary": rootWindow],
+                    "codex_bengalfox": [
+                        "limitId": "codex_bengalfox",
+                        "limitName": "GPT-5.3-Codex-Spark",
+                        "primary": modelFiveHour,
+                        "secondary": modelWeekly,
+                    ],
+                ],
+            ],
+            codexHome: URL(fileURLWithPath: "/tmp/codex-account-scope-fixture")
+        )
+
+        XCTAssertEqual(snapshot.accountQuotaWindows.map(\.remainingPercent), [52])
+        XCTAssertEqual(snapshot.weeklyWindow?.limitID, "codex")
+        XCTAssertEqual(snapshot.additionalQuotaGroups.count, 1)
+        XCTAssertEqual(snapshot.additionalQuotaGroups[0].name, "GPT-5.3-Codex-Spark")
+        XCTAssertEqual(snapshot.additionalQuotaGroups[0].windows.map(\.remainingPercent), [100, 100])
+    }
+
     func testParsesAccountScopedQuotaWindowsAndCredits() throws {
         let account: [String: Any] = [
             "account": [
@@ -14,6 +70,7 @@ final class CodexAccountServiceTests: XCTestCase {
         let limits: [String: Any] = [
             "rateLimits": [
                 "planType": "pro",
+                "limitId": "codex",
                 "primary": [
                     "usedPercent": 23,
                     "windowDurationMins": 300,
@@ -32,12 +89,17 @@ final class CodexAccountServiceTests: XCTestCase {
             ],
             "rateLimitsByLimitId": [
                 "codex": [:],
-                "codex_spark": [
-                    "limitName": "Codex Spark",
+                "codex_bengalfox": [
+                    "limitName": "GPT-5.3-Codex-Spark",
                     "primary": [
                         "usedPercent": 8,
                         "windowDurationMins": 300,
                         "resetsAt": 1_800_000_000,
+                    ],
+                    "secondary": [
+                        "usedPercent": 12,
+                        "windowDurationMins": 10_080,
+                        "resetsAt": 1_800_100_000,
                     ],
                 ],
             ],
@@ -68,9 +130,17 @@ final class CodexAccountServiceTests: XCTestCase {
         XCTAssertEqual(snapshot.plan, "pro")
         XCTAssertEqual(snapshot.primaryWindow?.title, "5-hour quota")
         XCTAssertEqual(snapshot.primaryWindow?.remainingPercent, 77)
+        XCTAssertEqual(snapshot.primaryWindow?.limitID, "codex")
         XCTAssertEqual(snapshot.secondaryWindow?.title, "Weekly quota")
         XCTAssertEqual(snapshot.credits?.balance, 42.5)
-        XCTAssertEqual(snapshot.additionalWindows.first?.title, "Codex Spark")
+        XCTAssertEqual(snapshot.additionalWindows.count, 2)
+        XCTAssertEqual(snapshot.additionalWindows.first?.title, "GPT-5.3-Codex-Spark")
+        XCTAssertEqual(snapshot.additionalWindows.first?.limitID, "codex_bengalfox")
+        XCTAssertEqual(snapshot.accountQuotaWindows.count, 2)
+        XCTAssertEqual(snapshot.additionalQuotaGroups.count, 1)
+        XCTAssertEqual(snapshot.additionalQuotaGroups.first?.name, "GPT-5.3-Codex-Spark")
+        XCTAssertEqual(snapshot.additionalQuotaGroups.first?.windows.count, 2)
+        XCTAssertEqual(snapshot.weeklyWindow?.id, "secondary")
         XCTAssertEqual(snapshot.accountTokenUsage?.summary.lifetimeTokens, 12_345_678)
         XCTAssertEqual(snapshot.accountTokenUsage?.latestDailyUsage?.tokens, 1_250_000)
     }

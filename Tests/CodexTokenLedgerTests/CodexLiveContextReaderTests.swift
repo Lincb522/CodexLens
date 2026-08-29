@@ -115,6 +115,30 @@ final class CodexLiveContextReaderTests: XCTestCase {
         XCTAssertEqual(snapshot.taskTotal.totalTokens, 500)
     }
 
+    func testDuplicateCounterCanCorrectLatestBreakdownWithoutAddingTokens() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedger-counter-correction-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("rollout.jsonl")
+        let fixture = #"""
+        {"timestamp":"2026-08-24T01:00:00.000Z","type":"session_meta","payload":{"id":"corrected"}}
+        {"timestamp":"2026-08-24T01:00:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn"}}
+        {"timestamp":"2026-08-24T01:00:02.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-24T01:00:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":200,"cached_input_tokens":100,"output_tokens":20},"last_token_usage":{"input_tokens":200,"cached_input_tokens":100,"output_tokens":20}}}}
+        {"timestamp":"2026-08-24T01:00:04.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":200,"cached_input_tokens":120,"output_tokens":20},"last_token_usage":{"input_tokens":200,"cached_input_tokens":120,"output_tokens":20}}}}
+        """#
+        try fixture.write(to: file, atomically: true, encoding: .utf8)
+
+        let snapshot = try XCTUnwrap(CodexLiveContextReader().read(file: file))
+
+        XCTAssertEqual(snapshot.duplicateEventsIgnored, 1)
+        XCTAssertEqual(snapshot.currentTurnCalls.count, 1)
+        XCTAssertEqual(snapshot.currentTurnUsage.totalTokens, 220)
+        XCTAssertEqual(snapshot.currentTurnUsage.cachedInputTokens, 120)
+        XCTAssertEqual(snapshot.lastRequest.cachedInputTokens, 120)
+    }
+
     func testDiscoversMultipleUnfinishedTasksAndExcludesCompletedTask() throws {
         let home = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedger-multi-live-\(UUID().uuidString)", isDirectory: true)

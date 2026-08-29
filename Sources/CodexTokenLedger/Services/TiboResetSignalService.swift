@@ -21,8 +21,9 @@ enum TiboResetSignalError: Error, AppLocalizedError {
 }
 
 struct TiboResetSignalService: @unchecked Sendable {
-    static let ruleVersion = "tibo-watch-rules-v1.1.0+token-pulse-1"
+    static let ruleVersion = "tibo-watch-rules-v1.2.0+token-pulse-2"
     static let endpoint = URL(string: "https://api.fxtwitter.com/2/profile/thsottiaux/statuses?count=100&with_replies=true")!
+    static let forecastEndpoint = URL(string: "https://codex-reset.com/api/forecast")!
 
     private let session: URLSession
     private let now: @Sendable () -> Date
@@ -33,7 +34,34 @@ struct TiboResetSignalService: @unchecked Sendable {
     }
 
     func fetch() async throws -> TiboResetMonitorSnapshot {
-        var request = URLRequest(url: Self.endpoint)
+        var snapshots: [TiboResetMonitorSnapshot] = []
+        var lastError: Error?
+
+        do {
+            snapshots.append(try Self.decodeForecast(try await data(from: Self.forecastEndpoint), now: now()))
+        } catch {
+            lastError = error
+        }
+        do {
+            snapshots.append(try Self.decode(try await data(from: Self.endpoint), now: now()))
+        } catch {
+            lastError = error
+        }
+
+        guard var combined = snapshots.first else {
+            throw lastError ?? TiboResetSignalError.invalidResponse
+        }
+        for snapshot in snapshots.dropFirst() {
+            combined = combined.mergingRemote(snapshot)
+        }
+        if snapshots.count < 2 || snapshots.contains(where: { $0.sourceStatus != .healthy }) {
+            combined.sourceStatus = .degraded
+        }
+        return combined
+    }
+
+    private func data(from url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
         request.timeoutInterval = 20
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("CodexTokenLedger/2.0", forHTTPHeaderField: "User-Agent")
@@ -42,7 +70,7 @@ struct TiboResetSignalService: @unchecked Sendable {
             throw TiboResetSignalError.invalidResponse
         }
         guard http.statusCode == 200 else { throw TiboResetSignalError.http(http.statusCode) }
-        return try Self.decode(data, now: now())
+        return data
     }
 
     static func decode(_ data: Data, now: Date) throws -> TiboResetMonitorSnapshot {
@@ -71,7 +99,7 @@ struct TiboResetSignalService: @unchecked Sendable {
                   postedAt <= now.addingTimeInterval(300)
             else { return nil }
 
-            let result = TiboResetRuleEngine.evaluate(status.text)
+            let result = TiboResetRuleEngine.evaluate(status.text, postedAt: postedAt)
             guard !result.matchedRuleIDs.isEmpty else { return nil }
             return TiboResetSignal(
                 postID: id,
@@ -81,7 +109,9 @@ struct TiboResetSignalService: @unchecked Sendable {
                 resetKind: result.resetKind,
                 matchedRuleIDs: result.matchedRuleIDs,
                 ruleVersion: Self.ruleVersion,
-                contentHash: SHA256.hash(data: Data(status.text.utf8)).map { String(format: "%02x", $0) }.joined()
+                contentHash: digest(status.text),
+                expectedStart: result.expectedStart,
+                expectedEnd: result.expectedEnd
             )
         }
         .sorted { $0.postedAt > $1.postedAt }
@@ -94,6 +124,135 @@ struct TiboResetSignalService: @unchecked Sendable {
             recentSignals: Array(signals.prefix(64)),
             lastErrorCode: nil
         )
+    }
+
+    static func decodeForecast(_ data: Data, now: Date) throws -> TiboResetMonitorSnapshot {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let updatedAt = isoDate(root["updated_at"]),
+              updatedAt >= now.addingTimeInterval(-7 * 86_400),
+              updatedAt <= now.addingTimeInterval(300)
+        else { throw TiboResetSignalError.invalidPayload }
+
+        var signals: [TiboResetSignal] = []
+        if let lastResetAt = isoDate(root["last_reset_at"]),
+           lastResetAt <= now.addingTimeInterval(300),
+           let evidence = root["evidence"] as? [[String: Any]],
+           let source = evidence.first(where: { ($0["code"] as? String) == "last_reset" }),
+           let url = tiboURL(source["href"]),
+           let postID = postID(from: url) {
+            signals.append(
+                TiboResetSignal(
+                    postID: postID,
+                    sourceURL: url,
+                    postedAt: lastResetAt,
+                    status: .confirmed,
+                    resetKind: "forced",
+                    matchedRuleIDs: ["forecast-verified-last-reset"],
+                    ruleVersion: ruleVersion,
+                    contentHash: digest("\(postID)|\(lastResetAt.timeIntervalSince1970)|confirmed")
+                )
+            )
+        }
+
+        if let teased = root["teased_window"] as? [String: Any],
+           let url = tiboURL(teased["url"]),
+           let postID = (teased["tweet_id"] as? String) ?? postID(from: url),
+           let postedAt = isoDate(teased["at"]),
+           postedAt <= now.addingTimeInterval(300),
+           let window = teased["window"] as? [String: Any],
+           let start = isoDate(window["start_at"]),
+           let end = isoDate(window["end_at"]),
+           start < end,
+           end > now,
+           end.timeIntervalSince(start) <= 7 * 86_400 {
+            signals.append(
+                TiboResetSignal(
+                    postID: postID,
+                    sourceURL: url,
+                    postedAt: postedAt,
+                    status: .forecast,
+                    resetKind: "forced",
+                    matchedRuleIDs: ["forecast-bounded-tease"],
+                    ruleVersion: ruleVersion,
+                    contentHash: digest((teased["summary"] as? String) ?? postID),
+                    expectedStart: start,
+                    expectedEnd: end
+                )
+            )
+        }
+
+        if let official = root["official_signal"] as? [String: Any],
+           let url = tiboURL(official["url"] ?? official["source_url"]),
+           let postID = (official["tweet_id"] as? String) ?? postID(from: url),
+           let postedAt = isoDate(official["at"] ?? official["source_posted_at"]),
+           postedAt <= now.addingTimeInterval(300) {
+            let window = official["window"] as? [String: Any]
+            let start = isoDate(window?["start_at"] ?? official["expected_start"])
+            let end = isoDate(window?["end_at"] ?? official["expected_end"])
+            let statusText = (official["status"] as? String)?.lowercased()
+            let status: TiboSignalStatus = statusText == "confirmed" ? .confirmed : .expected
+            signals.append(
+                TiboResetSignal(
+                    postID: postID,
+                    sourceURL: url,
+                    postedAt: postedAt,
+                    status: status,
+                    resetKind: "forced",
+                    matchedRuleIDs: ["forecast-official-signal"],
+                    ruleVersion: ruleVersion,
+                    contentHash: digest((official["summary"] as? String) ?? postID),
+                    expectedStart: start,
+                    expectedEnd: end
+                )
+            )
+        }
+
+        guard !signals.isEmpty else { throw TiboResetSignalError.invalidPayload }
+        let ordered = Dictionary(grouping: signals, by: \TiboResetSignal.postID)
+            .compactMap { _, values in values.max { statusRank($0.status) < statusRank($1.status) } }
+            .sorted { $0.postedAt > $1.postedAt }
+        let fresh = now.timeIntervalSince(updatedAt) <= 6 * 3_600
+        return TiboResetMonitorSnapshot(
+            sourceStatus: fresh ? .healthy : .degraded,
+            checkedAt: now,
+            lastSuccessAt: updatedAt,
+            latestSignal: ordered.first,
+            recentSignals: ordered,
+            lastErrorCode: fresh ? nil : "forecast_stale"
+        )
+    }
+
+    private static func tiboURL(_ value: Any?) -> URL? {
+        guard let raw = value as? String, let url = URL(string: raw),
+              ["x.com", "twitter.com"].contains(url.host?.lowercased() ?? ""),
+              url.path.lowercased().hasPrefix("/thsottiaux/status/")
+        else { return nil }
+        return url
+    }
+
+    private static func postID(from url: URL) -> String? {
+        let value = url.pathComponents.last ?? ""
+        return value.allSatisfy(\.isNumber) && !value.isEmpty ? value : nil
+    }
+
+    private static func isoDate(_ value: Any?) -> Date? {
+        guard let text = value as? String else { return nil }
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: text) ?? ISO8601DateFormatter().date(from: text)
+    }
+
+    private static func digest(_ value: String) -> String {
+        SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func statusRank(_ status: TiboSignalStatus) -> Int {
+        switch status {
+        case .candidate: 0
+        case .forecast: 1
+        case .expected: 2
+        case .confirmed: 3
+        }
     }
 
     private struct Payload: Decodable {
@@ -137,6 +296,8 @@ enum TiboResetRuleEngine {
         let status: TiboSignalStatus
         let resetKind: String
         let matchedRuleIDs: [String]
+        let expectedStart: Date?
+        let expectedEnd: Date?
     }
 
     private struct Rule {
@@ -144,27 +305,39 @@ enum TiboResetRuleEngine {
         let expression: NSRegularExpression
     }
 
-    static func evaluate(_ text: String) -> Result {
+    static func evaluate(_ text: String, postedAt: Date? = nil) -> Result {
         guard !matches(suppression, text) else {
-            return Result(status: .candidate, resetKind: "forced", matchedRuleIDs: [])
+            return Result(
+                status: .candidate,
+                resetKind: "forced",
+                matchedRuleIDs: [],
+                expectedStart: nil,
+                expectedEnd: nil
+            )
         }
         let matched = rules.filter { matches($0.expression, text) }.map(\.id)
         guard !matched.isEmpty else {
-            return Result(status: .candidate, resetKind: "forced", matchedRuleIDs: [])
+            return Result(
+                status: .candidate,
+                resetKind: "forced",
+                matchedRuleIDs: [],
+                expectedStart: nil,
+                expectedEnd: nil
+            )
         }
         let completed = matches(completedExpression, text)
         let kind: String
         if matches(bankedExpression, text) { kind = "banked" }
         else if matches(compensationExpression, text) { kind = "compensation" }
         else { kind = "forced" }
-        // This is intentionally the upstream rule-only behavior: a future
-        // phrase is still only a candidate until a structured analysis has
-        // produced an auditable time window. Never label keyword inference as
-        // a confirmed prediction.
+        let window = postedAt.flatMap { predictionWindow(for: text, postedAt: $0) }
+        let isTease = matches(teaseExpression, text)
         return Result(
-            status: completed ? .confirmed : .candidate,
+            status: completed ? .confirmed : (window == nil ? .candidate : (isTease ? .forecast : .expected)),
             resetKind: kind,
-            matchedRuleIDs: matched
+            matchedRuleIDs: matched,
+            expectedStart: completed ? nil : window?.start,
+            expectedEnd: completed ? nil : window?.end
         )
     }
 
@@ -180,9 +353,7 @@ enum TiboResetRuleEngine {
         rule("banked-reset", #"\b(?:banked\s+reset|reset\s+bank|reset\s+into\s+(?:the|your)\s+bank)\b"#),
         rule("future-manual-resets", #"\b(?:will|get(?:ting)?)\b[^.!?]{0,100}\bmore\s+manual\s+resets?\b"#),
         rule("vague-limit-reset-intent", #"\b(?:feeling\s+like|thinking\s+about|might)\b[^.!?]{0,80}\blimit\s+reset\b"#),
-        // Runtime evidence from 2026-08-24 uses “Reset has been propagated”.
-        // This narrow extension is intentionally versioned separately from the
-        // upstream frozen rule set.
+        rule("soon-not-today", #"\bresets?\b[^.!?]{0,120}\bsoon\b[^.!?]{0,80}\bnot\s+today\b|\bsoon\b[^.!?]{0,80}\bnot\s+today\b"#),
         rule("reset-propagated-completed", #"\breset\b[^.!?]{0,100}\b(?:has|have)\s+been\s+propagat(?:ed|ing)\b"#),
     ]
 
@@ -190,6 +361,66 @@ enum TiboResetRuleEngine {
     private static let completedExpression = regex(#"(?:\b(?:i|we)\s+(?:have|'ve|did)\s+(?:now\s+)?reset(?:ted)?\b|\b(?:usage|rate|codex)\s+limits?\s+(?:have|has)\s+(?:now\s+)?been\s+reset\b|\breset\s+button\s+pressed\b|\bstill\s+did\s+reset\s+the\s+usage\b|\b(?:enjoy|have)\b[^.!?]{0,80}\b(?:a\s+)?(?:nice\s+)?reset\b[\s\S]{0,160}\b(?:landing|should\s+(?:land|show)|propagat(?:e|ing))\b|\breset\b[^.!?]{0,100}\b(?:has|have)\s+been\s+propagat(?:ed|ing)\b)"#)
     private static let bankedExpression = regex(#"\bbanked?\s+reset|reset\s+(?:into\s+)?(?:the\s+)?bank\b"#)
     private static let compensationExpression = regex(#"\bcompensat(?:e|ion|ory)\b"#)
+    private static let teaseExpression = regex(#"\bsoon\b[^.!?]{0,80}\bnot\s+today\b|\bfeeling\s+like\b"#)
+
+    private static func predictionWindow(for text: String, postedAt: Date) -> (start: Date, end: Date)? {
+        let lower = text.lowercased()
+        if lower.range(of: #"next\s+30\s+minutes"#, options: .regularExpression) != nil {
+            return (postedAt, postedAt.addingTimeInterval(30 * 60))
+        }
+        if lower.range(of: #"next\s+(?:few|couple\s+of)\s+hours"#, options: .regularExpression) != nil {
+            return (postedAt, postedAt.addingTimeInterval(4 * 3_600))
+        }
+        if lower.range(of: #"next\s+hour"#, options: .regularExpression) != nil {
+            return (postedAt, postedAt.addingTimeInterval(3_600))
+        }
+
+        var calendar = Calendar(identifier: .gregorian)
+        guard let sourceTimeZone = TimeZone(identifier: "America/Los_Angeles") else { return nil }
+        calendar.timeZone = sourceTimeZone
+        if lower.contains("not today") || lower.contains("tomorrow") {
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: postedAt) else { return nil }
+            let start = calendar.startOfDay(for: nextDay)
+            guard let end = calendar.date(byAdding: .day, value: 1, to: start)?.addingTimeInterval(-0.001) else {
+                return nil
+            }
+            return (start, end)
+        }
+        if lower.contains("later in the day") || lower.contains("later today") || lower.contains("tonight") {
+            let start = postedAt
+            guard let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: postedAt))?
+                .addingTimeInterval(-0.001)
+            else { return nil }
+            return start < end ? (start, end) : nil
+        }
+        if lower.range(of: #"in\s+(?:a\s+bit|a\s+few\s+minutes)|shortly"#, options: .regularExpression) != nil {
+            return (postedAt, postedAt.addingTimeInterval(3 * 3_600))
+        }
+        if let match = lower.firstMatch(of: /in\s+(\d{1,2})\s+(minute|minutes|hour|hours)/),
+           let amount = Int(match.1), amount > 0 {
+            let seconds = match.2.hasPrefix("hour") ? amount * 3_600 : amount * 60
+            return (postedAt, postedAt.addingTimeInterval(TimeInterval(seconds)))
+        }
+        let weekdays = [
+            "sunday": 1, "monday": 2, "tuesday": 3, "wednesday": 4,
+            "thursday": 5, "friday": 6, "saturday": 7,
+        ]
+        if let weekday = weekdays.first(where: { lower.contains("on \($0.key)") })?.value,
+           let day = nextDate(weekday: weekday, after: postedAt, calendar: calendar) {
+            let start = calendar.startOfDay(for: day)
+            guard let end = calendar.date(byAdding: .day, value: 1, to: start)?.addingTimeInterval(-0.001) else {
+                return nil
+            }
+            return (start, end)
+        }
+        return nil
+    }
+
+    private static func nextDate(weekday: Int, after date: Date, calendar: Calendar) -> Date? {
+        let current = calendar.component(.weekday, from: date)
+        let days = (weekday - current + 7) % 7
+        return calendar.date(byAdding: .day, value: days == 0 ? 7 : days, to: date)
+    }
 
     private static func rule(_ id: String, _ pattern: String) -> Rule {
         Rule(id: id, expression: regex(pattern))

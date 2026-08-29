@@ -2,6 +2,7 @@ import Foundation
 
 enum TiboSignalStatus: String, Codable, Sendable {
     case candidate
+    case forecast
     case expected
     case confirmed
 }
@@ -22,29 +23,21 @@ struct TiboResetSignal: Codable, Equatable, Identifiable, Sendable {
     let matchedRuleIDs: [String]
     let ruleVersion: String
     let contentHash: String
-    /// A structured prediction is optional because rule-only monitoring does
-    /// not invent a date from vague wording. These fields are populated only
-    /// when a source adapter can supply an explicit, auditable window.
     var expectedStart: Date? = nil
     var expectedEnd: Date? = nil
 
     var id: String { postID }
 }
 
-/// The compact product model adapted from Tibo Watch's dashboard domain.
-/// Account quota resets are deliberately absent: this describes only the
-/// public Tibo reset cycle.
 struct TiboResetCycle: Equatable, Sendable {
     let lastConfirmedSignal: TiboResetSignal?
     let lastObservedResetAt: Date?
-    let baselineNextResetAt: Date?
-    let baselineIsProvisional: Bool
     let activeCandidate: TiboResetSignal?
     let activePrediction: TiboResetSignal?
     let chain: [TiboResetSignal]
 
     var activeSignal: TiboResetSignal? { activePrediction ?? activeCandidate }
-    var displayedNextResetAt: Date? { activePrediction?.expectedStart ?? baselineNextResetAt }
+    var displayedNextResetAt: Date? { activePrediction?.expectedStart }
     var displayedNextResetEnd: Date? { activePrediction?.expectedEnd }
     var usesSignalPrediction: Bool { activePrediction != nil }
 }
@@ -54,8 +47,6 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
     var checkedAt: Date?
     var lastSuccessAt: Date?
     var latestSignal: TiboResetSignal?
-    /// Recent public reset updates, newest first. Optional keeps caches written
-    /// by older app versions decodable; `signals` falls back to latestSignal.
     var recentSignals: [TiboResetSignal]? = nil
     var lastErrorCode: String?
 
@@ -66,11 +57,6 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
         return recentSignals
     }
 
-    /// Mirrors the upstream reset-cycle rules:
-    /// - a confirmed non-banked reset anchors the seven-day baseline;
-    /// - a reached structured prediction can establish a provisional anchor;
-    /// - predictions posted at or before the newest confirmation are fulfilled;
-    /// - a genuinely newer prediction temporarily overrides the baseline.
     func cycle(now: Date = Date()) -> TiboResetCycle {
         let primary = signals
             .filter { $0.resetKind != "banked" }
@@ -81,35 +67,19 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
             .max { $0.postedAt < $1.postedAt }
         let confirmedAt = lastConfirmed?.postedAt
 
-        let reachedPrediction = primary
-            .filter { signal in
-                guard signal.status == .expected,
-                      let expectedStart = signal.expectedStart,
-                      expectedStart <= now
-                else { return false }
-                if let confirmedAt, signal.postedAt <= confirmedAt { return false }
-                return true
-            }
-            .max { ($0.expectedStart ?? .distantPast) < ($1.expectedStart ?? .distantPast) }
-
-        let observedAt: Date?
-        let provisional: Bool
-        if let reached = reachedPrediction?.expectedStart,
-           confirmedAt == nil || reached > confirmedAt! {
-            observedAt = reached
-            provisional = true
-        } else {
-            observedAt = confirmedAt
-            provisional = false
-        }
-
         let activePredictions = primary.filter { signal in
-            guard signal.status == .expected else { return false }
+            guard signal.status == .expected || signal.status == .forecast else { return false }
             if let confirmedAt, signal.postedAt <= confirmedAt { return false }
             let boundary = signal.expectedEnd ?? signal.expectedStart
-            return boundary.map { $0 > now } ?? true
+            if let boundary { return boundary > now }
+            return signal.postedAt > now.addingTimeInterval(-7 * 86_400)
         }
-        let activePrediction = activePredictions.max { $0.postedAt < $1.postedAt }
+        let activePrediction = activePredictions.max { lhs, rhs in
+            if lhs.status != rhs.status {
+                return lhs.status == .forecast && rhs.status == .expected
+            }
+            return lhs.postedAt < rhs.postedAt
+        }
         let activeCandidate = primary
             .filter { signal in
                 guard signal.status == .candidate else { return false }
@@ -118,7 +88,6 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
             }
             .max { $0.postedAt < $1.postedAt }
 
-        let baseline = observedAt?.addingTimeInterval(7 * 86_400)
         let activeBoundary = activePrediction?.postedAt ?? activeCandidate?.postedAt
         let chain: [TiboResetSignal]
         if activeBoundary != nil {
@@ -139,23 +108,22 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
 
         return TiboResetCycle(
             lastConfirmedSignal: lastConfirmed,
-            lastObservedResetAt: observedAt,
-            baselineNextResetAt: baseline,
-            baselineIsProvisional: provisional,
+            lastObservedResetAt: confirmedAt,
             activeCandidate: activeCandidate,
             activePrediction: activePrediction,
             chain: Array(chain.suffix(3))
         )
     }
 
-    /// Preserve already-observed facts when the public endpoint's rolling
-    /// result page no longer contains them. Records are metadata-only and
-    /// bounded, so confirmed reset history survives refreshes without storing
-    /// post bodies.
     func mergingRemote(_ remote: Self, maximumSignals: Int = 128) -> Self {
         var byID: [String: TiboResetSignal] = [:]
         for signal in signals { byID[signal.postID] = signal }
-        for signal in remote.signals { byID[signal.postID] = signal }
+        for signal in remote.signals {
+            if let existing = byID[signal.postID], statusRank(existing.status) > statusRank(signal.status) {
+                continue
+            }
+            byID[signal.postID] = signal
+        }
         let merged = byID.values.sorted { $0.postedAt > $1.postedAt }
         let retained = Array(merged.prefix(maximumSignals))
         return Self(
@@ -183,6 +151,15 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
         copy.checkedAt = date
         copy.lastErrorCode = code
         return copy
+    }
+
+    private func statusRank(_ status: TiboSignalStatus) -> Int {
+        switch status {
+        case .candidate: 0
+        case .forecast: 1
+        case .expected: 2
+        case .confirmed: 3
+        }
     }
 }
 
@@ -234,9 +211,6 @@ enum TiboResetSignalFormatter {
         return "\(compactLocalTimestamp(start, localeIdentifier: localeIdentifier, timeZone: timeZone))–\(compactLocalTimestamp(end, localeIdentifier: localeIdentifier, timeZone: timeZone))"
     }
 
-    /// Converts the source's UTC instant to the user's current Mac timezone.
-    /// The explicit UTC offset prevents a compact timestamp from looking like
-    /// the source timezone or an unconverted server value.
     static func localTimestamp(
         _ date: Date,
         localeIdentifier: String,

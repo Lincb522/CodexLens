@@ -27,4 +27,33 @@ final class PricingCatalogTests: XCTestCase {
             XCTAssertEqual(rate.longContextOutputMultiplier, Decimal(string: "1.5"))
         }
     }
+
+    func testPublishedRateCardModelsArePriced() throws {
+        let expected: [String: (Decimal, Decimal, Decimal)] = [
+            "gpt-5.5": (5, Decimal(string: "0.5")!, 30),
+            "daybreak-blue": (4, Decimal(string: "0.4")!, 20),
+            "daybreak-red": (Decimal(string: "12.5")!, Decimal(string: "1.25")!, 75),
+            "gpt-5.4": (Decimal(string: "2.5")!, Decimal(string: "0.25")!, 15),
+            "gpt-5.4-mini": (Decimal(string: "0.75")!, Decimal(string: "0.075")!, Decimal(string: "4.5")!),
+            "gpt-5.3-codex": (Decimal(string: "1.75")!, Decimal(string: "0.175")!, 14),
+            "gpt-5.2": (Decimal(string: "1.75")!, Decimal(string: "0.175")!, 14),
+        ]
+        for (model, values) in expected {
+            let rate = try XCTUnwrap(PricingCatalog.rate(for: model))
+            XCTAssertEqual(rate.inputPerMillion, values.0, model)
+            XCTAssertEqual(rate.cachedInputPerMillion, values.1, model)
+            XCTAssertEqual(rate.outputPerMillion, values.2, model)
+        }
+    }
+
+    func testLongContextSurchargeIsNotAppliedToModelsWithoutPublishedTier() throws {
+        let rate = try XCTUnwrap(PricingCatalog.rate(for: "gpt-5.5"))
+        XCTAssertNil(rate.longContextThreshold)
+        let cost = BillingCalculator.cost(
+            for: TokenUsage(inputTokens: 300_000, outputTokens: 1_000),
+            model: "gpt-5.5"
+        )
+        XCTAssertFalse(cost.isLongContext)
+        XCTAssertEqual(cost.total, Decimal(string: "1.53")!)
+    }
 }

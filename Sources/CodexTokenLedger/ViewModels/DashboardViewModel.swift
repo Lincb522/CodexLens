@@ -105,6 +105,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var menuUsesHeroTopBridge: Bool
     @Published private(set) var isAccountSwitching: Bool
     @Published private(set) var quotaHistorySamples: [QuotaUsageSample]
+    @Published private(set) var localQuotaCycleUsageByAccount: [String: LocalQuotaCycleUsage]
 
     private var hasLoaded = false
     private var refreshQueued = false
@@ -189,6 +190,7 @@ final class DashboardViewModel: ObservableObject {
         menuUsesHeroTopBridge = true
         isAccountSwitching = false
         quotaHistorySamples = initialQuotaHistorySamples ?? QuotaUsageHistoryStore.load()
+        localQuotaCycleUsageByAccount = [:]
     }
 
     var selectedAccount: CodexAccountUsageSnapshot? {
@@ -250,8 +252,115 @@ final class DashboardViewModel: ObservableObject {
         return QuotaForecastEngine().forecast(
             accountID: account.id,
             window: window,
-            samples: quotaHistorySamples
+            samples: quotaHistorySamples,
+            observedAt: account.updatedAt
         )
+    }
+
+    var selectedQuotaCapacityEstimate: QuotaCapacityEstimate? {
+        guard let account = selectedAccount,
+              let window = account.weeklyWindow
+        else { return nil }
+        let engine = QuotaForecastEngine()
+        if let pairedEstimate = engine.capacityEstimate(
+            accountID: account.id,
+            window: window,
+            lifetimeTokens: account.accountTokenUsage?.summary.lifetimeTokens,
+            samples: quotaHistorySamples,
+            observedAt: account.updatedAt
+        ) {
+            return pairedEstimate
+        }
+        guard selectedAccountIsActive,
+              Self.standardizedPath(snapshot.codexHome) == Self.standardizedPath(account.codexHome),
+              let usage = localQuotaCycleUsageByAccount[account.id]
+        else { return nil }
+        return engine.currentCycleCapacityEstimate(
+            window: window,
+            usage: usage,
+            observedAt: min(account.updatedAt, snapshot.scannedAt)
+        )
+    }
+
+    var selectedQuotaValueEstimate: QuotaValueEstimate? {
+        guard let capacity = selectedQuotaCapacityEstimate else { return nil }
+
+        let weeksPerMonth = Decimal(string: "4.348125")!
+        let monthlyTokenValue = Double(capacity.estimatedTotalTokens) * 4.348125
+        guard monthlyTokenValue.isFinite, monthlyTokenValue <= Double(Int64.max) else { return nil }
+        let tokenEstimate = QuotaValueEstimate(
+            weeklyTokens: capacity.estimatedTotalTokens,
+            monthlyTokens: Int64(monthlyTokenValue.rounded()),
+            remainingWeeklyTokens: capacity.estimatedRemainingTokens,
+            weeklyAPIEquivalentUSD: nil,
+            monthlyAPIEquivalentUSD: nil,
+            remainingAPIEquivalentUSD: nil,
+            pricedSampleTokens: 0,
+            localTokenCoverage: 0,
+            pricedModelCount: 0
+        )
+        guard selectedAccountIsActive,
+              let account = selectedAccount,
+              Self.standardizedPath(snapshot.codexHome) == Self.standardizedPath(account.codexHome)
+        else { return tokenEstimate }
+
+        var pricedTokens: Int64 = 0
+        var pricedUSD: Decimal = 0
+        var pricedModels: Set<String> = []
+        for record in filteredRecords where record.usage.totalTokens > 0 {
+            let cost = BillingCalculator.cost(
+                for: record.usage,
+                model: record.model,
+                applyLongContextMultiplier: !record.isCumulativeSessionSummary
+            )
+            guard cost.isPriced else { continue }
+            let (updatedTokens, overflow) = pricedTokens.addingReportingOverflow(record.usage.totalTokens)
+            guard !overflow else { return tokenEstimate }
+            pricedTokens = updatedTokens
+            pricedUSD += cost.total
+            pricedModels.insert(PricingCatalog.normalize(model: record.model))
+        }
+
+        let localTokens = localConversationTotalUsage.totalTokens
+        guard pricedTokens > 0, pricedUSD > 0 else { return tokenEstimate }
+
+        let usdPerToken = pricedUSD / Decimal(pricedTokens)
+        let weeklyUSD = Decimal(capacity.estimatedTotalTokens) * usdPerToken
+        return QuotaValueEstimate(
+            weeklyTokens: capacity.estimatedTotalTokens,
+            monthlyTokens: tokenEstimate.monthlyTokens,
+            remainingWeeklyTokens: capacity.estimatedRemainingTokens,
+            weeklyAPIEquivalentUSD: weeklyUSD,
+            monthlyAPIEquivalentUSD: weeklyUSD * weeksPerMonth,
+            remainingAPIEquivalentUSD: Decimal(capacity.estimatedRemainingTokens) * usdPerToken,
+            pricedSampleTokens: pricedTokens,
+            localTokenCoverage: localTokens > 0
+                ? min(1, Double(pricedTokens) / Double(localTokens))
+                : 0,
+            pricedModelCount: pricedModels.count
+        )
+    }
+
+    func accountDailyValue(_ account: CodexAccountUsageSnapshot) -> String {
+        account.accountTokenUsage?.latestDailyUsage
+            .map { DisplayFormat.tokens($0.tokens) } ?? "—"
+    }
+
+    func accountDailyTitle(_ account: CodexAccountUsageSnapshot) -> String {
+        guard let bucket = account.accountTokenUsage?.latestDailyUsage,
+              let date = Self.serverDayFormatter.date(from: String(bucket.startDate.prefix(10)))
+        else {
+            return t("account.today", "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let today = Self.serverDayFormatter.string(from: Date())
+        if String(bucket.startDate.prefix(10)) == today {
+            return t("account.today", "").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: appLanguage.localeIdentifier)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.setLocalizedDateFormatFromTemplate("Md")
+        return t("account.dailyUsageOn", formatter.string(from: date))
     }
 
     var apiEquivalentCost: CostBreakdown? {
@@ -499,7 +608,10 @@ final class DashboardViewModel: ObservableObject {
                 }
             }
 
-            switch await accountTask.value {
+            let accountOutcome = await accountTask.value
+            let usageOutcome = await usageTask.value
+
+            switch accountOutcome {
             case .success(let account):
                 accountSnapshots = CodexAccountUsageStore.upserting(account, into: accountSnapshots)
                 quotaHistorySamples = QuotaUsageHistoryStore.appending(
@@ -523,11 +635,28 @@ final class DashboardViewModel: ObservableObject {
                 accountErrorMessage = localizedErrorText(error)
             }
 
-            switch await usageTask.value {
+            switch usageOutcome {
             case .success(let result):
                 snapshot = result
             case .failure(let error):
                 errorMessage = localizedErrorText(error)
+            }
+            if case let (.success(account), .success(localSnapshot)) = (accountOutcome, usageOutcome),
+               let weeklyWindow = account.weeklyWindow,
+               Self.standardizedPath(localSnapshot.codexHome) == Self.standardizedPath(account.codexHome) {
+                let observedAt = min(account.updatedAt, localSnapshot.scannedAt)
+                let previousCycleUsage = localQuotaCycleUsageByAccount[account.id]
+                let cycleUsage = await Task.detached(priority: .utility) {
+                    CodexSessionScanner().quotaCycleUsage(
+                        snapshot: localSnapshot,
+                        window: weeklyWindow,
+                        observedAt: observedAt,
+                        previous: previousCycleUsage
+                    )
+                }.value
+                if let cycleUsage {
+                    localQuotaCycleUsageByAccount[account.id] = cycleUsage
+                }
             }
             if case .success(let metadata) = await metadataTask.value {
                 threadMetadataByID = metadata
@@ -670,6 +799,7 @@ final class DashboardViewModel: ObservableObject {
             return t("tibo.status.checking")
         }
         let cycle = tiboResetCycle
+        if cycle.activePrediction?.status == .forecast { return t("tibo.cycle.forecastActive") }
         if cycle.activePrediction != nil { return t("tibo.cycle.predictionActive") }
         if cycle.activeCandidate != nil { return t("tibo.cycle.signalActive") }
         if cycle.lastConfirmedSignal != nil { return t("tibo.cycle.waiting") }
@@ -687,6 +817,7 @@ final class DashboardViewModel: ObservableObject {
 
     var tiboCycleCurrentSignalText: String {
         let cycle = tiboResetCycle
+        if cycle.activePrediction?.status == .forecast { return t("tibo.cycle.forecast") }
         if cycle.activePrediction != nil { return t("tibo.cycle.expected") }
         if cycle.activeCandidate != nil { return t("tibo.cycle.pending") }
         if cycle.lastConfirmedSignal != nil { return t("tibo.cycle.noNewSignal") }
@@ -694,9 +825,11 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboCycleNextLabel: String {
-        t(tiboResetCycle.usesSignalPrediction
-            ? "tibo.cycle.predictedTime"
-            : "tibo.cycle.weeklyBaseline")
+        switch tiboResetCycle.activePrediction?.status {
+        case .forecast: t("tibo.cycle.forecastWindow")
+        case .expected: t("tibo.cycle.predictedTime")
+        default: t("tibo.cycle.nextSignal")
+        }
     }
 
     var tiboCycleNextText: String {
@@ -708,14 +841,14 @@ final class DashboardViewModel: ObservableObject {
                 localeIdentifier: appLanguage.localeIdentifier
             ) ?? t("tibo.cycle.windowPending")
         }
-        guard let date = cycle.baselineNextResetAt else {
-            return t("tibo.cycle.noBaseline")
-        }
-        return tiboCycleTimeText(date)
+        return t("tibo.cycle.noPublicWindow")
     }
 
     var tiboCycleOverviewText: String {
         let cycle = tiboResetCycle
+        if cycle.activePrediction?.status == .forecast {
+            return t("tibo.cycle.overviewForecast")
+        }
         if cycle.activePrediction != nil {
             return t("tibo.cycle.overviewPrediction")
         }
@@ -1298,6 +1431,15 @@ final class DashboardViewModel: ObservableObject {
     private static let fileDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return formatter
+    }()
+
+    private static let serverDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
 

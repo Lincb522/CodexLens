@@ -107,15 +107,21 @@ struct CodexAccountService: Sendable {
         }
 
         let plan = planFromAccount ?? normalized(rootLimits["planType"] ?? rootLimits["plan_type"])
+        let rootLimitID = normalized(rootLimits["limitId"] ?? rootLimits["limit_id"]) ?? "codex"
+        let rootLimitName = normalized(rootLimits["limitName"] ?? rootLimits["limit_name"])
         let primary = quotaWindow(
             from: rootLimits["primary"],
             id: "primary",
-            fallbackTitle: "Primary"
+            fallbackTitle: "Primary",
+            limitID: rootLimitID,
+            limitName: rootLimitName
         )
         let secondary = quotaWindow(
             from: rootLimits["secondary"],
             id: "secondary",
-            fallbackTitle: "Weekly"
+            fallbackTitle: "Weekly",
+            limitID: rootLimitID,
+            limitName: rootLimitName
         )
         let credits = creditBalance(from: rootLimits["credits"])
         let accountTokenUsage = accountTokenUsage(from: accountUsageResult)
@@ -132,7 +138,9 @@ struct CodexAccountService: Sendable {
                 from: item["primary"],
                 id: "\(key)-primary",
                 fallbackTitle: name,
-                preferFallbackTitle: true
+                preferFallbackTitle: true,
+                limitID: key,
+                limitName: name
             ) {
                 additional.append(window)
             }
@@ -140,7 +148,9 @@ struct CodexAccountService: Sendable {
                 from: item["secondary"],
                 id: "\(key)-secondary",
                 fallbackTitle: name,
-                preferFallbackTitle: true
+                preferFallbackTitle: true,
+                limitID: key,
+                limitName: name
             ) {
                 additional.append(window)
             }
@@ -197,7 +207,9 @@ struct CodexAccountService: Sendable {
         from value: Any?,
         id: String,
         fallbackTitle: String,
-        preferFallbackTitle: Bool = false
+        preferFallbackTitle: Bool = false,
+        limitID: String? = nil,
+        limitName: String? = nil
     ) -> CodexQuotaWindow? {
         guard let dictionary = value as? [String: Any],
               let used = flexibleDouble(dictionary["usedPercent"] ?? dictionary["used_percent"])
@@ -210,7 +222,9 @@ struct CodexAccountService: Sendable {
             title: preferFallbackTitle ? fallbackTitle : windowTitle(minutes: minutes, fallback: fallbackTitle),
             usedPercent: used,
             windowMinutes: minutes,
-            resetsAt: reset
+            resetsAt: reset,
+            limitID: limitID,
+            limitName: limitName
         )
     }
 

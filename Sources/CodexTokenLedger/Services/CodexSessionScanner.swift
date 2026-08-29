@@ -21,7 +21,7 @@ enum CodexSessionScannerError: AppLocalizedError {
 
 struct CodexSessionScanner: Sendable {
     private let maximumReportedIssues = 100
-    private let cacheVersion = 3
+    private let cacheVersion = 4
     private let quickTailWindow = 256 * 1_024
 
     func scan(codexHome: URL, includeArchived: Bool) throws -> UsageSnapshot {
@@ -54,9 +54,9 @@ struct CodexSessionScanner: Sendable {
 
         let files = roots.flatMap(jsonlFiles(in:)).sorted { $0.path < $1.path }
         var allRecords: [UsageRecord] = []
+        var recordsByID: [String: UsageRecord] = [:]
         var sessionMetadata: [String: ParsedSessionMetadata] = [:]
         var allIssues: [ScanIssue] = []
-        var fingerprints = Set<String>()
         var updatedCacheFiles: [String: CachedFileAnalysis] = [:]
         let reusableCache = cache?.version == cacheVersion
             && cache?.codexHome == codexHome.path
@@ -88,15 +88,20 @@ struct CodexSessionScanner: Sendable {
             if let metadata = parsed.metadata {
                 sessionMetadata[metadata.id] = metadata
             }
-            for record in parsed.records where fingerprints.insert(record.id).inserted {
-                allRecords.append(record)
+            for record in parsed.records {
+                if let existing = recordsByID[record.id] {
+                    recordsByID[record.id] = preferredRecord(existing, record)
+                } else {
+                    recordsByID[record.id] = record
+                }
             }
             if allIssues.count < maximumReportedIssues {
                 allIssues.append(contentsOf: parsed.issues.prefix(maximumReportedIssues - allIssues.count))
             }
         }
 
-        allRecords.sort { $0.timestamp < $1.timestamp }
+        allRecords = reconciledSessionRecords(Array(recordsByID.values))
+            .sorted { $0.timestamp < $1.timestamp }
         let grouped = Dictionary(grouping: allRecords, by: \UsageRecord.sessionID)
         let summaries = grouped.compactMap { sessionID, records -> SessionSummary? in
             guard let first = records.first, let last = records.last else { return nil }
@@ -123,6 +128,214 @@ struct CodexSessionScanner: Sendable {
             files: updatedCacheFiles
         )
         return CodexScanResult(snapshot: snapshot, cache: updatedCache)
+    }
+
+    private func preferredRecord(_ lhs: UsageRecord, _ rhs: UsageRecord) -> UsageRecord {
+        if lhs.isCumulativeSessionSummary, rhs.isCumulativeSessionSummary {
+            if lhs.usage.totalTokens != rhs.usage.totalTokens {
+                return lhs.usage.totalTokens > rhs.usage.totalTokens ? lhs : rhs
+            }
+        }
+        return lhs.timestamp >= rhs.timestamp ? lhs : rhs
+    }
+
+    /// Active and archived rollout copies can overlap. A cumulative record
+    /// supersedes older per-call records for the same session; only genuinely
+    /// later legacy increments remain additive.
+    private func reconciledSessionRecords(_ records: [UsageRecord]) -> [UsageRecord] {
+        Dictionary(grouping: records, by: \UsageRecord.sessionID).values.flatMap { sessionRecords in
+            guard let cumulative = sessionRecords
+                .filter(\.isCumulativeSessionSummary)
+                .max(by: { preferredRecord($0, $1) == $1 })
+            else { return sessionRecords }
+            let laterDetailed = sessionRecords.filter {
+                !$0.isCumulativeSessionSummary && $0.timestamp > cumulative.timestamp
+            }
+            return [cumulative] + laterDetailed
+        }
+    }
+
+    func quotaCycleUsage(
+        snapshot: UsageSnapshot,
+        window: CodexQuotaWindow,
+        observedAt: Date,
+        previous: LocalQuotaCycleUsage? = nil
+    ) -> LocalQuotaCycleUsage? {
+        guard let resetsAt = window.resetsAt,
+              let windowMinutes = window.windowMinutes,
+              windowMinutes > 0
+        else { return nil }
+
+        let cycleStart = resetsAt.addingTimeInterval(-TimeInterval(windowMinutes * 60))
+        let sessionStartByID = Dictionary(uniqueKeysWithValues: snapshot.sessions.map { ($0.id, $0.startedAt) })
+        let grouped = Dictionary(grouping: snapshot.records, by: \UsageRecord.sessionID)
+        var currentSessionTotals: [String: Int64] = [:]
+        for (sessionID, records) in grouped {
+            var total: Int64 = 0
+            for record in records {
+                let (next, overflow) = total.addingReportingOverflow(record.usage.totalTokens)
+                guard !overflow else { return nil }
+                total = next
+            }
+            currentSessionTotals[sessionID] = total
+        }
+
+        if let previous,
+           abs(previous.resetsAt.timeIntervalSince(resetsAt)) <= 300,
+           previous.observedAt <= observedAt,
+           !previous.sessionTotals.isEmpty {
+            var updatedTotal = previous.totalTokens
+            var retainedSessionTotals = previous.sessionTotals
+            var cycleSessionIDs = previous.cycleSessionIDs
+            var canAdvance = true
+            for (sessionID, currentTotal) in currentSessionTotals {
+                if let oldTotal = previous.sessionTotals[sessionID] {
+                    guard currentTotal >= oldTotal else {
+                        canAdvance = false
+                        break
+                    }
+                    let delta = currentTotal - oldTotal
+                    let (next, overflow) = updatedTotal.addingReportingOverflow(delta)
+                    guard !overflow else { return nil }
+                    updatedTotal = next
+                    if delta > 0 { cycleSessionIDs.insert(sessionID) }
+                } else if let sessionStart = sessionStartByID[sessionID], sessionStart >= cycleStart {
+                    let (next, overflow) = updatedTotal.addingReportingOverflow(currentTotal)
+                    guard !overflow else { return nil }
+                    updatedTotal = next
+                    if currentTotal > 0 { cycleSessionIDs.insert(sessionID) }
+                } else {
+                    canAdvance = false
+                    break
+                }
+                retainedSessionTotals[sessionID] = currentTotal
+            }
+            if canAdvance, updatedTotal > 0 {
+                return LocalQuotaCycleUsage(
+                    resetsAt: resetsAt,
+                    observedAt: observedAt,
+                    totalTokens: updatedTotal,
+                    sessionCount: cycleSessionIDs.count,
+                    sessionTotals: retainedSessionTotals,
+                    cycleSessionIDs: cycleSessionIDs
+                )
+            }
+        }
+
+        var totalTokens: Int64 = 0
+        var cycleSessionIDs: Set<String> = []
+
+        for (sessionID, records) in grouped {
+            let cumulative = records
+                .filter(\.isCumulativeSessionSummary)
+                .max { $0.timestamp < $1.timestamp }
+            var sessionTokens: Int64 = 0
+
+            if let cumulative,
+               let sessionStart = sessionStartByID[sessionID],
+               sessionStart >= cycleStart,
+               cumulative.timestamp <= observedAt {
+                let selected = [cumulative] + records.filter {
+                    !$0.isCumulativeSessionSummary
+                        && $0.timestamp > cumulative.timestamp
+                        && $0.timestamp <= observedAt
+                }
+                for record in selected {
+                    let (next, overflow) = sessionTokens.addingReportingOverflow(record.usage.totalTokens)
+                    guard !overflow else { return nil }
+                    sessionTokens = next
+                }
+            } else if let cumulative {
+                let file = URL(fileURLWithPath: cumulative.sourcePath, isDirectory: false)
+                guard let data = try? Data(contentsOf: file, options: [.mappedIfSafe]) else { return nil }
+                guard let replayedTokens = cycleTokenTotal(
+                    in: data,
+                    from: cycleStart,
+                    through: observedAt
+                ) else { return nil }
+                sessionTokens = replayedTokens
+                let laterDetailed = records.filter {
+                    !$0.isCumulativeSessionSummary
+                        && $0.timestamp > cumulative.timestamp
+                        && $0.timestamp >= cycleStart
+                        && $0.timestamp <= observedAt
+                }
+                for record in laterDetailed {
+                    let (next, overflow) = sessionTokens.addingReportingOverflow(record.usage.totalTokens)
+                    guard !overflow else { return nil }
+                    sessionTokens = next
+                }
+            } else {
+                for record in records where record.timestamp >= cycleStart && record.timestamp <= observedAt {
+                    let (next, overflow) = sessionTokens.addingReportingOverflow(record.usage.totalTokens)
+                    guard !overflow else { return nil }
+                    sessionTokens = next
+                }
+            }
+            guard sessionTokens > 0 else { continue }
+            let (nextTotal, overflow) = totalTokens.addingReportingOverflow(sessionTokens)
+            guard !overflow else { return nil }
+            totalTokens = nextTotal
+            cycleSessionIDs.insert(sessionID)
+        }
+
+        guard totalTokens > 0 else { return nil }
+        return LocalQuotaCycleUsage(
+            resetsAt: resetsAt,
+            observedAt: observedAt,
+            totalTokens: totalTokens,
+            sessionCount: cycleSessionIDs.count,
+            sessionTotals: currentSessionTotals,
+            cycleSessionIDs: cycleSessionIDs
+        )
+    }
+
+    private func cycleTokenTotal(
+        in data: Data,
+        from cycleStart: Date,
+        through observedAt: Date
+    ) -> Int64? {
+        guard !data.isEmpty else { return 0 }
+        let parser = ISO8601DateFormatter()
+        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let newline = Data([0x0A])
+        var cursor = data.endIndex
+        var total: Int64 = 0
+
+        while cursor > data.startIndex {
+            let precedingNewline = data.range(
+                of: newline,
+                options: .backwards,
+                in: data.startIndex..<cursor
+            )
+            let lineStart = precedingNewline?.upperBound ?? data.startIndex
+            let lineEnd = cursor
+            cursor = precedingNewline?.lowerBound ?? data.startIndex
+            guard lineEnd > lineStart else { continue }
+
+            let prefixEnd = min(lineEnd, lineStart + min(lineEnd - lineStart, 2_048))
+            let prefix = String(decoding: data[lineStart..<prefixEnd], as: UTF8.self)
+            guard prefix.contains("token_count") else { continue }
+            guard lineEnd - lineStart <= 1_048_576 else { return nil }
+            let line = data.subdata(in: lineStart..<lineEnd)
+            guard let object = jsonObject(from: line) else { return nil }
+            let payload = object["payload"] as? [String: Any] ?? [:]
+            guard (object["type"] as? String) == "event_msg",
+                  string(payload["type"]) == "token_count",
+                  let timestamp = parseDate(object["timestamp"], parser: parser)
+            else { continue }
+            if timestamp < cycleStart { break }
+            guard timestamp <= observedAt else { continue }
+            guard let info = payload["info"] as? [String: Any],
+                  let last = info["last_token_usage"] as? [String: Any],
+                  let usage = parseUsage(last)
+            else { return nil }
+            let (next, overflow) = total.addingReportingOverflow(usage.totalTokens)
+            guard !overflow else { return nil }
+            total = next
+        }
+
+        return total
     }
 
     private func jsonlFiles(in root: URL) -> [URL] {

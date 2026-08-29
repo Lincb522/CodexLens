@@ -4,6 +4,27 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class MenuBarVisualSmokeTests: XCTestCase {
+    func testSeparatedQuotaGroupsFitFixedPanelAcrossLocalizations() {
+        let estimateTileWidth = (340.0 - 20.0 - 8.0) / 2.0
+        let estimateFont = NSFont.systemFont(ofSize: 12, weight: .semibold)
+        let tokenValue = "\(DisplayFormat.compactEstimatedTokens(999_000_000_000)) Token"
+        let usdValue = "API ≈ \(DisplayFormat.apiEquivalentUSD(999_000))"
+
+        XCTAssertEqual(DisplayFormat.apiEquivalentUSD(13_400), "US$13,400")
+        let tokenWidth = (tokenValue as NSString).size(withAttributes: [.font: estimateFont]).width
+        let usdWidth = (usdValue as NSString).size(withAttributes: [.font: estimateFont]).width
+        XCTAssertLessThanOrEqual(tokenWidth, estimateTileWidth, tokenValue)
+        XCTAssertLessThanOrEqual(usdWidth, estimateTileWidth, usdValue)
+
+        for language in AppLanguage.allCases where language != .system {
+            for key in ["quota.periodWeek", "quota.periodMonth"] {
+                let period = LocalizationCatalog.text(key, language: language)
+                let periodWidth = (period as NSString).size(withAttributes: [.font: estimateFont]).width
+                XCTAssertLessThanOrEqual(periodWidth, estimateTileWidth, "\(language.rawValue): \(period)")
+            }
+        }
+    }
+
     @MainActor
     func testRenderOverviewForVisualInspection() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.VisualSmoke.\(UUID().uuidString)"))
@@ -11,8 +32,8 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let previewAccountID = "preview-account"
         let previewReset = now.addingTimeInterval(7_200)
         let quotaSamples = [
-            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-3_600), usedPercent: 18, resetsAt: previewReset, windowMinutes: 300),
-            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-1_800), usedPercent: 23, resetsAt: previewReset, windowMinutes: 300),
+            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-3_600), usedPercent: 43, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080, lifetimeTokens: 2_296_316_441),
+            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-1_800), usedPercent: 48, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080, lifetimeTokens: 2_396_316_441),
         ]
         let tiboSignal = TiboResetSignal(
             postID: "2091688655828246890",
@@ -102,25 +123,31 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             codexHome: "/Users/demo/.codex",
             primaryWindow: CodexQuotaWindow(
                 id: "primary",
-                title: "5 小时额度",
-                usedPercent: 28,
-                windowMinutes: 300,
-                resetsAt: previewReset
-            ),
-            secondaryWindow: CodexQuotaWindow(
-                id: "secondary",
-                title: "每周额度",
-                usedPercent: 63,
+                title: "Weekly quota",
+                usedPercent: 48,
                 windowMinutes: 10_080,
-                resetsAt: now.addingTimeInterval(172_800)
+                resetsAt: now.addingTimeInterval(172_800),
+                limitID: "codex"
             ),
+            secondaryWindow: nil,
             additionalWindows: [
                 CodexQuotaWindow(
-                    id: "review",
-                    title: "代码审查",
-                    usedPercent: 11,
+                    id: "codex_bengalfox-primary",
+                    title: "GPT-5.3-Codex-Spark",
+                    usedPercent: 0,
+                    windowMinutes: 300,
+                    resetsAt: previewReset,
+                    limitID: "codex_bengalfox",
+                    limitName: "GPT-5.3-Codex-Spark"
+                ),
+                CodexQuotaWindow(
+                    id: "codex_bengalfox-secondary",
+                    title: "GPT-5.3-Codex-Spark",
+                    usedPercent: 0,
                     windowMinutes: 10_080,
-                    resetsAt: now.addingTimeInterval(345_600)
+                    resetsAt: now.addingTimeInterval(345_600),
+                    limitID: "codex_bengalfox",
+                    limitName: "GPT-5.3-Codex-Spark"
                 )
             ],
             credits: CodexCreditBalance(hasCredits: true, unlimited: false, balance: 824.35),
@@ -479,6 +506,17 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertEqual(lightLegalSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
         let darkLegalSize = try render(page: .legal, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-legal-dark.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .openSource)
         XCTAssertEqual(darkLegalSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+
+        viewModel.liveContexts = Array(viewModel.liveContexts.prefix(1))
+        let singleTaskSize = try render(
+            page: .overview,
+            theme: .dark,
+            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.1-single-task-dark.png"),
+            minimumHeight: 650,
+            maximumHeight: 750
+        )
+        XCTAssertEqual(singleTaskSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+
     }
 
     func testMenuPopoverContainsNoScrollContainer() throws {
@@ -784,7 +822,8 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(contents.contains("metric == .context ? context.lastRequest : context.taskTotal"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.currentContext\")"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.taskUsageTotal\")"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.usageNotContext\")"))
+        XCTAssertTrue(contents.contains("case .task: viewModel.t(\"live.total\")"))
+        XCTAssertTrue(contents.contains("Text(viewModel.t(\"live.tokenDetail\"))"))
         XCTAssertTrue(contents.contains("case .context: DisplayFormat.tokens(context.contextInputTokens)"))
         XCTAssertTrue(contents.contains("case .task: DisplayFormat.tokens(context.taskTotal.totalTokens)"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.inputIncludesCache\")"))
@@ -797,7 +836,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertFalse(contents.contains("DUP"))
         XCTAssertFalse(contents.contains("LONG ×2/×1.5"))
         XCTAssertTrue(contents.contains("overviewPanelButton("))
-        XCTAssertTrue(contents.contains(".padding(.bottom, 14)"))
+        XCTAssertTrue(contents.contains(".padding(.bottom, viewModel.activeTaskCount > 1 ? 14 : 20)"))
         XCTAssertTrue(contents.contains("metric == value ? PulsePalette.heroInk"))
         XCTAssertTrue(contents.contains("metric == value ? PulsePalette.heroMetricSurface"))
         XCTAssertTrue(contents.contains("MarqueeLabel("))
@@ -904,7 +943,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(dashboard.contains(".onChange(of: page)"))
         XCTAssertFalse(dashboard.contains(".onChange(of: consolePanel)"))
         XCTAssertTrue(dashboard.contains("static let primaryPageHeight: CGFloat = 705"))
-        XCTAssertTrue(dashboard.contains("static let overviewPanelHeight: CGFloat = 142"))
+        XCTAssertTrue(dashboard.contains("static let overviewPanelHeight: CGFloat = 158"))
         XCTAssertTrue(dashboard.contains(".frame(height: Self.primaryPageContentHeight, alignment: .top)"))
         XCTAssertTrue(dashboard.contains("@State private var isDetailsExpanded: Bool"))
         XCTAssertTrue(dashboard.contains("Button(action: toggleDetails)"))
