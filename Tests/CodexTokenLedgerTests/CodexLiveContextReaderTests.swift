@@ -139,6 +139,31 @@ final class CodexLiveContextReaderTests: XCTestCase {
         XCTAssertEqual(snapshot.lastRequest.cachedInputTokens, 120)
     }
 
+    func testPreservesAuthoritativeDeltaWhenCumulativeBreakdownConflicts() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedger-inconsistent-total-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("rollout.jsonl")
+        let fixture = #"""
+        {"timestamp":"2026-08-24T01:00:00.000Z","type":"session_meta","payload":{"id":"inconsistent-total"}}
+        {"timestamp":"2026-08-24T01:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-24T01:00:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":100,"output_tokens":20,"total_tokens":120},"last_token_usage":{"input_tokens":100,"output_tokens":20,"total_tokens":120}}}}
+        {"timestamp":"2026-08-24T01:00:03.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn"}}
+        {"timestamp":"2026-08-24T01:00:04.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":200,"output_tokens":40,"total_tokens":250},"last_token_usage":{"input_tokens":110,"output_tokens":20,"total_tokens":130}}}}
+        """#
+        try fixture.write(to: file, atomically: true, encoding: .utf8)
+
+        let snapshot = try XCTUnwrap(CodexLiveContextReader().read(file: file))
+
+        XCTAssertEqual(snapshot.lastRequest.totalTokens, 130)
+        XCTAssertEqual(snapshot.currentTurnUsage.accountingQuality, .unclassified)
+        XCTAssertEqual(snapshot.currentTurnUsage.totalTokens, 130)
+        XCTAssertEqual(snapshot.taskTotal.accountingQuality, .inconsistent)
+        XCTAssertEqual(snapshot.taskTotal.totalTokens, 250)
+        XCTAssertFalse(BillingCalculator.cost(calls: snapshot.currentTurnCalls).isPriced)
+    }
+
     func testDiscoversMultipleUnfinishedTasksAndExcludesCompletedTask() throws {
         let home = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedger-multi-live-\(UUID().uuidString)", isDirectory: true)

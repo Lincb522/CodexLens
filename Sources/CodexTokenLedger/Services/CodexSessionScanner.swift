@@ -512,18 +512,7 @@ struct CodexSessionScanner: Sendable {
     }
 
     private func parseUsage(_ dictionary: [String: Any]) -> TokenUsage? {
-        guard let input = integer(dictionary["input_tokens"]), let output = integer(dictionary["output_tokens"]) else {
-            return nil
-        }
-        let usage = TokenUsage(
-            inputTokens: input,
-            cachedInputTokens: integer(dictionary["cached_input_tokens"]) ?? 0,
-            cacheWriteInputTokens: integer(dictionary["cache_write_input_tokens"]) ?? 0,
-            outputTokens: output,
-            reasoningOutputTokens: integer(dictionary["reasoning_output_tokens"]) ?? 0,
-            reportedTotalTokens: integer(dictionary["total_tokens"])
-        )
-        return usage.isValidCodexCounter ? usage : nil
+        CodexTokenUsageParser.parse(dictionary)
     }
 
     private func parseDate(_ value: Any?, parser: ISO8601DateFormatter) -> Date? {

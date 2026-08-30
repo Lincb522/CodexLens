@@ -60,6 +60,40 @@ final class BillingCalculatorTests: XCTestCase {
         XCTAssertEqual(result.total, Decimal(string: "0.00266")!)
     }
 
+    func testCostUsesCPAExclusiveBucketsWithoutChargingReasoningTwice() {
+        let usage = TokenUsage(
+            inputTokens: 100,
+            cachedInputTokens: 40,
+            cacheWriteInputTokens: 10,
+            outputTokens: 30,
+            reasoningOutputTokens: 12
+        )
+
+        let result = BillingCalculator.cost(for: usage, model: "gpt-5.6-sol")
+
+        XCTAssertEqual(result.input, Decimal(string: "0.0002")!)
+        XCTAssertEqual(result.cachedInput, Decimal(string: "0.000016")!)
+        XCTAssertEqual(result.cacheWrite, Decimal(string: "0.00005")!)
+        XCTAssertEqual(result.output, Decimal(string: "0.0006")!)
+        XCTAssertEqual(result.total, Decimal(string: "0.000866")!)
+    }
+
+    func testLongContextThresholdUsesTotalInputIncludingCache() {
+        let usage = TokenUsage(
+            inputTokens: 300_000,
+            cachedInputTokens: 299_000,
+            outputTokens: 1_000
+        )
+
+        let result = BillingCalculator.cost(for: usage, model: "gpt-5.6-sol")
+
+        XCTAssertTrue(result.isLongContext)
+        XCTAssertEqual(result.input, Decimal(string: "0.008")!)
+        XCTAssertEqual(result.cachedInput, Decimal(string: "0.2392")!)
+        XCTAssertEqual(result.output, Decimal(string: "0.03")!)
+        XCTAssertEqual(result.total, Decimal(string: "0.2772")!)
+    }
+
     func testUnknownModelRemainsUnpricedWithoutLosingTokens() {
         let usage = TokenUsage(inputTokens: 42, outputTokens: 8)
         let result = BillingCalculator.cost(for: usage, model: "future-model")

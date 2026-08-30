@@ -1,76 +1,183 @@
 import Foundation
 
-/// Token counters emitted by Codex. `outputTokens` already includes reasoning
-/// output, so reasoning is displayed separately but never charged twice.
 struct TokenUsage: Codable, Hashable, Sendable {
-    var inputTokens: Int64 = 0
-    var cachedInputTokens: Int64 = 0
-    var cacheWriteInputTokens: Int64 = 0
-    var outputTokens: Int64 = 0
-    var reasoningOutputTokens: Int64 = 0
-    /// Some older or remote Codex events expose only an authoritative total.
-    /// Keep it instead of fabricating an input/output split.
-    var reportedTotalTokens: Int64? = nil
+    private let tokenBreakdown: TokenBreakdown
 
-    var uncachedInputTokens: Int64 {
-        max(0, inputTokens - cachedInputTokens - cacheWriteInputTokens)
+    var inputTokens: Int64 { tokenBreakdown.input.totalTokens }
+    var cachedInputTokens: Int64 { tokenBreakdown.input.cacheReadTokens }
+    var cacheWriteInputTokens: Int64 { tokenBreakdown.input.cacheWriteTokens }
+    var outputTokens: Int64 { tokenBreakdown.output.totalTokens }
+    var reasoningOutputTokens: Int64 { tokenBreakdown.output.reasoningTokens }
+    var nonReasoningOutputTokens: Int64 { tokenBreakdown.output.nonReasoningTokens }
+    var accountingQuality: TokenAccountingQuality { tokenBreakdown.quality }
+    var accountingSchemaVersion: Int { tokenBreakdown.schemaVersion }
+    var unclassifiedTokens: Int64 { tokenBreakdown.unclassifiedTokens }
+
+    var reportedTotalTokens: Int64? {
+        tokenBreakdown.quality == .complete ? nil : tokenBreakdown.totalTokens
     }
 
-    /// Matches Codex's recorded total: input + output.
+    var uncachedInputTokens: Int64 {
+        tokenBreakdown.input.uncachedTokens
+    }
+
     var totalTokens: Int64 {
-        reportedTotalTokens ?? (inputTokens + outputTokens)
+        tokenBreakdown.totalTokens
     }
 
     var hasCompleteBreakdown: Bool {
-        reportedTotalTokens == nil || reportedTotalTokens == inputTokens + outputTokens
+        tokenBreakdown.quality == .complete
     }
 
-    /// Structural invariants of Codex accounting events. Invalid counters are
-    /// rejected at ingestion instead of being silently clamped into a value
-    /// that looks precise.
     var isValidCodexCounter: Bool {
-        inputTokens >= 0
-            && cachedInputTokens >= 0
-            && cacheWriteInputTokens >= 0
-            && outputTokens >= 0
-            && reasoningOutputTokens >= 0
-            && cachedInputTokens + cacheWriteInputTokens <= inputTokens
-            && reasoningOutputTokens <= outputTokens
-            && (reportedTotalTokens.map { $0 >= inputTokens + outputTokens } ?? true)
+        tokenBreakdown.isValid
+    }
+
+    init(
+        inputTokens: Int64 = 0,
+        cachedInputTokens: Int64 = 0,
+        cacheWriteInputTokens: Int64 = 0,
+        outputTokens: Int64 = 0,
+        reasoningOutputTokens: Int64 = 0,
+        reportedTotalTokens: Int64? = nil
+    ) {
+        tokenBreakdown = .partialSubset(
+            inputTotal: inputTokens,
+            cacheRead: cachedInputTokens,
+            cacheWrite: cacheWriteInputTokens,
+            outputTotal: outputTokens,
+            reasoning: reasoningOutputTokens,
+            total: reportedTotalTokens ?? 0
+        )
+    }
+
+    init(tokenBreakdown: TokenBreakdown) {
+        self.tokenBreakdown = tokenBreakdown.isValid
+            ? tokenBreakdown
+            : .inconsistent(total: tokenBreakdown.totalTokens, fallback: 0)
+    }
+
+    static func codexEvent(
+        inputTokens: Int64?,
+        cachedInputTokens: Int64?,
+        cacheWriteInputTokens: Int64?,
+        outputTokens: Int64?,
+        reasoningOutputTokens: Int64?,
+        reportedTotalTokens: Int64?
+    ) -> TokenUsage? {
+        let hasAnyValue = inputTokens != nil
+            || cachedInputTokens != nil
+            || cacheWriteInputTokens != nil
+            || outputTokens != nil
+            || reasoningOutputTokens != nil
+            || reportedTotalTokens != nil
+        guard hasAnyValue else { return nil }
+
+        let input = inputTokens ?? 0
+        let cacheRead = cachedInputTokens ?? 0
+        let cacheWrite = cacheWriteInputTokens ?? 0
+        let output = outputTokens ?? 0
+        let reasoning = reasoningOutputTokens ?? 0
+        let total = reportedTotalTokens ?? 0
+
+        if inputTokens == nil && outputTokens == nil {
+            let cacheLowerBound = TokenUsage.safeSum(cacheRead, cacheWrite) ?? 0
+            let lowerBound = TokenUsage.safeSum(max(cacheLowerBound, input), max(reasoning, output)) ?? 0
+            return TokenUsage(tokenBreakdown: .unclassified(total: total == 0 ? lowerBound : total))
+        }
+
+        if input == 0, output == 0, total > 0 {
+            return TokenUsage(tokenBreakdown: .unclassified(total: total))
+        }
+
+        let accounting: TokenBreakdown
+        if inputTokens != nil, outputTokens != nil {
+            accounting = .subset(
+                inputTotal: input,
+                cacheRead: cacheRead,
+                cacheWrite: cacheWrite,
+                outputTotal: output,
+                reasoning: reasoning,
+                total: total
+            )
+        } else {
+            accounting = .partialSubset(
+                inputTotal: input,
+                cacheRead: cacheRead,
+                cacheWrite: cacheWrite,
+                outputTotal: output,
+                reasoning: reasoning,
+                total: total
+            )
+        }
+        return TokenUsage(tokenBreakdown: accounting)
     }
 
     static func + (lhs: TokenUsage, rhs: TokenUsage) -> TokenUsage {
-        let needsAuthoritativeTotal = !lhs.hasCompleteBreakdown || !rhs.hasCompleteBreakdown
-        return TokenUsage(
-            inputTokens: lhs.inputTokens + rhs.inputTokens,
-            cachedInputTokens: lhs.cachedInputTokens + rhs.cachedInputTokens,
-            cacheWriteInputTokens: lhs.cacheWriteInputTokens + rhs.cacheWriteInputTokens,
-            outputTokens: lhs.outputTokens + rhs.outputTokens,
-            reasoningOutputTokens: lhs.reasoningOutputTokens + rhs.reasoningOutputTokens,
-            reportedTotalTokens: needsAuthoritativeTotal ? lhs.totalTokens + rhs.totalTokens : nil
-        )
+        TokenUsage(tokenBreakdown: lhs.tokenBreakdown.adding(rhs.tokenBreakdown))
     }
 
     static func += (lhs: inout TokenUsage, rhs: TokenUsage) {
         lhs = lhs + rhs
     }
 
-    /// Returns the non-negative cumulative delta. Codex emits a cumulative
-    /// counter alongside each model-call counter; deriving the call from two
-    /// cumulative samples makes repeated token_count events harmless.
     func subtracting(_ previous: TokenUsage) -> TokenUsage? {
-        let delta = TokenUsage(
-            inputTokens: inputTokens - previous.inputTokens,
-            cachedInputTokens: cachedInputTokens - previous.cachedInputTokens,
-            cacheWriteInputTokens: cacheWriteInputTokens - previous.cacheWriteInputTokens,
-            outputTokens: outputTokens - previous.outputTokens,
-            reasoningOutputTokens: reasoningOutputTokens - previous.reasoningOutputTokens,
-            reportedTotalTokens: (!hasCompleteBreakdown || !previous.hasCompleteBreakdown)
-                ? totalTokens - previous.totalTokens
-                : nil
+        if let exact = tokenBreakdown.subtracting(previous.tokenBreakdown) {
+            return TokenUsage(tokenBreakdown: exact)
+        }
+        guard (accountingQuality == .inconsistent || previous.accountingQuality == .inconsistent),
+              totalTokens >= previous.totalTokens
+        else { return nil }
+        return TokenUsage(
+            tokenBreakdown: .unclassified(total: totalTokens - previous.totalTokens)
         )
-        guard delta.isValidCodexCounter else { return nil }
-        return delta
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case inputTokens
+        case cachedInputTokens
+        case cacheWriteInputTokens
+        case outputTokens
+        case reasoningOutputTokens
+        case reportedTotalTokens
+        case tokenBreakdown = "token_breakdown"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let decoded = try container.decodeIfPresent(TokenBreakdown.self, forKey: .tokenBreakdown),
+           decoded.isValid {
+            self.init(tokenBreakdown: decoded)
+            return
+        }
+        self.init(
+            inputTokens: try container.decodeIfPresent(Int64.self, forKey: .inputTokens) ?? 0,
+            cachedInputTokens: try container.decodeIfPresent(Int64.self, forKey: .cachedInputTokens) ?? 0,
+            cacheWriteInputTokens: try container.decodeIfPresent(Int64.self, forKey: .cacheWriteInputTokens) ?? 0,
+            outputTokens: try container.decodeIfPresent(Int64.self, forKey: .outputTokens) ?? 0,
+            reasoningOutputTokens: try container.decodeIfPresent(Int64.self, forKey: .reasoningOutputTokens) ?? 0,
+            reportedTotalTokens: try container.decodeIfPresent(Int64.self, forKey: .reportedTotalTokens)
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(inputTokens, forKey: .inputTokens)
+        try container.encode(cachedInputTokens, forKey: .cachedInputTokens)
+        try container.encode(cacheWriteInputTokens, forKey: .cacheWriteInputTokens)
+        try container.encode(outputTokens, forKey: .outputTokens)
+        try container.encode(reasoningOutputTokens, forKey: .reasoningOutputTokens)
+        try container.encodeIfPresent(reportedTotalTokens, forKey: .reportedTotalTokens)
+        try container.encode(tokenBreakdown, forKey: .tokenBreakdown)
+    }
+
+    private static func safeSum(_ values: Int64...) -> Int64? {
+        var total: Int64 = 0
+        for value in values {
+            guard value >= 0, total <= Int64.max - value else { return nil }
+            total += value
+        }
+        return total
     }
 }
 

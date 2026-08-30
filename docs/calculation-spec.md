@@ -15,7 +15,9 @@
 | 确定性计算 | 对精确事件去重、求差或汇总 |
 | 费用估算 | 精确 Token 明细按内置 API 费率折算 |
 
-字段缺失、结构不合法、模型没有费率或聚合不完整时，结果为 `unavailable`。应用不根据字符数估算 Token，也不会用零补齐缺失字段。
+Token 记账采用 [CLIProxyAPI Token Accounting v2](https://github.com/router-for-me/CLIProxyAPI/blob/d31b15916d15b550bbf388fd6da4a47d4d864109/sdk/cliproxy/usage/accounting.go) 的互斥桶合同，参考提交为 `d31b15916d15b550bbf388fd6da4a47d4d864109`。Codex 属于 Responses 包含关系：缓存读写已经包含在输入中，推理已经包含在输出中。
+
+字段缺失、结构冲突、模型没有费率或聚合不完整时，不生成看似精确的费用。应用优先使用 Codex 服务端计数，不根据聊天文字反推实际用量。
 
 ## 当前上下文
 
@@ -32,6 +34,8 @@ info.last_token_usage.reasoning_output_tokens
 info.last_token_usage.total_tokens
 info.model_context_window
 ```
+
+解析器同时接受 CPA 字段名 `cache_read_tokens`、`cache_creation_tokens`、`reasoning_tokens`，以及 Responses 的 `input_tokens_details.cached_tokens`、`output_tokens_details.reasoning_tokens`。显式字段优先；显式的 `0` 不会被旧别名覆盖。
 
 首页主数为：
 
@@ -50,9 +54,10 @@ GPT-5.6 Sol、Terra 和 Luna 的内置公开容量为 1,050,000 Token。`model_c
 工具调用可能让一个 turn 内出现多次模型请求。每次收到累计事件时按以下规则处理：
 
 ```text
-current == previous       → 不增加 Token；完整明细可修正同一累计点的输入/缓存/输出拆分
-current >= previous       → 接受差值并更新 previous
-current < previous        → 回退或旧事件，忽略
+total 相同                 → 不增加 Token；完整明细可修正同一累计点的桶拆分
+所有互斥桶单调增加         → 分桶求差并更新基准
+计数冲突但权威 total 增加  → 只保留 total 差值，标记 unclassified
+total 回退或完整桶回退     → 旧事件或计数代次变化，忽略
 ```
 
 累计回退不会移动基准。每个有效差值保留模型、时间和 Token 明细，费用可以按单次请求计算。
@@ -65,25 +70,36 @@ current < previous        → 回退或旧事件，忽略
 
 ## 结构校验
 
-一条完整计数需要满足：
+每条记录写入 schema v2 的互斥结构：
 
 ```text
-所有字段 >= 0
-cached_input + cache_write_input <= input
-reasoning_output <= output
-reported_total >= input + output
+input_total = uncached + cache_read + cache_write
+output_total = non_reasoning + reasoning
+total = input_total + output_total + unclassified
 ```
 
-派生值：
+Codex / OpenAI Responses 的归一化规则：
 
 ```text
 uncached_input = input - cached_input - cache_write_input
-component_total = input + output
+non_reasoning_output = output - reasoning_output
+total = input + output
 ```
 
-`reasoning_output_tokens` 已包含在 `output_tokens` 中，不重复相加。
+所有值必须非负，加法必须不溢出，并满足：
 
-部分旧事件只有可信的 `total_tokens`。这类记录可计入 Token 总量，但不能拆分输入输出，也不计算费用。
+```text
+cached_input + cache_write_input <= input
+reasoning_output <= output
+```
+
+| 状态 | 含义 |
+| --- | --- |
+| `complete` | 所有 Token 都进入互斥输入或输出桶，可计算费用 |
+| `unclassified` | 权威总量存在，但有一部分无法可靠归类 |
+| `inconsistent` | 父子字段、总量或数值范围互相冲突 |
+
+`reasoning_output_tokens` 已包含在 `output_tokens` 中，缓存读写已包含在 `input_tokens` 中，二者都不重复相加。只有权威 `total_tokens` 的旧事件全部进入 `unclassified`；总量仍保留，但不虚构输入、输出或费用。非零总量与完整父级字段冲突时保留总量并标记 `inconsistent`。
 
 ## 本地历史
 
@@ -182,6 +198,8 @@ cost = uncached_input / 1M × input_rate
      + cache_write_input / 1M × cache_write_rate
      + output / 1M × output_rate
 ```
+
+公式只读取互斥桶。推理输出按输出费率计在 `output` 内，不再单独收费；长上下文阈值使用该次请求的完整 `input_total`，不是未缓存输入。
 
 内置费率：
 
