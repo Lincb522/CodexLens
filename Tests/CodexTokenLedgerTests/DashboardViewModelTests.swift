@@ -210,46 +210,28 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func testWeeklyQuotaValueUsesSelectedAccountLedgerInsteadOfLiveTask() throws {
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.QuotaValue.\(UUID().uuidString)"))
+    func testAccountQuotaRemainsTheOfficialRateLimitWindowWhenLocalUsageChanges() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.OfficialQuota.\(UUID().uuidString)"))
         let now = Date()
-        let reset = now.addingTimeInterval(3 * 24 * 60 * 60)
-        let samples = [
-            QuotaUsageSample(
-                accountID: "account",
-                windowID: "weekly",
-                observedAt: now.addingTimeInterval(-3_600),
-                usedPercent: 10,
-                resetsAt: reset,
-                windowMinutes: 10_080,
-                lifetimeTokens: 1_000_000
-            )
-        ]
-        let viewModel = DashboardViewModel(defaults: defaults, initialQuotaHistorySamples: samples)
+        let window = CodexQuotaWindow(
+            id: "weekly",
+            title: "Weekly quota",
+            usedPercent: 38,
+            windowMinutes: 10_080,
+            resetsAt: now.addingTimeInterval(3 * 24 * 60 * 60)
+        )
         let account = CodexAccountUsageSnapshot(
             id: "account",
             email: "pro@example.com",
             plan: "pro",
             codexHome: "/tmp/account",
-            primaryWindow: CodexQuotaWindow(
-                id: "primary",
-                title: "5-hour quota",
-                usedPercent: 5,
-                windowMinutes: 300,
-                resetsAt: now.addingTimeInterval(3_600)
-            ),
-            secondaryWindow: CodexQuotaWindow(
-                id: "weekly",
-                title: "Weekly quota",
-                usedPercent: 20,
-                windowMinutes: 10_080,
-                resetsAt: reset
-            ),
+            primaryWindow: window,
+            secondaryWindow: nil,
             additionalWindows: [],
             credits: nil,
             accountTokenUsage: CodexAccountTokenUsage(
                 summary: CodexAccountTokenUsageSummary(
-                    lifetimeTokens: 2_000_000,
+                    lifetimeTokens: 6_830_423_499,
                     peakDailyTokens: nil,
                     longestRunningTurnSeconds: nil,
                     currentStreakDays: nil,
@@ -259,96 +241,34 @@ final class DashboardViewModelTests: XCTestCase {
             ),
             updatedAt: now
         )
+        let viewModel = DashboardViewModel(defaults: defaults)
         viewModel.accountSnapshots = [account]
         viewModel.selectedAccountID = account.id
-        viewModel.activeAccountID = account.id
         viewModel.snapshot = UsageSnapshot(
             scannedAt: now,
             codexHome: account.codexHome,
             fileCount: 1,
             records: [
                 UsageRecord(
-                    id: "luna-ledger",
+                    id: "unrelated-task",
                     timestamp: now,
-                    sessionID: "ledger",
-                    sourcePath: "/tmp/ledger.jsonl",
-                    projectPath: "/Projects/Ledger",
+                    sessionID: "task",
+                    sourcePath: "/tmp/task.jsonl",
+                    projectPath: "/Projects/Task",
                     model: "gpt-5.6-luna",
                     reasoningEffort: "medium",
-                    usage: TokenUsage(inputTokens: 1_000_000)
+                    usage: TokenUsage(inputTokens: 9_000_000_000)
                 )
             ],
             sessions: [],
             issues: []
         )
-        viewModel.liveContext = context(id: "unrelated-sol-task", input: 1_000_000, updatedAt: now)
+        viewModel.liveContext = context(id: "unrelated-live-task", input: 1_000_000_000, updatedAt: now)
 
-        let estimate = try XCTUnwrap(viewModel.selectedQuotaValueEstimate)
-        XCTAssertEqual(estimate.weeklyTokens, 10_000_000)
-        XCTAssertEqual(estimate.remainingWeeklyTokens, 8_000_000)
-        XCTAssertEqual(estimate.monthlyTokens, 43_481_250)
-        XCTAssertEqual(estimate.weeklyAPIEquivalentUSD, Decimal(4))
-        XCTAssertEqual(estimate.remainingAPIEquivalentUSD, Decimal(string: "3.2"))
-        XCTAssertEqual(estimate.monthlyAPIEquivalentUSD, Decimal(string: "17.3925"))
-        XCTAssertEqual(estimate.pricedSampleTokens, 1_000_000)
-        XCTAssertEqual(estimate.localTokenCoverage, 1)
-        XCTAssertEqual(estimate.pricedModelCount, 1)
-    }
-
-    @MainActor
-    func testCodeReviewWindowIsNotUsedAsAccountWeeklyCapacity() throws {
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.ReviewCapacity.\(UUID().uuidString)"))
-        let now = Date()
-        let reset = now.addingTimeInterval(3 * 24 * 60 * 60)
-        let viewModel = DashboardViewModel(
-            defaults: defaults,
-            initialQuotaHistorySamples: [
-                QuotaUsageSample(
-                    accountID: "account",
-                    windowID: "code-review",
-                    observedAt: now.addingTimeInterval(-3_600),
-                    usedPercent: 10,
-                    resetsAt: reset,
-                    windowMinutes: 10_080,
-                    lifetimeTokens: 1_000_000
-                )
-            ]
-        )
-        viewModel.accountSnapshots = [
-            CodexAccountUsageSnapshot(
-                id: "account",
-                email: nil,
-                plan: "pro",
-                codexHome: "/tmp/account",
-                primaryWindow: nil,
-                secondaryWindow: nil,
-                additionalWindows: [
-                    CodexQuotaWindow(
-                        id: "code-review",
-                        title: "Code review",
-                        usedPercent: 20,
-                        windowMinutes: 10_080,
-                        resetsAt: reset
-                    )
-                ],
-                credits: nil,
-                accountTokenUsage: CodexAccountTokenUsage(
-                    summary: CodexAccountTokenUsageSummary(
-                        lifetimeTokens: 2_000_000,
-                        peakDailyTokens: nil,
-                        longestRunningTurnSeconds: nil,
-                        currentStreakDays: nil,
-                        longestStreakDays: nil
-                    ),
-                    dailyBuckets: []
-                ),
-                updatedAt: now
-            )
-        ]
-        viewModel.selectedAccountID = "account"
-
-        XCTAssertNil(viewModel.selectedQuotaCapacityEstimate)
-        XCTAssertNil(viewModel.selectedQuotaValueEstimate)
+        let selectedWindow = try XCTUnwrap(viewModel.selectedAccount?.weeklyWindow)
+        XCTAssertEqual(selectedWindow.usedPercent, 38)
+        XCTAssertEqual(selectedWindow.remainingPercent, 62)
+        XCTAssertEqual(selectedWindow.windowMinutes, 10_080)
     }
 
     private func context(id: String, input: Int64, updatedAt: Date) -> CodexLiveContextSnapshot {

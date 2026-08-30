@@ -30,7 +30,6 @@ enum QuotaUsageHistoryStore {
     }
 
     static func samples(from snapshot: CodexAccountUsageSnapshot) -> [QuotaUsageSample] {
-        let lifetimeTokens = snapshot.accountTokenUsage?.summary.lifetimeTokens
         return snapshot.allWindows.map { window in
             QuotaUsageSample(
                 accountID: snapshot.id,
@@ -38,8 +37,7 @@ enum QuotaUsageHistoryStore {
                 observedAt: snapshot.updatedAt,
                 usedPercent: window.clampedUsedPercent,
                 resetsAt: window.resetsAt,
-                windowMinutes: window.windowMinutes,
-                lifetimeTokens: lifetimeTokens
+                windowMinutes: window.windowMinutes
             )
         }
     }

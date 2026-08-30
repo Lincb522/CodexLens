@@ -109,7 +109,13 @@ struct CodexAccountUsageSnapshot: Codable, Hashable, Identifiable, Sendable {
 
     var planDisplayName: String {
         let normalized = plan?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return normalized.isEmpty ? "Codex" : normalized.uppercased()
+        switch normalized.lowercased() {
+        case "pro": return "Pro 20x"
+        case "prolite": return "Pro 5x"
+        case "plus": return "Plus"
+        case "team", "business": return "Business"
+        default: return normalized.isEmpty ? "Codex" : normalized
+        }
     }
 
     var allWindows: [CodexQuotaWindow] {

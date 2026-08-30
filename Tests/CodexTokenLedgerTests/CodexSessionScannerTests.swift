@@ -51,65 +51,6 @@ final class CodexSessionScannerTests: XCTestCase {
         XCTAssertEqual(snapshot.sessions.first?.projectName, "fast")
     }
 
-    func testQuotaCycleUsageReplaysCallsForASessionThatCrossesTheResetBoundary() throws {
-        let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CodexTokenLedgerQuotaCycle-\(UUID().uuidString)", isDirectory: true)
-        let sessions = root.appendingPathComponent("sessions", isDirectory: true)
-        try FileManager.default.createDirectory(at: sessions, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
-
-        let fixture = #"""
-        {"timestamp":"2026-08-23T00:00:00.000Z","type":"session_meta","payload":{"id":"crossing"}}
-        {"timestamp":"2026-08-23T00:00:01.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
-        {"timestamp":"2026-08-23T00:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":900,"cached_input_tokens":0,"output_tokens":100},"last_token_usage":{"input_tokens":900,"cached_input_tokens":0,"output_tokens":100}}}}
-        {"timestamp":"2026-08-23T01:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1440,"cached_input_tokens":0,"output_tokens":160},"last_token_usage":{"input_tokens":540,"cached_input_tokens":0,"output_tokens":60}}}}
-        {"timestamp":"2026-08-23T02:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1800,"cached_input_tokens":0,"output_tokens":200},"last_token_usage":{"input_tokens":360,"cached_input_tokens":0,"output_tokens":40}}}}
-        """#
-        let file = sessions.appendingPathComponent("crossing.jsonl")
-        try fixture.write(to: file, atomically: true, encoding: .utf8)
-
-        let scanner = CodexSessionScanner()
-        let snapshot = try scanner.scan(codexHome: root, includeArchived: false)
-        let cycleStart = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T01:00:00Z"))
-        let observedAt = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T03:00:00Z"))
-        let usage = try XCTUnwrap(scanner.quotaCycleUsage(
-            snapshot: snapshot,
-            window: CodexQuotaWindow(
-                id: "weekly",
-                title: "Weekly",
-                usedPercent: 40,
-                windowMinutes: 10_080,
-                resetsAt: cycleStart.addingTimeInterval(7 * 24 * 3_600)
-            ),
-            observedAt: observedAt
-        ))
-
-        XCTAssertEqual(snapshot.totalUsage.totalTokens, 2_000)
-        XCTAssertEqual(usage.totalTokens, 1_000)
-        XCTAssertEqual(usage.sessionCount, 1)
-
-        let laterEvent = #"{"timestamp":"2026-08-23T03:30:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":2250,"cached_input_tokens":0,"output_tokens":250},"last_token_usage":{"input_tokens":450,"cached_input_tokens":0,"output_tokens":50}}}}"#
-        let handle = try FileHandle(forWritingTo: file)
-        try handle.seekToEnd()
-        try handle.write(contentsOf: Data(("\n" + laterEvent).utf8))
-        try handle.close()
-        let updatedSnapshot = try scanner.scan(codexHome: root, includeArchived: false)
-        try FileManager.default.removeItem(at: file)
-        let advanced = try XCTUnwrap(scanner.quotaCycleUsage(
-            snapshot: updatedSnapshot,
-            window: CodexQuotaWindow(
-                id: "weekly",
-                title: "Weekly",
-                usedPercent: 50,
-                windowMinutes: 10_080,
-                resetsAt: cycleStart.addingTimeInterval(7 * 24 * 3_600)
-            ),
-            observedAt: try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-08-23T04:00:00Z")),
-            previous: usage
-        ))
-        XCTAssertEqual(advanced.totalTokens, 1_500)
-    }
-
     func testScannerReadsIncrementalTokenEventsAndIgnoresMessageBodies() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedgerTests-\(UUID().uuidString)", isDirectory: true)

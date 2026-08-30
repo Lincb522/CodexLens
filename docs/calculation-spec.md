@@ -111,45 +111,24 @@ session_id + timestamp + model + input + cached_input + output + total
 
 账号累计直接使用 `lifetimeTokens`。每日桶按服务端给出的日期显示，不假设最后一项就是用户本地的今天。
 
-### 总额度 Token 估算
+### 账号额度的 API 等价值
 
-订阅额度没有公开的固定 Token 上限。应用把同一账号、同一额度窗口、同一重置周期内同时取得的两个官方计数配对：
+账号当前剩余百分比和重置时间来自 `account/rateLimits/read`。满额价值不从本地任务、项目或账号历史反推，而使用 2026 年 8 月公开的独立实测基线：
 
-```text
-tokens_per_percent = Δsummary.lifetimeTokens / ΔusedPercent
-estimated_total_tokens = median(tokens_per_percent) × 100
-estimated_remaining_tokens = median(tokens_per_percent) × remainingPercent
-```
+| 套餐 | 每周 API 等价值 | 实测区间 |
+| --- | ---: | ---: |
+| Plus | US$105 | US$94–113 |
+| Pro 5× | US$537.50 | US$525–550 |
+| Pro 20× | US$2,144 | US$2,080–2,240 |
 
-样本必须相隔至少 120 秒，额度变化至少 1 个百分点，且 Token 与额度都单调增加。额度或累计 Token 回退后只使用新的单调区间。这个数会随模型和请求负载变化，属于当前账号实际使用结构下的经验估算，不是官方承诺的额度。
-
-账号累计计数尚未更新时，当前已加载账号改用本周期的本地精确事件：完整落在周期内的会话采用累计计数；跨越重置时刻的会话重新读取周期内的 `last_token_usage`。计算式为：
+Pro 20× 基线来自单一账号、GPT-5.6 Sol Standard、两个独立额度周期的交叉测量。中央值为每周 53,600 credits；按当时 25 credits = US$1 的费率换算为 US$2,144。来源：<https://www.reddit.com/r/codex/comments/1v6ubah/realworld_codex_pro_20x_plan_test_with_gpt56_sol/>。
 
 ```text
-estimated_total_tokens = local_cycle_tokens / usedPercent × 100
-estimated_remaining_tokens = estimated_total_tokens × remainingPercent
-```
-
-本地文件缺失、额度使用不足 1% 或当前账号未加载时不生成这个估算。
-
-套餐页使用账号的周额度窗口。Plus、Pro 5×、Pro 20× 等名称表示服务额度档位，不等于一个固定 Token 数；应用不会直接把倍率乘成 Token。月度值按平均公历月换算：
-
-```text
-estimated_monthly_tokens = estimated_weekly_tokens × 365.2425 / 12 / 7
-```
-
-### 账号额度的 API 美元等价
-
-美元值使用当前账号 Codex Home 中可计价的本地历史，不读取当前任务，也不使用当前任务的模型。每条历史记录先按自身模型及输入、缓存、缓存写入、输出结构计算 API 参考成本：
-
-```text
-account_usd_per_token = Σpriceable_local_api_cost / Σpriceable_local_tokens
-weekly_api_equivalent = estimated_weekly_tokens × account_usd_per_token
+current_api_equivalent = weekly_api_equivalent × official_remaining_percent / 100
 monthly_api_equivalent = weekly_api_equivalent × 365.2425 / 12 / 7
-remaining_api_equivalent = estimated_remaining_tokens × account_usd_per_token
 ```
 
-界面同时显示参与计价的本地 Token、模型数和本地 Token 覆盖率。周额度样本不足、当前选择的账号不是已加载账号，或本地历史没有已公布费率的模型时，美元值不可用。它表示以该账号历史使用结构按 API 费率购买同等文本 Token 的估算成本，不是订阅价格、余额或 OpenAI 承诺的现金价值。
+月度值按平均公历月折算。Token 数取决于模型以及输入、缓存输入和输出的组成，应用不再把额度显示成一个缺少确定含义的固定 Token 总数。实测值是第三方参考，不是 OpenAI 的额度承诺。
 
 ## 剩余时间
 

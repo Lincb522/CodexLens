@@ -43,6 +43,10 @@ enum DisplayFormat {
         return String(format: "$%.4f", number)
     }
 
+    static func quotaUSD(_ value: Double) -> String {
+        apiEquivalentUSD(Decimal(value))
+    }
+
     static func apiEquivalentUSD(_ value: Decimal) -> String {
         let number = NSDecimalNumber(decimal: value)
         let magnitude = abs(number.doubleValue)

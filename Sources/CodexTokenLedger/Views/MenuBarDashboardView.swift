@@ -785,22 +785,22 @@ struct MenuBarDashboardView: View {
 
     private func quotaUpdateSurface(_ account: CodexAccountUsageSnapshot, forecast: QuotaForecast?) -> some View {
         let scopedGroup = account.additionalQuotaGroups.first
-        let capacity = viewModel.selectedQuotaCapacityEstimate
-        let valueEstimate = viewModel.selectedQuotaValueEstimate
+        let focusWindow = account.weeklyWindow ?? account.accountQuotaWindows.first
+        let estimate = viewModel.selectedSubscriptionQuotaEstimate
         return Button {
             page = .quotaDetails
         } label: {
             VStack(alignment: .leading, spacing: 8) {
-                if let focusWindow = account.weeklyWindow ?? account.accountQuotaWindows.first {
-                    accountQuotaSummary(window: focusWindow, forecast: forecast)
+                quotaOverviewHeader(account)
+
+                if let focusWindow {
+                    quotaWindowOverview(focusWindow, forecast: forecast, estimate: estimate)
                 } else {
                     Text(viewModel.t("quota.empty"))
                         .font(.system(size: 13, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.muted)
-                        .frame(maxWidth: .infinity, minHeight: 36)
+                        .frame(maxWidth: .infinity, minHeight: 58)
                 }
-
-                quotaEstimateSummary(capacity: capacity, valueEstimate: valueEstimate)
 
                 if let scopedGroup {
                     scopedQuotaSummary(scopedGroup)
@@ -819,92 +819,80 @@ struct MenuBarDashboardView: View {
         .accessibilityIdentifier("Overview.QuotaDetails")
     }
 
-    private func accountQuotaSummary(
-        window: CodexQuotaWindow,
-        forecast: QuotaForecast?
-    ) -> some View {
+    private func quotaOverviewHeader(_ account: CodexAccountUsageSnapshot) -> some View {
         HStack(spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.t("quota.accountScope"))
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                HStack(spacing: 5) {
-                    PulseIcon(name: "timer")
-                        .frame(width: 10, height: 10)
-                        .foregroundStyle(PulsePalette.faint)
+            Text(viewModel.t("quota.accountScope"))
+                .font(.system(size: 13, weight: .semibold, design: .default))
+                .foregroundStyle(PulsePalette.ink)
+            Spacer(minLength: 6)
+            Text(account.planDisplayName)
+                .font(.system(size: 12, weight: .semibold, design: .default))
+                .foregroundStyle(PulsePalette.muted)
+                .lineLimit(1)
+            PulseIcon(name: "arrow-right")
+                .frame(width: 8, height: 8)
+                .foregroundStyle(PulsePalette.faint)
+        }
+        .frame(height: 20)
+    }
+
+    private func quotaWindowOverview(
+        _ window: CodexQuotaWindow,
+        forecast: QuotaForecast?,
+        estimate: SubscriptionQuotaEstimate?
+    ) -> some View {
+        let remaining = max(0, min(100, window.remainingPercent))
+        return VStack(spacing: 7) {
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(quotaCycleTitle(window))
+                        .font(.system(size: 12, weight: .semibold, design: .default))
+                        .foregroundStyle(PulsePalette.ink)
                     MarqueeLabel(
                         text: accountQuotaTimingText(window, forecast: forecast),
                         font: .system(size: 12, weight: .medium, design: .default),
                         color: PulsePalette.muted
                     )
                 }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .trailing, spacing: 0) {
-                HStack(spacing: 5) {
-                    Text("\(Int(window.remainingPercent.rounded()))%")
-                        .font(.system(size: 22, weight: .semibold, design: .default))
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text("\(Int(remaining.rounded()))%")
+                        .font(.system(size: 21, weight: .semibold, design: .default))
                         .foregroundStyle(quotaAccent(window))
                         .monospacedDigit()
                         .contentTransition(.numericText())
-                    PulseIcon(name: "arrow-right")
-                        .frame(width: 8, height: 8)
-                        .foregroundStyle(PulsePalette.faint)
+                    if let estimate, (window.windowMinutes ?? 0) >= 6 * 24 * 60 {
+                        Text(
+                            viewModel.t(
+                                "quota.currentEquivalentCompact",
+                                DisplayFormat.quotaUSD(
+                                    estimate.remainingAPIEquivalentUSD(remainingPercent: remaining)
+                                )
+                            )
+                        )
+                        .font(.system(size: 12, weight: .semibold, design: .default))
+                        .foregroundStyle(PulsePalette.muted)
+                        .lineLimit(1)
+                    }
                 }
-                Text(quotaCycleTitle(window))
-                    .font(.system(size: 12, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
-                    .lineLimit(1)
             }
-        }
-        .help(compactQuotaReset(window))
-        .accessibilityElement(children: .combine)
-        .frame(height: 34)
-    }
 
-    private func quotaEstimateSummary(
-        capacity: QuotaCapacityEstimate?,
-        valueEstimate: QuotaValueEstimate?
-    ) -> some View {
-        Group {
-            if let valueEstimate {
-                HStack(spacing: 8) {
-                    quotaEstimateValue(
-                        title: viewModel.t("quota.currentAvailable"),
-                        value: "\(DisplayFormat.compactEstimatedTokens(valueEstimate.remainingWeeklyTokens)) Token"
-                    )
-                    quotaEstimateValue(
-                        title: viewModel.t("quota.apiEquivalent"),
-                        value: valueEstimate.remainingAPIEquivalentUSD
-                            .map(DisplayFormat.apiEquivalentUSD) ?? "US$—"
-                    )
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(PulsePalette.divider)
+                    Capsule()
+                        .fill(quotaAccent(window))
+                        .frame(width: proxy.size.width * remaining / 100)
                 }
-            } else {
-                Text(viewModel.t("quota.capacityCollecting"))
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
-                    .frame(maxWidth: .infinity, minHeight: 54)
             }
+            .frame(height: 4)
         }
-        .frame(height: 54)
-        .help(quotaCapacityHelp(capacity, valueEstimate: valueEstimate))
-    }
-
-    private func quotaEstimateValue(title: String, value: String) -> some View {
-        VStack(spacing: 3) {
-            Text(title)
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-                .lineLimit(1)
-            Text("≈ \(value)")
-                .font(.system(size: 14, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
-                .fixedSize(horizontal: true, vertical: false)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(height: 58)
         .background(PulsePalette.surfaceRaised.opacity(0.58), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .help(compactQuotaReset(window))
         .accessibilityElement(children: .combine)
     }
 
@@ -949,7 +937,9 @@ struct MenuBarDashboardView: View {
 
     private func accountQuotaTimingText(_ window: CodexQuotaWindow, forecast: QuotaForecast?) -> String {
         let reset = compactQuotaReset(window)
-        guard let forecast else { return reset }
+        guard let forecast,
+              forecast.state == .lastsUntilReset || forecast.state == .depletesBeforeReset
+        else { return reset }
         return "\(reset) · \(forecastHeadline(forecast))"
     }
 
@@ -1147,8 +1137,8 @@ struct MenuBarDashboardView: View {
     @ViewBuilder
     private var quotaDetails: some View {
         if let account = viewModel.selectedAccount,
-           let window = account.weeklyWindow ?? account.accountQuotaWindows.first {
-            quotaDetailsContent(account: account, window: window)
+           !account.accountQuotaWindows.isEmpty {
+            quotaDetailsContent(account: account)
         } else if viewModel.isScanning {
             accountLoadingSurface
                 .padding(12)
@@ -1163,44 +1153,24 @@ struct MenuBarDashboardView: View {
         }
     }
 
-    private func quotaDetailsContent(
-        account: CodexAccountUsageSnapshot,
-        window: CodexQuotaWindow
-    ) -> some View {
-        let valueEstimate = viewModel.selectedQuotaValueEstimate
-        return VStack(spacing: 10) {
-            quotaDetailStatus(window: window, forecast: viewModel.selectedQuotaForecast)
-
-            if let valueEstimate {
-                quotaBudgetDetailCard(
-                    title: viewModel.t("quota.currentAvailable"),
-                    badge: "\(Int(window.remainingPercent.rounded()))%",
-                    tokens: valueEstimate.remainingWeeklyTokens,
-                    usd: valueEstimate.remainingAPIEquivalentUSD,
-                    emphasized: true
+    private func quotaDetailsContent(account: CodexAccountUsageSnapshot) -> some View {
+        VStack(spacing: 10) {
+            ForEach(Array(account.accountQuotaWindows.prefix(2))) { window in
+                quotaDetailStatus(
+                    window: window,
+                    forecast: window.id == account.preferredMenuWindow?.id
+                        ? viewModel.selectedQuotaForecast
+                        : nil
                 )
-                quotaBudgetDetailCard(
-                    title: viewModel.t("quota.weeklyCapacity"),
-                    badge: viewModel.t("quota.fullCapacity"),
-                    tokens: valueEstimate.weeklyTokens,
-                    usd: valueEstimate.weeklyAPIEquivalentUSD
-                )
-                quotaBudgetDetailCard(
-                    title: viewModel.t("quota.monthlyEquivalent"),
-                    badge: viewModel.t("quota.fullCapacity"),
-                    tokens: valueEstimate.monthlyTokens,
-                    usd: valueEstimate.monthlyAPIEquivalentUSD
-                )
-            } else {
-                Text(viewModel.t("quota.capacityCollecting"))
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
-                    .frame(maxWidth: .infinity, minHeight: 92)
-                    .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
 
-            if let scopedGroup = account.additionalQuotaGroups.first {
-                scopedQuotaDetail(scopedGroup)
+            if let window = account.weeklyWindow,
+               let estimate = viewModel.selectedSubscriptionQuotaEstimate {
+                quotaAllowanceEstimateCard(estimate: estimate, window: window)
+            }
+
+            ForEach(Array(account.additionalQuotaGroups.prefix(2))) { group in
+                scopedQuotaDetail(group)
             }
 
             Spacer(minLength: 0)
@@ -1209,12 +1179,96 @@ struct MenuBarDashboardView: View {
         .padding(.top, 10)
         .padding(.bottom, 12)
         .frame(height: Self.primaryPageContentHeight, alignment: .top)
-        .help(
-            quotaCapacityHelp(
-                viewModel.selectedQuotaCapacityEstimate,
-                valueEstimate: valueEstimate
-            )
-        )
+    }
+
+    private func quotaAllowanceEstimateCard(
+        estimate: SubscriptionQuotaEstimate,
+        window: CodexQuotaWindow
+    ) -> some View {
+        let remainingUSD = estimate.remainingAPIEquivalentUSD(remainingPercent: window.remainingPercent)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Text(viewModel.t("quota.apiEquivalentAllowance"))
+                    .font(.system(size: 13, weight: .semibold, design: .default))
+                    .foregroundStyle(PulsePalette.ink)
+                Spacer(minLength: 6)
+                Text(accountPlanEstimateLabel(estimate.tier))
+                    .font(.system(size: 12, weight: .semibold, design: .default))
+                    .foregroundStyle(PulsePalette.muted)
+            }
+
+            VStack(spacing: 0) {
+                quotaEstimateRow(
+                    title: viewModel.t("quota.currentAvailable"),
+                    value: DisplayFormat.quotaUSD(remainingUSD)
+                )
+                Divider()
+                    .overlay(PulsePalette.divider.opacity(0.72))
+                quotaEstimateRow(
+                    title: viewModel.t("quota.weeklyFull"),
+                    value: DisplayFormat.quotaUSD(estimate.weeklyAPIEquivalentUSD)
+                )
+                Divider()
+                    .overlay(PulsePalette.divider.opacity(0.72))
+                quotaEstimateRow(
+                    title: viewModel.t("quota.monthlyAverage"),
+                    value: DisplayFormat.quotaUSD(estimate.monthlyAPIEquivalentUSD)
+                )
+            }
+            .padding(.horizontal, 10)
+            .background(PulsePalette.surfaceRaised.opacity(0.58), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            HStack(spacing: 6) {
+                Text(
+                    viewModel.t(
+                        "quota.measuredRange",
+                        DisplayFormat.quotaUSD(estimate.weeklyAPILowerBoundUSD),
+                        DisplayFormat.quotaUSD(estimate.weeklyAPIUpperBoundUSD)
+                    )
+                )
+                .font(.system(size: 12, weight: .medium, design: .default))
+                .foregroundStyle(PulsePalette.faint)
+                .lineLimit(1)
+                Spacer(minLength: 4)
+                if let sourceURL = SubscriptionQuotaEstimate.sourceURL {
+                    Link(viewModel.t("quota.measurementSource"), destination: sourceURL)
+                        .font(.system(size: 12, weight: .semibold, design: .default))
+                        .foregroundStyle(PulsePalette.accent)
+                        .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(12)
+        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func quotaEstimateRow(title: String, value: String) -> some View {
+        HStack(spacing: 10) {
+            Text(title)
+                .font(.system(size: 12, weight: .medium, design: .default))
+                .foregroundStyle(PulsePalette.muted)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Text(value)
+                .font(.system(size: 15, weight: .semibold, design: .default))
+                .foregroundStyle(PulsePalette.ink)
+                .monospacedDigit()
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 34)
+    }
+
+    private func accountPlanEstimateLabel(_ tier: SubscriptionQuotaEstimate.Tier) -> String {
+        switch tier {
+        case .plus: "Plus"
+        case .pro5x: "Pro 5x"
+        case .pro20x: "Pro 20x"
+        }
     }
 
     private func quotaDetailStatus(
@@ -1225,7 +1279,7 @@ struct MenuBarDashboardView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(viewModel.t("quota.accountScope"))
+                    Text(quotaCycleTitle(window))
                         .font(.system(size: 14, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.ink)
                     Text(accountQuotaTimingText(window, forecast: forecast))
@@ -1264,66 +1318,6 @@ struct MenuBarDashboardView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func quotaBudgetDetailCard(
-        title: String,
-        badge: String,
-        tokens: Int64,
-        usd: Decimal?,
-        emphasized: Bool = false
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                Spacer(minLength: 4)
-                Text(badge)
-                    .font(.system(size: 12, weight: .semibold, design: .default))
-                    .foregroundStyle(emphasized ? PulsePalette.accent : PulsePalette.muted)
-                    .monospacedDigit()
-            }
-
-            HStack(spacing: 0) {
-                quotaBudgetDetailMetric(
-                    title: "Token",
-                    value: "≈ \(DisplayFormat.compactEstimatedTokens(tokens)) Token"
-                )
-                PulsePalette.divider.frame(width: 1, height: 34)
-                quotaBudgetDetailMetric(
-                    title: viewModel.t("quota.apiEquivalent"),
-                    value: usd.map { "≈ \(DisplayFormat.apiEquivalentUSD($0))" } ?? "≈ US$—"
-                )
-            }
-        }
-        .padding(12)
-        .frame(height: 92)
-        .background(
-            emphasized ? PulsePalette.surfaceRaised : PulsePalette.surface,
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func quotaBudgetDetailMetric(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title)
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-                .lineLimit(1)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
-                .fixedSize(horizontal: true, vertical: false)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 6)
-    }
-
     private func scopedQuotaDetail(_ group: CodexScopedQuotaGroup) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(scopedQuotaTitle(group))
@@ -1351,43 +1345,6 @@ struct MenuBarDashboardView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
         }
-    }
-
-    private func quotaCapacityHelp(
-        _ estimate: QuotaCapacityEstimate?,
-        valueEstimate: QuotaValueEstimate?
-    ) -> String {
-        guard let estimate else { return viewModel.t("quota.capacityHelpCollecting") }
-        let capacityHelp: String
-        switch estimate.evidence {
-        case .pairedAccountCounters:
-            capacityHelp = viewModel.t(
-                "quota.capacityHelp",
-                DisplayFormat.tokens(estimate.estimatedRemainingTokens),
-                estimate.samplePairCount,
-                viewModel.t("confidence.\(estimate.confidence.rawValue)")
-            )
-        case .currentCycleLocalLedger:
-            capacityHelp = viewModel.t(
-                "quota.capacityHelpCurrentCycle",
-                DisplayFormat.tokens(estimate.estimatedRemainingTokens),
-                DisplayFormat.tokens(estimate.observedTokens ?? 0),
-                viewModel.t("confidence.\(estimate.confidence.rawValue)")
-            )
-        }
-        guard let valueEstimate,
-              let remainingUSD = valueEstimate.remainingAPIEquivalentUSD
-        else {
-            return "\(capacityHelp) · \(viewModel.t("quota.capacityAPICollectingHelp"))"
-        }
-        let apiHelp = viewModel.t(
-            "quota.capacityAPIHelp",
-            DisplayFormat.compactUSD(remainingUSD),
-            DisplayFormat.tokens(valueEstimate.pricedSampleTokens),
-            valueEstimate.pricedModelCount,
-            Int((valueEstimate.localTokenCoverage * 100).rounded())
-        )
-        return "\(capacityHelp) · \(apiHelp)"
     }
 
     private var tiboGlobalSignalRow: some View {
@@ -2879,11 +2836,11 @@ struct MenuBarDashboardView: View {
     }
 
     private var appVersionNumber: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.9"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.1.10"
     }
 
     private var appBuildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "26"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "32"
     }
 
     private var sessionPageCount: Int {

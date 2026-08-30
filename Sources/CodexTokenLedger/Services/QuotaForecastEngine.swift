@@ -4,7 +4,6 @@ import Foundation
 struct QuotaForecastEngine: Sendable {
     private let minimumObservationSpan: TimeInterval = 120
     private let minimumMeaningfulDelta = 0.10
-    private let minimumCapacityDelta = 1.0
 
     func forecast(
         accountID: String,
@@ -69,110 +68,6 @@ struct QuotaForecastEngine: Sendable {
         )
     }
 
-    /// Estimates a token-equivalent capacity from two official counters
-    /// observed together. It is intentionally empirical: subscription quotas
-    /// are compute-weighted and OpenAI does not publish a fixed Token cap.
-    func capacityEstimate(
-        accountID: String,
-        window: CodexQuotaWindow,
-        lifetimeTokens: Int64?,
-        samples: [QuotaUsageSample],
-        observedAt: Date? = nil,
-        now: Date = Date()
-    ) -> QuotaCapacityEstimate? {
-        guard let lifetimeTokens, lifetimeTokens >= 0 else { return nil }
-        let observationDate = observedAt ?? now
-        let current = QuotaUsageSample(
-            accountID: accountID,
-            windowID: window.id,
-            observedAt: observationDate,
-            usedPercent: window.clampedUsedPercent,
-            resetsAt: window.resetsAt,
-            windowMinutes: window.windowMinutes,
-            lifetimeTokens: lifetimeTokens
-        )
-        let matching = matchingCycleSamples(for: current, in: samples)
-        let merged = monotonicSuffix(
-            deduplicated((matching + [current]).sorted { $0.observedAt < $1.observedAt })
-        )
-        guard merged.count >= 2 else { return nil }
-
-        var estimates: [Double] = []
-        for left in merged.indices {
-            for right in merged.indices where right > left {
-                let seconds = merged[right].observedAt.timeIntervalSince(merged[left].observedAt)
-                let percentDelta = merged[right].usedPercent - merged[left].usedPercent
-                guard seconds >= minimumObservationSpan,
-                      percentDelta >= minimumCapacityDelta,
-                      let leftTokens = merged[left].lifetimeTokens,
-                      let rightTokens = merged[right].lifetimeTokens,
-                      rightTokens > leftTokens
-                else { continue }
-                let value = Double(rightTokens - leftTokens) / percentDelta
-                if value.isFinite, value > 0 { estimates.append(value) }
-            }
-        }
-        guard let tokensPerPercent = median(estimates),
-              tokensPerPercent <= Double(Int64.max) / 100
-        else { return nil }
-
-        let total = Int64((tokensPerPercent * 100).rounded())
-        let remaining = Int64((tokensPerPercent * window.remainingPercent).rounded())
-        let span = max(
-            0,
-            (merged.last?.observedAt ?? now).timeIntervalSince(merged.first?.observedAt ?? now)
-        )
-        let delta = observedDelta(in: merged)
-        return QuotaCapacityEstimate(
-            estimatedTotalTokens: total,
-            estimatedRemainingTokens: remaining,
-            tokensPerPercent: tokensPerPercent,
-            samplePairCount: estimates.count,
-            observationSpan: span,
-            confidence: confidence(sampleCount: merged.count, span: span, delta: delta),
-            evidence: .pairedAccountCounters,
-            observedTokens: nil
-        )
-    }
-
-    func currentCycleCapacityEstimate(
-        window: CodexQuotaWindow,
-        usage: LocalQuotaCycleUsage,
-        observedAt: Date
-    ) -> QuotaCapacityEstimate? {
-        guard let resetsAt = window.resetsAt,
-              let windowMinutes = window.windowMinutes,
-              windowMinutes > 0,
-              window.clampedUsedPercent >= minimumCapacityDelta,
-              abs(usage.resetsAt.timeIntervalSince(resetsAt)) <= 300,
-              usage.totalTokens > 0
-        else { return nil }
-
-        let cycleStart = resetsAt.addingTimeInterval(-TimeInterval(windowMinutes * 60))
-        guard observedAt >= cycleStart else { return nil }
-        let tokensPerPercent = Double(usage.totalTokens) / window.clampedUsedPercent
-        guard tokensPerPercent.isFinite,
-              tokensPerPercent > 0,
-              tokensPerPercent <= Double(Int64.max) / 100
-        else { return nil }
-
-        let total = Int64((tokensPerPercent * 100).rounded())
-        let remaining = Int64((tokensPerPercent * window.remainingPercent).rounded())
-        let confidence: QuotaForecastConfidence = window.clampedUsedPercent >= 10 && usage.sessionCount >= 3
-            ? .medium
-            : .low
-        return QuotaCapacityEstimate(
-            estimatedTotalTokens: total,
-            estimatedRemainingTokens: remaining,
-            tokensPerPercent: tokensPerPercent,
-            samplePairCount: 0,
-            observationSpan: min(observedAt, usage.observedAt).timeIntervalSince(cycleStart),
-            confidence: confidence,
-            evidence: .currentCycleLocalLedger,
-            observedTokens: usage.totalTokens
-        )
-    }
-
     private func matchingCycleSamples(
         for current: QuotaUsageSample,
         in samples: [QuotaUsageSample]
@@ -207,35 +102,6 @@ struct QuotaForecastEngine: Sendable {
             }
         }
         return Array(result.suffix(64))
-    }
-
-    private func monotonicSuffix(_ samples: [QuotaUsageSample]) -> [QuotaUsageSample] {
-        guard samples.count > 1 else { return samples }
-        var start = samples.startIndex
-        for index in samples.indices.dropFirst() {
-            let previous = samples[samples.index(before: index)]
-            let current = samples[index]
-            let tokenRegression: Bool
-            if let previousTokens = previous.lifetimeTokens, let currentTokens = current.lifetimeTokens {
-                tokenRegression = currentTokens < previousTokens
-            } else {
-                tokenRegression = false
-            }
-            if current.usedPercent + 0.5 < previous.usedPercent || tokenRegression {
-                start = index
-            }
-        }
-        return Array(samples[start...])
-    }
-
-    private func median(_ values: [Double]) -> Double? {
-        guard !values.isEmpty else { return nil }
-        let sorted = values.sorted()
-        let middle = sorted.count / 2
-        if sorted.count.isMultiple(of: 2) {
-            return (sorted[middle - 1] + sorted[middle]) / 2
-        }
-        return sorted[middle]
     }
 
     private func observedDelta(in samples: [QuotaUsageSample]) -> Double {

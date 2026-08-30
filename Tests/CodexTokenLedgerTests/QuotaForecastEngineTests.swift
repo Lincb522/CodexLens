@@ -124,120 +124,10 @@ final class QuotaForecastEngineTests: XCTestCase {
         XCTAssertEqual(forecast.sampleCount, 1)
     }
 
-    func testCapacityEstimateUsesPairedOfficialQuotaAndTokenDeltas() throws {
-        let now = Date(timeIntervalSince1970: 2_000_000_000)
-        let reset = now.addingTimeInterval(3_600)
-        let window = CodexQuotaWindow(
-            id: "primary",
-            title: "Primary",
-            usedPercent: 40,
-            windowMinutes: 300,
-            resetsAt: reset
-        )
-        let samples = [
-            sample(at: now.addingTimeInterval(-3_600), used: 20, reset: reset, lifetime: 1_000_000),
-            sample(at: now.addingTimeInterval(-1_800), used: 30, reset: reset, lifetime: 1_500_000),
-        ]
-
-        let estimate = try XCTUnwrap(QuotaForecastEngine().capacityEstimate(
-            accountID: "account",
-            window: window,
-            lifetimeTokens: 2_000_000,
-            samples: samples,
-            observedAt: now,
-            now: now
-        ))
-
-        XCTAssertEqual(estimate.estimatedTotalTokens, 5_000_000)
-        XCTAssertEqual(estimate.estimatedRemainingTokens, 3_000_000)
-        XCTAssertEqual(estimate.tokensPerPercent, 50_000, accuracy: 0.001)
-        XCTAssertEqual(estimate.samplePairCount, 3)
-        XCTAssertEqual(estimate.evidence, .pairedAccountCounters)
-    }
-
-    func testCapacityEstimateWaitsForAtLeastOnePercentOfMovement() {
-        let now = Date(timeIntervalSince1970: 2_000_000_000)
-        let reset = now.addingTimeInterval(3_600)
-        let window = CodexQuotaWindow(
-            id: "primary",
-            title: "Primary",
-            usedPercent: 20.5,
-            windowMinutes: 300,
-            resetsAt: reset
-        )
-        let estimate = QuotaForecastEngine().capacityEstimate(
-            accountID: "account",
-            window: window,
-            lifetimeTokens: 1_100_000,
-            samples: [sample(
-                at: now.addingTimeInterval(-600),
-                used: 20,
-                reset: reset,
-                lifetime: 1_000_000
-            )],
-            observedAt: now,
-            now: now
-        )
-
-        XCTAssertNil(estimate)
-    }
-
-    func testCurrentCycleCapacityUsesExactCycleTokenObservation() throws {
-        let observedAt = Date(timeIntervalSince1970: 2_000_000_000)
-        let reset = observedAt.addingTimeInterval(2 * 24 * 3_600)
-        let window = CodexQuotaWindow(
-            id: "weekly",
-            title: "Weekly",
-            usedPercent: 40,
-            windowMinutes: 10_080,
-            resetsAt: reset
-        )
-        let usage = LocalQuotaCycleUsage(
-            resetsAt: reset,
-            observedAt: observedAt,
-            totalTokens: 1_000_000,
-            sessionCount: 1
-        )
-
-        let estimate = try XCTUnwrap(QuotaForecastEngine().currentCycleCapacityEstimate(
-            window: window,
-            usage: usage,
-            observedAt: observedAt
-        ))
-
-        XCTAssertEqual(estimate.estimatedTotalTokens, 2_500_000)
-        XCTAssertEqual(estimate.estimatedRemainingTokens, 1_500_000)
-        XCTAssertEqual(estimate.observedTokens, 1_000_000)
-        XCTAssertEqual(estimate.evidence, .currentCycleLocalLedger)
-    }
-
-    func testCurrentCycleCapacityDoesNotInventAValueAtZeroPercent() {
-        let observedAt = Date(timeIntervalSince1970: 2_000_000_000)
-        let window = CodexQuotaWindow(
-            id: "weekly",
-            title: "Weekly",
-            usedPercent: 0,
-            windowMinutes: 10_080,
-            resetsAt: observedAt.addingTimeInterval(2 * 24 * 3_600)
-        )
-
-        XCTAssertNil(QuotaForecastEngine().currentCycleCapacityEstimate(
-            window: window,
-            usage: LocalQuotaCycleUsage(
-                resetsAt: try XCTUnwrap(window.resetsAt),
-                observedAt: observedAt,
-                totalTokens: 1_000,
-                sessionCount: 1
-            ),
-            observedAt: observedAt
-        ))
-    }
-
     private func sample(
         at date: Date,
         used: Double,
-        reset: Date,
-        lifetime: Int64? = nil
+        reset: Date
     ) -> QuotaUsageSample {
         QuotaUsageSample(
             accountID: "account",
@@ -245,8 +135,7 @@ final class QuotaForecastEngineTests: XCTestCase {
             observedAt: date,
             usedPercent: used,
             resetsAt: reset,
-            windowMinutes: 300,
-            lifetimeTokens: lifetime
+            windowMinutes: 300
         )
     }
 }

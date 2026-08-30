@@ -105,7 +105,6 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var menuUsesHeroTopBridge: Bool
     @Published private(set) var isAccountSwitching: Bool
     @Published private(set) var quotaHistorySamples: [QuotaUsageSample]
-    @Published private(set) var localQuotaCycleUsageByAccount: [String: LocalQuotaCycleUsage]
 
     private var hasLoaded = false
     private var refreshQueued = false
@@ -190,7 +189,6 @@ final class DashboardViewModel: ObservableObject {
         menuUsesHeroTopBridge = true
         isAccountSwitching = false
         quotaHistorySamples = initialQuotaHistorySamples ?? QuotaUsageHistoryStore.load()
-        localQuotaCycleUsageByAccount = [:]
     }
 
     var selectedAccount: CodexAccountUsageSnapshot? {
@@ -257,88 +255,8 @@ final class DashboardViewModel: ObservableObject {
         )
     }
 
-    var selectedQuotaCapacityEstimate: QuotaCapacityEstimate? {
-        guard let account = selectedAccount,
-              let window = account.weeklyWindow
-        else { return nil }
-        let engine = QuotaForecastEngine()
-        if let pairedEstimate = engine.capacityEstimate(
-            accountID: account.id,
-            window: window,
-            lifetimeTokens: account.accountTokenUsage?.summary.lifetimeTokens,
-            samples: quotaHistorySamples,
-            observedAt: account.updatedAt
-        ) {
-            return pairedEstimate
-        }
-        guard selectedAccountIsActive,
-              Self.standardizedPath(snapshot.codexHome) == Self.standardizedPath(account.codexHome),
-              let usage = localQuotaCycleUsageByAccount[account.id]
-        else { return nil }
-        return engine.currentCycleCapacityEstimate(
-            window: window,
-            usage: usage,
-            observedAt: min(account.updatedAt, snapshot.scannedAt)
-        )
-    }
-
-    var selectedQuotaValueEstimate: QuotaValueEstimate? {
-        guard let capacity = selectedQuotaCapacityEstimate else { return nil }
-
-        let weeksPerMonth = Decimal(string: "4.348125")!
-        let monthlyTokenValue = Double(capacity.estimatedTotalTokens) * 4.348125
-        guard monthlyTokenValue.isFinite, monthlyTokenValue <= Double(Int64.max) else { return nil }
-        let tokenEstimate = QuotaValueEstimate(
-            weeklyTokens: capacity.estimatedTotalTokens,
-            monthlyTokens: Int64(monthlyTokenValue.rounded()),
-            remainingWeeklyTokens: capacity.estimatedRemainingTokens,
-            weeklyAPIEquivalentUSD: nil,
-            monthlyAPIEquivalentUSD: nil,
-            remainingAPIEquivalentUSD: nil,
-            pricedSampleTokens: 0,
-            localTokenCoverage: 0,
-            pricedModelCount: 0
-        )
-        guard selectedAccountIsActive,
-              let account = selectedAccount,
-              Self.standardizedPath(snapshot.codexHome) == Self.standardizedPath(account.codexHome)
-        else { return tokenEstimate }
-
-        var pricedTokens: Int64 = 0
-        var pricedUSD: Decimal = 0
-        var pricedModels: Set<String> = []
-        for record in filteredRecords where record.usage.totalTokens > 0 {
-            let cost = BillingCalculator.cost(
-                for: record.usage,
-                model: record.model,
-                applyLongContextMultiplier: !record.isCumulativeSessionSummary
-            )
-            guard cost.isPriced else { continue }
-            let (updatedTokens, overflow) = pricedTokens.addingReportingOverflow(record.usage.totalTokens)
-            guard !overflow else { return tokenEstimate }
-            pricedTokens = updatedTokens
-            pricedUSD += cost.total
-            pricedModels.insert(PricingCatalog.normalize(model: record.model))
-        }
-
-        let localTokens = localConversationTotalUsage.totalTokens
-        guard pricedTokens > 0, pricedUSD > 0 else { return tokenEstimate }
-
-        let usdPerToken = pricedUSD / Decimal(pricedTokens)
-        let weeklyUSD = Decimal(capacity.estimatedTotalTokens) * usdPerToken
-        return QuotaValueEstimate(
-            weeklyTokens: capacity.estimatedTotalTokens,
-            monthlyTokens: tokenEstimate.monthlyTokens,
-            remainingWeeklyTokens: capacity.estimatedRemainingTokens,
-            weeklyAPIEquivalentUSD: weeklyUSD,
-            monthlyAPIEquivalentUSD: weeklyUSD * weeksPerMonth,
-            remainingAPIEquivalentUSD: Decimal(capacity.estimatedRemainingTokens) * usdPerToken,
-            pricedSampleTokens: pricedTokens,
-            localTokenCoverage: localTokens > 0
-                ? min(1, Double(pricedTokens) / Double(localTokens))
-                : 0,
-            pricedModelCount: pricedModels.count
-        )
+    var selectedSubscriptionQuotaEstimate: SubscriptionQuotaEstimate? {
+        SubscriptionQuotaEstimate.forPlan(selectedAccount?.plan)
     }
 
     func accountDailyValue(_ account: CodexAccountUsageSnapshot) -> String {
@@ -640,23 +558,6 @@ final class DashboardViewModel: ObservableObject {
                 snapshot = result
             case .failure(let error):
                 errorMessage = localizedErrorText(error)
-            }
-            if case let (.success(account), .success(localSnapshot)) = (accountOutcome, usageOutcome),
-               let weeklyWindow = account.weeklyWindow,
-               Self.standardizedPath(localSnapshot.codexHome) == Self.standardizedPath(account.codexHome) {
-                let observedAt = min(account.updatedAt, localSnapshot.scannedAt)
-                let previousCycleUsage = localQuotaCycleUsageByAccount[account.id]
-                let cycleUsage = await Task.detached(priority: .utility) {
-                    CodexSessionScanner().quotaCycleUsage(
-                        snapshot: localSnapshot,
-                        window: weeklyWindow,
-                        observedAt: observedAt,
-                        previous: previousCycleUsage
-                    )
-                }.value
-                if let cycleUsage {
-                    localQuotaCycleUsageByAccount[account.id] = cycleUsage
-                }
             }
             if case .success(let metadata) = await metadataTask.value {
                 threadMetadataByID = metadata

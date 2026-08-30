@@ -4,28 +4,20 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class MenuBarVisualSmokeTests: XCTestCase {
-    func testSeparatedQuotaGroupsFitFixedPanelAcrossLocalizations() {
-        let estimateTileWidth = (340.0 - 20.0 - 8.0) / 2.0
-        let estimateFont = NSFont.systemFont(ofSize: 12, weight: .semibold)
-        let tokenValue = "\(DisplayFormat.compactEstimatedTokens(999_000_000_000)) Token"
-        let usdValue = "API ≈ \(DisplayFormat.apiEquivalentUSD(999_000))"
-
-        XCTAssertEqual(DisplayFormat.apiEquivalentUSD(13_400), "US$13,400")
-        let tokenWidth = (tokenValue as NSString).size(withAttributes: [.font: estimateFont]).width
-        let usdWidth = (usdValue as NSString).size(withAttributes: [.font: estimateFont]).width
-        XCTAssertLessThanOrEqual(tokenWidth, estimateTileWidth, tokenValue)
-        XCTAssertLessThanOrEqual(usdWidth, estimateTileWidth, usdValue)
+    func testOfficialQuotaLabelsFitFixedPanelAcrossLocalizations() {
+        let availableWidth = 340.0 - 40.0
+        let font = NSFont.systemFont(ofSize: 13, weight: .semibold)
 
         for language in AppLanguage.allCases where language != .system {
             for key in [
-                "quota.periodWeek",
-                "quota.periodMonth",
-                "quota.currentAvailable",
-                "quota.fullCapacity",
+                "quota.accountScope",
+                "quota.cycleFiveHours",
+                "quota.cycleWeekly",
+                "quota.codeCompletionScope",
             ] {
-                let period = LocalizationCatalog.text(key, language: language)
-                let periodWidth = (period as NSString).size(withAttributes: [.font: estimateFont]).width
-                XCTAssertLessThanOrEqual(periodWidth, estimateTileWidth, "\(language.rawValue): \(period)")
+                let label = LocalizationCatalog.text(key, language: language)
+                let width = (label as NSString).size(withAttributes: [.font: font]).width
+                XCTAssertLessThanOrEqual(width, availableWidth, "\(language.rawValue): \(label)")
             }
         }
     }
@@ -37,8 +29,8 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let previewAccountID = "preview-account"
         let previewReset = now.addingTimeInterval(7_200)
         let quotaSamples = [
-            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-3_600), usedPercent: 43, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080, lifetimeTokens: 2_296_316_441),
-            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-1_800), usedPercent: 48, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080, lifetimeTokens: 2_396_316_441),
+            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-3_600), usedPercent: 43, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080),
+            QuotaUsageSample(accountID: previewAccountID, windowID: "primary", observedAt: now.addingTimeInterval(-1_800), usedPercent: 48, resetsAt: now.addingTimeInterval(172_800), windowMinutes: 10_080),
         ]
         let tiboSignal = TiboResetSignal(
             postID: "2091688655828246890",
@@ -854,6 +846,14 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(contents.contains("DisplayFormat.integer(value)"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.tokenValue\""))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.perMillionTokens\")"))
+        XCTAssertTrue(contents.contains("account.accountQuotaWindows.prefix(2)"))
+        XCTAssertTrue(contents.contains("window.remainingPercent"))
+        XCTAssertTrue(contents.contains("quotaAllowanceEstimateCard"))
+        XCTAssertTrue(contents.contains("selectedSubscriptionQuotaEstimate"))
+        XCTAssertTrue(contents.contains("estimate.remainingAPIEquivalentUSD"))
+        XCTAssertTrue(contents.contains("SubscriptionQuotaEstimate.sourceURL"))
+        XCTAssertFalse(contents.contains("selectedQuotaValueEstimate"))
+        XCTAssertFalse(contents.contains("quotaBudgetDetailCard"))
         XCTAssertFalse(contents.contains("DUP"))
         XCTAssertFalse(contents.contains("LONG ×2/×1.5"))
         XCTAssertTrue(contents.contains("overviewPanelButton("))
