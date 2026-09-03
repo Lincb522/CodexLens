@@ -12,10 +12,13 @@ final class TiboResetSignalTests: XCTestCase {
 
         let snapshot = try await TiboResetSignalService().fetch()
         let signal = try XCTUnwrap(snapshot.signals.first)
+        let socialEvidence = try XCTUnwrap(snapshot.socialEvidence?.first)
         XCTAssertEqual(snapshot.sourceStatus, .healthy)
         XCTAssertEqual(signal.sourceURL.host?.lowercased(), "x.com")
         XCTAssertEqual(signal.contentHash.count, 64)
         XCTAssertFalse(signal.matchedRuleIDs.isEmpty)
+        XCTAssertEqual(socialEvidence.sourceURL.host?.lowercased(), "x.com")
+        XCTAssertFalse(socialEvidence.text.isEmpty)
         try TiboResetSignalStore.save(snapshot, to: URL(fileURLWithPath: outputPath))
     }
 
@@ -88,7 +91,31 @@ final class TiboResetSignalTests: XCTestCase {
     func testForecastPayloadKeepsConfirmedFactAndBoundedTeaseSeparate() throws {
         let data = try JSONSerialization.data(withJSONObject: [
             "updated_at": "2026-08-29T09:27:00.868Z",
+            "probabilities": [
+                "raw_24h": 0.824,
+                "raw_48h": 0.931,
+                "rounded_24h": 82,
+                "rounded_48h": 93,
+            ],
+            "confidence": "high",
+            "confidence_note": "Backtest clears the published baseline.",
             "last_reset_at": "2026-08-27T16:35:05.000Z",
+            "age_days": 1.7,
+            "cadence": [
+                "recent_median_days": 2.1,
+                "recent_sample": 5,
+                "weighted_mean_days": 5.1,
+            ],
+            "time_window": [
+                "start_hour": 23,
+                "end_hour": 2,
+                "label": "11 PM - 2 AM",
+                "timezone": "UTC",
+            ],
+            "latest_alert": [
+                "state": "confirmed",
+                "summary": "25M active users: usage reset for every paid ChatGPT Work and Codex subscription.",
+            ],
             "evidence": [[
                 "code": "last_reset",
                 "href": "https://x.com/thsottiaux/status/2093014447833116908",
@@ -123,6 +150,97 @@ final class TiboResetSignalTests: XCTestCase {
             cycle.displayedNextResetEnd,
             isoDate("2026-08-30T06:59:59.999Z")
         )
+        XCTAssertEqual(snapshot.forecast?.probability24hPercent, 82)
+        XCTAssertEqual(snapshot.forecast?.probability48hPercent, 93)
+        XCTAssertEqual(snapshot.forecast?.confidence, .high)
+        XCTAssertEqual(snapshot.forecast?.cadence?.recentSample, 5)
+        XCTAssertEqual(snapshot.forecast?.commonTimeWindow?.timeZoneIdentifier, "UTC")
+        XCTAssertEqual(snapshot.forecast?.latestResetReason, .milestone25M)
+        XCTAssertEqual(
+            snapshot.forecast?.sevenDayReferenceAt,
+            isoDate("2026-09-03T16:35:05Z")
+        )
+    }
+
+    func testForecastProbabilityFallsBackToRawValueWithoutInventingLocalScore() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "updated_at": "2026-09-03T10:31:47.628Z",
+            "probabilities": [
+                "raw_24h": 0.27455134545539234,
+                "raw_48h": 0.4737242496194184,
+            ],
+            "confidence": "low",
+            "last_reset_at": "2026-08-31T02:34:27.000Z",
+            "evidence": [[
+                "code": "last_reset",
+                "href": "https://x.com/thsottiaux/status/2094252447271366730",
+            ]],
+        ])
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-09-03T10:31:48Z"))
+
+        let snapshot = try TiboResetSignalService.decodeForecast(data, now: now)
+
+        XCTAssertEqual(snapshot.forecast?.probability24hPercent, 27)
+        XCTAssertEqual(snapshot.forecast?.probability48hPercent, 47)
+        XCTAssertEqual(snapshot.forecast?.confidence, .low)
+    }
+
+    func testFeedKeepsRecentTiboPostsAndRepliesAsForecastEvidence() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "fetched_at": "2026-09-03T11:56:51.000Z",
+            "stale": false,
+            "tweets": [
+                [
+                    "id": "2095370639892955269",
+                    "url": "https://x.com/thsottiaux/status/2095370639892955269",
+                    "text": "Which Codex reset?",
+                    "at": "2026-09-03T04:37:45.000Z",
+                    "is_reply": true,
+                    "replying_to": "melvindvivas",
+                    "tibo_lane": "reset_related",
+                    "explicit_reset_claim": false,
+                    "tease_classification": ["teasing": false],
+                ],
+                [
+                    "id": "tease",
+                    "url": "https://x.com/thsottiaux/status/2093573991965557198",
+                    "text": "Hold on to your Codex",
+                    "at": "2026-09-02T04:37:45.000Z",
+                    "is_reply": false,
+                    "tibo_lane": "reset_related",
+                    "explicit_reset_claim": false,
+                    "tease_classification": ["teasing": true],
+                ],
+                [
+                    "id": "unrelated",
+                    "url": "https://x.com/thsottiaux/status/2094826841622348106",
+                    "text": "Unrelated product update",
+                    "at": "2026-09-01T04:37:45.000Z",
+                    "is_reply": false,
+                    "tibo_lane": "other",
+                    "explicit_reset_claim": false,
+                ],
+            ],
+        ])
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-09-03T12:00:00Z"))
+
+        let snapshot = try TiboResetSignalService.decodeFeed(data, now: now)
+
+        XCTAssertEqual(snapshot.sourceStatus, .healthy)
+        XCTAssertEqual(snapshot.socialEvidence?.map(\.postID), ["2095370639892955269", "tease"])
+        XCTAssertEqual(snapshot.socialEvidence?.first?.text, "Which Codex reset?")
+        XCTAssertEqual(snapshot.socialEvidence?.first?.isReply, true)
+        XCTAssertEqual(snapshot.socialEvidence?.first?.replyingTo, "melvindvivas")
+        XCTAssertEqual(snapshot.socialEvidence?.first?.signalKind, .context)
+        XCTAssertEqual(snapshot.socialEvidence?.last?.signalKind, .tease)
+    }
+
+    func testCountdownUsesTotalHoursAndStopsAtReference() throws {
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-09-03T00:00:00Z"))
+        let target = now.addingTimeInterval(90 * 3_600 + 23 * 60)
+
+        XCTAssertEqual(TiboResetSignalFormatter.countdown(to: target, now: now), "90:23")
+        XCTAssertNil(TiboResetSignalFormatter.countdown(to: now, now: now))
     }
 
     func testSoonButNotTodayUsesTiboLocalDayAsForecastWindow() throws {

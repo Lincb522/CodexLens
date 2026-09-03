@@ -2,10 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_APP="$ROOT/build/DerivedData/Build/Products/Release/CodexTokenLedger.app"
+SOURCE_APP="$ROOT/build/DerivedData/Build/Products/Release/Codex Lens.app"
 DIST="$ROOT/dist"
-APP="$DIST/CodexTokenLedger.app"
-ZIP="$DIST/CodexTokenLedger-menu-bar-macOS.zip"
+APP="$DIST/Codex Lens.app"
+ZIP="$DIST/Codex-Lens-macOS.zip"
 IDENTITY="${CODESIGN_IDENTITY:-}"
 
 if [[ "$IDENTITY" != "Developer ID Application:"* ]]; then

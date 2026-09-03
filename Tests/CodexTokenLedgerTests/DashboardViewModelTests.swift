@@ -147,6 +147,77 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testLowTiboProbabilityExplainsItsJudgementBasis() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.TiboBasis.\(UUID().uuidString)"))
+        let now = Date()
+        let confirmed = TiboResetSignal(
+            postID: "confirmed-reset",
+            sourceURL: try XCTUnwrap(URL(string: "https://x.com/thsottiaux/status/2094252447271366730")),
+            postedAt: now.addingTimeInterval(-3.4 * 86_400),
+            status: .confirmed,
+            resetKind: "forced",
+            matchedRuleIDs: ["reset-propagated-completed"],
+            ruleVersion: TiboResetSignalService.ruleVersion,
+            contentHash: String(repeating: "a", count: 64)
+        )
+        let snapshot = TiboResetMonitorSnapshot(
+            sourceStatus: .healthy,
+            checkedAt: now,
+            lastSuccessAt: now,
+            latestSignal: confirmed,
+            recentSignals: [confirmed],
+            lastErrorCode: nil,
+            forecast: TiboForecastSnapshot(
+                updatedAt: now,
+                probability24hPercent: 25,
+                probability48hPercent: 45,
+                confidence: .low,
+                lastResetAt: confirmed.postedAt,
+                cadence: TiboForecastCadence(
+                    recentMedianDays: 2.1,
+                    recentSample: 5,
+                    weightedMeanDays: 5.1
+                ),
+                commonTimeWindow: TiboForecastTimeWindow(
+                    startHour: 23,
+                    endHour: 2,
+                    label: "11 PM - 2 AM",
+                    timeZoneIdentifier: "UTC"
+                ),
+                latestResetReason: nil
+            ),
+            socialEvidence: [
+                TiboSocialEvidence(
+                    postID: "reply",
+                    sourceURL: try XCTUnwrap(URL(string: "https://x.com/thsottiaux/status/2095370639892955269")),
+                    postedAt: now.addingTimeInterval(-7 * 3_600),
+                    text: "Which Codex reset?",
+                    isReply: true,
+                    replyingTo: "melvindvivas",
+                    signalKind: .context
+                )
+            ]
+        )
+        let viewModel = DashboardViewModel(
+            defaults: defaults,
+            initialTiboSignalSnapshot: snapshot
+        )
+        viewModel.appLanguage = .zhHans
+
+        XCTAssertEqual(viewModel.tiboForecastJudgementTitle, "低概率的判断依据")
+        XCTAssertEqual(viewModel.tiboForecastProbabilityBandText, "25% · 低于 40%")
+        XCTAssertEqual(viewModel.tiboForecastPublicSignalText, "暂无 Tibo 新预告")
+        XCTAssertEqual(viewModel.tiboForecastConfidenceText, "低")
+        XCTAssertEqual(viewModel.tiboForecastLastResetAgeText, "3.4 天")
+        XCTAssertEqual(viewModel.tiboForecastCadenceText, "近 5 次 · 中位 2.1 天 · 加权 5.1 天")
+        XCTAssertEqual(viewModel.tiboForecastCommonWindowText, "11 PM - 2 AM · UTC")
+        XCTAssertEqual(viewModel.tiboSocialEvidenceTitle, "Tibo 最新回复")
+        XCTAssertEqual(viewModel.tiboSocialEvidenceText, "Which Codex reset?")
+        XCTAssertTrue(try XCTUnwrap(viewModel.tiboSocialEvidenceMetaText).contains("回复 @melvindvivas"))
+        XCTAssertEqual(viewModel.tiboSocialEvidenceAssessmentText, "未形成重置承诺")
+    }
+
+    @MainActor
     func testAccountDailyUsageUsesNewestServerBucketAndItsActualDate() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.DailyUsage.\(UUID().uuidString)"))
         let viewModel = DashboardViewModel(defaults: defaults)

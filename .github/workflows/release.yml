@@ -109,7 +109,7 @@ jobs:
         run: |
           ./scripts/build_app.sh
           ./scripts/package_release.sh
-          codesign --verify --deep --strict --verbose=2 dist/CodexTokenLedger.app
+          codesign --verify --deep --strict --verbose=2 "dist/Codex Lens.app"
           REQUIRE_DEVELOPER_ID=1 ./scripts/package_dmg.sh
 
       - name: Notarize and staple
@@ -119,9 +119,9 @@ jobs:
           ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
         run: |
-          APP="dist/CodexTokenLedger.app"
-          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
-          DMG="dist/CodexTokenLedger-menu-bar-macOS.dmg"
+          APP="dist/Codex Lens.app"
+          ZIP="dist/Codex-Lens-macOS.zip"
+          DMG="dist/Codex-Lens-macOS.dmg"
           KEY_PATH="$RUNNER_TEMP/AuthKey_${KEY_ID}.p8"
 
           printf '%s' "$PRIVATE_KEY" | base64 --decode -o "$KEY_PATH"
@@ -186,9 +186,9 @@ jobs:
       - name: Validate Developer ID package
         if: ${{ github.event_name != 'workflow_dispatch' || !inputs.notarize }}
         run: |
-          APP="dist/CodexTokenLedger.app"
-          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
-          DMG="dist/CodexTokenLedger-menu-bar-macOS.dmg"
+          APP="dist/Codex Lens.app"
+          ZIP="dist/Codex-Lens-macOS.zip"
+          DMG="dist/Codex-Lens-macOS.dmg"
 
           codesign --verify --deep --strict --verbose=2 "$APP"
           codesign --verify --verbose=2 "$DMG"
@@ -224,12 +224,12 @@ jobs:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           APPCAST_DIR="$RUNNER_TEMP/appcast"
-          ZIP="dist/CodexTokenLedger-menu-bar-macOS.zip"
+          ZIP="dist/Codex-Lens-macOS.zip"
           NOTES="$RELEASE_NOTES_PATH"
           mkdir -p "$APPCAST_DIR"
           test -s "$NOTES"
           cp "$ZIP" "$APPCAST_DIR/"
-          cp "$NOTES" "$APPCAST_DIR/CodexTokenLedger-menu-bar-macOS.md"
+          cp "$NOTES" "$APPCAST_DIR/Codex-Lens-macOS.md"
 
           GENERATE_APPCAST="$(
             find build/DerivedData/SourcePackages/artifacts/sparkle \
@@ -242,7 +242,7 @@ jobs:
 
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$GENERATE_APPCAST" \
             --ed-key-file - \
-            --download-url-prefix "https://github.com/Lincb522/CodexTokenLedger/releases/download/$TAG/" \
+            --download-url-prefix "https://github.com/Lincb522/CodexLens/releases/download/$TAG/" \
             --embed-release-notes \
             --maximum-versions 3 \
             --maximum-deltas 0 \
@@ -261,18 +261,18 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --notes-file "$NOTES"
             gh release upload "$TAG" \
-              dist/CodexTokenLedger-menu-bar-macOS.dmg \
-              dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/Codex-Lens-macOS.dmg \
+              dist/Codex-Lens-macOS.zip \
               dist/appcast.xml \
               dist/SHA256SUMS.txt \
               --clobber
           else
             gh release create "$TAG" \
-              dist/CodexTokenLedger-menu-bar-macOS.dmg \
-              dist/CodexTokenLedger-menu-bar-macOS.zip \
+              dist/Codex-Lens-macOS.dmg \
+              dist/Codex-Lens-macOS.zip \
               dist/appcast.xml \
               dist/SHA256SUMS.txt \
               --verify-tag \
               --notes-file "$NOTES" \
-              --title "Codex Token Ledger ${TAG#v}"
+              --title "Codex Lens ${TAG#v}"
           fi

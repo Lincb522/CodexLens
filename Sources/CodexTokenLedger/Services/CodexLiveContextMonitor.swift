@@ -9,6 +9,7 @@ actor CodexLiveContextMonitor {
         var fileSize: Int64
         var modifiedAt: Date?
         var snapshot: CodexLiveContextSnapshot?
+        var usageCheckpoint: CodexConversationUsageCheckpoint?
     }
 
     private let reader = CodexLiveContextReader()
@@ -76,7 +77,12 @@ actor CodexLiveContextMonitor {
         }
         let size = Int64(values.fileSize ?? 0)
         guard size > 0 else {
-            entries[path] = CacheEntry(fileSize: size, modifiedAt: values.contentModificationDate, snapshot: nil)
+            entries[path] = CacheEntry(
+                fileSize: size,
+                modifiedAt: values.contentModificationDate,
+                snapshot: nil,
+                usageCheckpoint: nil
+            )
             return nil
         }
 
@@ -93,14 +99,25 @@ actor CodexLiveContextMonitor {
             }
         }
 
+        let previousCheckpoint: CodexConversationUsageCheckpoint?
+        if let cached = entries[path], size > cached.fileSize {
+            previousCheckpoint = cached.usageCheckpoint
+        } else {
+            previousCheckpoint = nil
+        }
+
         fullParseCount += 1
-        let snapshot = reader.read(file: file)
+        let result = reader.readResult(
+            file: file,
+            previousUsageCheckpoint: previousCheckpoint
+        )
         entries[path] = CacheEntry(
             fileSize: size,
             modifiedAt: values.contentModificationDate,
-            snapshot: snapshot
+            snapshot: result?.snapshot,
+            usageCheckpoint: result?.usageCheckpoint
         )
-        return snapshot
+        return result?.snapshot
     }
 
     private func appendedBytesContainLiveEvidence(file: URL, previousSize: Int64) -> Bool {

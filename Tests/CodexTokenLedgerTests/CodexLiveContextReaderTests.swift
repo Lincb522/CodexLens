@@ -89,7 +89,7 @@ final class CodexLiveContextReaderTests: XCTestCase {
         let fixture = #"""
         {"timestamp":"2026-08-24T01:00:00.000Z","type":"session_meta","payload":{"id":"thread-turn","cwd":"/Projects/TokenPulse"}}
         {"timestamp":"2026-08-24T01:00:01.000Z","type":"turn_context","payload":{"turn_id":"old-turn","cwd":"/Projects/TokenPulse","model":"gpt-5.6-sol","effort":"high"}}
-        {"timestamp":"2026-08-24T01:00:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":100,"cached_input_tokens":50,"output_tokens":10,"reasoning_output_tokens":2},"last_token_usage":{"input_tokens":100,"cached_input_tokens":50,"output_tokens":10,"reasoning_output_tokens":2},"model_context_window":1000}}}
+        {"timestamp":"2026-08-24T01:00:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1000,"cached_input_tokens":500,"output_tokens":100,"reasoning_output_tokens":20},"last_token_usage":{"input_tokens":1000,"cached_input_tokens":500,"output_tokens":100,"reasoning_output_tokens":20},"model_context_window":1000}}}
         {"timestamp":"2026-08-24T01:01:00.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"current-turn","model_context_window":1000}}
         {"timestamp":"2026-08-24T01:01:01.000Z","type":"turn_context","payload":{"turn_id":"current-turn","cwd":"/Projects/TokenPulse","model":"gpt-5.6-sol","effort":"xhigh"}}
         {"timestamp":"2026-08-24T01:01:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":300,"cached_input_tokens":170,"output_tokens":30,"reasoning_output_tokens":8},"last_token_usage":{"input_tokens":200,"cached_input_tokens":120,"output_tokens":20,"reasoning_output_tokens":6},"model_context_window":1000}}}
@@ -112,7 +112,7 @@ final class CodexLiveContextReaderTests: XCTestCase {
         XCTAssertEqual(snapshot.modelContextWindow, 1_000)
         XCTAssertEqual(snapshot.publishedContextWindow, 1_050_000)
         XCTAssertEqual(try XCTUnwrap(snapshot.contextUsedPercent), 150.0 / 1_050_000.0 * 100, accuracy: 0.000_001)
-        XCTAssertEqual(snapshot.taskTotal.totalTokens, 500)
+        XCTAssertEqual(snapshot.taskTotal.totalTokens, 1_600)
     }
 
     func testDuplicateCounterCanCorrectLatestBreakdownWithoutAddingTokens() throws {
@@ -139,7 +139,7 @@ final class CodexLiveContextReaderTests: XCTestCase {
         XCTAssertEqual(snapshot.lastRequest.cachedInputTokens, 120)
     }
 
-    func testPreservesAuthoritativeDeltaWhenCumulativeBreakdownConflicts() throws {
+    func testUsesExactLastRequestWhenSessionCumulativeBreakdownConflicts() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedger-inconsistent-total-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -157,11 +157,40 @@ final class CodexLiveContextReaderTests: XCTestCase {
         let snapshot = try XCTUnwrap(CodexLiveContextReader().read(file: file))
 
         XCTAssertEqual(snapshot.lastRequest.totalTokens, 130)
-        XCTAssertEqual(snapshot.currentTurnUsage.accountingQuality, .unclassified)
+        XCTAssertEqual(snapshot.currentTurnUsage.accountingQuality, .complete)
         XCTAssertEqual(snapshot.currentTurnUsage.totalTokens, 130)
         XCTAssertEqual(snapshot.taskTotal.accountingQuality, .inconsistent)
         XCTAssertEqual(snapshot.taskTotal.totalTokens, 250)
-        XCTAssertFalse(BillingCalculator.cost(calls: snapshot.currentTurnCalls).isPriced)
+        XCTAssertTrue(BillingCalculator.cost(calls: snapshot.currentTurnCalls).isPriced)
+    }
+
+    func testTaskTotalAddsCompletedTaskCountersAfterEachReset() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedger-task-total-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appendingPathComponent("rollout.jsonl")
+        let fixture = #"""
+        {"timestamp":"2026-08-24T01:00:00.000Z","type":"session_meta","payload":{"id":"task-total"}}
+        {"timestamp":"2026-08-24T01:00:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-1"}}
+        {"timestamp":"2026-08-24T01:00:02.000Z","type":"turn_context","payload":{"turn_id":"turn-1","model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-24T01:00:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":200,"output_tokens":50},"last_token_usage":{"input_tokens":200,"output_tokens":50}}}}
+        {"timestamp":"2026-08-24T01:00:04.000Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-1"}}
+        {"timestamp":"2026-08-24T01:01:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-2"}}
+        {"timestamp":"2026-08-24T01:01:02.000Z","type":"turn_context","payload":{"turn_id":"turn-2","model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-24T01:01:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":60,"output_tokens":10},"last_token_usage":{"input_tokens":60,"output_tokens":10}}}}
+        {"timestamp":"2026-08-24T01:01:04.000Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-2"}}
+        {"timestamp":"2026-08-24T01:02:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-3"}}
+        {"timestamp":"2026-08-24T01:02:02.000Z","type":"turn_context","payload":{"turn_id":"turn-3","model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-24T01:02:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":30,"output_tokens":10},"last_token_usage":{"input_tokens":30,"output_tokens":10}}}}
+        {"timestamp":"2026-08-24T01:02:04.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":70,"output_tokens":20},"last_token_usage":{"input_tokens":40,"output_tokens":10}}}}
+        """#
+        try fixture.write(to: file, atomically: true, encoding: .utf8)
+
+        let snapshot = try XCTUnwrap(CodexLiveContextReader().read(file: file))
+
+        XCTAssertEqual(snapshot.currentTurnUsage.totalTokens, 90)
+        XCTAssertEqual(snapshot.taskTotal.totalTokens, 410)
     }
 
     func testDiscoversMultipleUnfinishedTasksAndExcludesCompletedTask() throws {

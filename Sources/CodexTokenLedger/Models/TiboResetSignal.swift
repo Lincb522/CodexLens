@@ -14,6 +14,66 @@ enum TiboSignalSourceStatus: String, Codable, Sendable {
     case offline
 }
 
+enum TiboForecastConfidence: String, Codable, Sendable {
+    case low
+    case medium
+    case high
+    case unknown
+}
+
+enum TiboResetReason: String, Codable, Sendable {
+    case milestone25M
+}
+
+enum TiboSocialSignalKind: String, Codable, Sendable {
+    case explicit
+    case tease
+    case context
+}
+
+struct TiboSocialEvidence: Codable, Equatable, Identifiable, Sendable {
+    let postID: String
+    let sourceURL: URL
+    let postedAt: Date
+    let text: String
+    let isReply: Bool
+    let replyingTo: String?
+    let signalKind: TiboSocialSignalKind
+
+    var id: String { postID }
+}
+
+struct TiboForecastCadence: Codable, Equatable, Sendable {
+    let recentMedianDays: Double
+    let recentSample: Int
+    let weightedMeanDays: Double
+}
+
+struct TiboForecastTimeWindow: Codable, Equatable, Sendable {
+    let startHour: Int
+    let endHour: Int
+    let label: String
+    let timeZoneIdentifier: String
+}
+
+/// Structured fields returned by the public reset forecast endpoint. The app
+/// displays these values directly and does not derive a probability from local
+/// account usage or fabricate a confidence score.
+struct TiboForecastSnapshot: Codable, Equatable, Sendable {
+    let updatedAt: Date
+    let probability24hPercent: Int
+    let probability48hPercent: Int?
+    let confidence: TiboForecastConfidence
+    let lastResetAt: Date?
+    let cadence: TiboForecastCadence?
+    let commonTimeWindow: TiboForecastTimeWindow?
+    let latestResetReason: TiboResetReason?
+
+    var sevenDayReferenceAt: Date? {
+        lastResetAt?.addingTimeInterval(7 * 86_400)
+    }
+}
+
 struct TiboResetSignal: Codable, Equatable, Identifiable, Sendable {
     let postID: String
     let sourceURL: URL
@@ -49,6 +109,8 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
     var latestSignal: TiboResetSignal?
     var recentSignals: [TiboResetSignal]? = nil
     var lastErrorCode: String?
+    var forecast: TiboForecastSnapshot? = nil
+    var socialEvidence: [TiboSocialEvidence]? = nil
 
     var signals: [TiboResetSignal] {
         guard let recentSignals, !recentSignals.isEmpty else {
@@ -126,13 +188,21 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
         }
         let merged = byID.values.sorted { $0.postedAt > $1.postedAt }
         let retained = Array(merged.prefix(maximumSignals))
+        var socialByID: [String: TiboSocialEvidence] = [:]
+        for evidence in socialEvidence ?? [] { socialByID[evidence.postID] = evidence }
+        for evidence in remote.socialEvidence ?? [] { socialByID[evidence.postID] = evidence }
+        let mergedSocial = socialByID.values
+            .sorted { $0.postedAt > $1.postedAt }
+            .prefix(16)
         return Self(
             sourceStatus: remote.sourceStatus,
             checkedAt: remote.checkedAt,
             lastSuccessAt: remote.lastSuccessAt,
             latestSignal: retained.first,
             recentSignals: retained,
-            lastErrorCode: remote.lastErrorCode
+            lastErrorCode: remote.lastErrorCode,
+            forecast: freshestForecast(local: forecast, remote: remote.forecast),
+            socialEvidence: Array(mergedSocial)
         )
     }
 
@@ -159,6 +229,18 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
         case .forecast: 1
         case .expected: 2
         case .confirmed: 3
+        }
+    }
+
+    private func freshestForecast(
+        local: TiboForecastSnapshot?,
+        remote: TiboForecastSnapshot?
+    ) -> TiboForecastSnapshot? {
+        switch (local, remote) {
+        case (.none, .none): nil
+        case (.some(let value), .none), (.none, .some(let value)): value
+        case (.some(let local), .some(let remote)):
+            remote.updatedAt >= local.updatedAt ? remote : local
         }
     }
 }
@@ -238,5 +320,13 @@ enum TiboResetSignalFormatter {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         formatter.dateFormat = "yyyy-MM-dd HH:mm 'UTC'"
         return formatter.string(from: date)
+    }
+
+    static func countdown(to target: Date, now: Date) -> String? {
+        let remaining = Int(target.timeIntervalSince(now).rounded(.down))
+        guard remaining > 0 else { return nil }
+        let hours = remaining / 3_600
+        let minutes = (remaining % 3_600) / 60
+        return String(format: "%d:%02d", hours, minutes)
     }
 }

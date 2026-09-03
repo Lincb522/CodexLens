@@ -102,9 +102,9 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var tiboSignalErrorMessage: String?
     @Published private(set) var isTiboSignalRefreshing: Bool
     @Published private(set) var menuLayoutRevision: Int
-    @Published private(set) var menuUsesHeroTopBridge: Bool
     @Published private(set) var isAccountSwitching: Bool
     @Published private(set) var quotaHistorySamples: [QuotaUsageSample]
+    @Published private(set) var clockNow: Date
 
     private var hasLoaded = false
     private var refreshQueued = false
@@ -186,9 +186,9 @@ final class DashboardViewModel: ObservableObject {
         tiboSignalErrorMessage = nil
         isTiboSignalRefreshing = false
         menuLayoutRevision = 0
-        menuUsesHeroTopBridge = true
         isAccountSwitching = false
         quotaHistorySamples = initialQuotaHistorySamples ?? QuotaUsageHistoryStore.load()
+        clockNow = Date()
     }
 
     var selectedAccount: CodexAccountUsageSnapshot? {
@@ -413,6 +413,7 @@ final class DashboardViewModel: ObservableObject {
 
     func scheduledLiveContextTick() {
         let now = Date()
+        clockNow = now
         guard now.timeIntervalSince(lastLivePollAt) >= liveRefreshRate.rawValue else { return }
         lastLivePollAt = now
         liveContextTick()
@@ -635,19 +636,15 @@ final class DashboardViewModel: ObservableObject {
         if tiboMonitoringEnabled { tiboSignalTick(force: true) }
     }
 
-    func openLatestTiboSignal() {
-        guard let url = tiboSignalSnapshot.latestSignal?.sourceURL else { return }
-        NSWorkspace.shared.open(url)
-    }
-
     func openTiboCycleSource() {
         let cycle = tiboResetCycle
         guard let url = (cycle.activeSignal ?? cycle.lastConfirmedSignal)?.sourceURL else { return }
         NSWorkspace.shared.open(url)
     }
 
-    func openTiboSignal(_ signal: TiboResetSignal) {
-        NSWorkspace.shared.open(signal.sourceURL)
+    func openLatestTiboSocialEvidence() {
+        guard let url = tiboLatestSocialEvidence?.sourceURL else { return }
+        NSWorkspace.shared.open(url)
     }
 
     var tiboCompactStatusText: String {
@@ -663,101 +660,184 @@ final class DashboardViewModel: ObservableObject {
         return t("tibo.badge", t("tibo.status.\(signal.status.rawValue)"))
     }
 
-    var tiboVisibleStatusText: String {
-        if isTiboSignalRefreshing, tiboSignalSnapshot.latestSignal == nil {
-            return t("tibo.short.checking")
-        }
-        guard let signal = tiboSignalSnapshot.latestSignal else {
-            return tiboSignalSnapshot.sourceStatus == .healthy
-                ? t("tibo.short.none")
-                : t("tibo.short.unavailable")
-        }
-        return t("tibo.status.\(signal.status.rawValue)")
+    var tiboResetCycle: TiboResetCycle {
+        tiboSignalSnapshot.cycle(now: clockNow)
     }
 
-    var tiboSignalLocalTimeText: String? {
-        guard let signal = tiboSignalSnapshot.latestSignal else { return nil }
-        return tiboLocalTimeText(for: signal)
+    var tiboForecast: TiboForecastSnapshot? {
+        tiboSignalSnapshot.forecast
     }
 
-    func tiboLocalTimeText(for signal: TiboResetSignal) -> String {
-        return TiboResetSignalFormatter.localTimestamp(
-            signal.postedAt,
+    var tiboForecastProbabilityText: String {
+        tiboForecast.map { "\($0.probability24hPercent)%" } ?? "—"
+    }
+
+    var tiboForecastProbabilityLevelText: String {
+        guard let percent = tiboForecast?.probability24hPercent else {
+            return t("tibo.forecast.level.unavailable")
+        }
+        if percent >= 70 { return t("tibo.forecast.level.high") }
+        if percent >= 40 { return t("tibo.forecast.level.medium") }
+        return t("tibo.forecast.level.low")
+    }
+
+    var tiboForecastJudgementTitle: String {
+        t("tibo.forecast.judgementTitle", tiboForecastProbabilityLevelText)
+    }
+
+    var tiboForecastProbabilityBandText: String {
+        guard let percent = tiboForecast?.probability24hPercent else {
+            return t("tibo.forecast.probabilityBand.unavailable")
+        }
+        let key: String
+        if percent >= 70 {
+            key = "tibo.forecast.probabilityBand.high"
+        } else if percent >= 40 {
+            key = "tibo.forecast.probabilityBand.medium"
+        } else {
+            key = "tibo.forecast.probabilityBand.low"
+        }
+        return t(key, percent)
+    }
+
+    var tiboForecastPublicSignalText: String {
+        let socialKind = tiboLatestSocialEvidence?.signalKind
+        if tiboResetCycle.activePrediction != nil
+            || socialKind == .explicit
+            || socialKind == .tease {
+            return t("tibo.forecast.publicSignal.active")
+        }
+        return t("tibo.forecast.publicSignal.none")
+    }
+
+    var tiboLatestSocialEvidence: TiboSocialEvidence? {
+        tiboSignalSnapshot.socialEvidence?.max { $0.postedAt < $1.postedAt }
+    }
+
+    var tiboSocialEvidenceTitle: String {
+        guard let evidence = tiboLatestSocialEvidence else {
+            return t("tibo.forecast.latestPost")
+        }
+        return evidence.isReply
+            ? t("tibo.forecast.latestReply")
+            : t("tibo.forecast.latestPost")
+    }
+
+    var tiboSocialEvidenceText: String? {
+        tiboLatestSocialEvidence?.text
+    }
+
+    var tiboSocialEvidenceMetaText: String? {
+        guard let evidence = tiboLatestSocialEvidence else { return nil }
+        let timestamp = TiboResetSignalFormatter.compactLocalTimestamp(
+            evidence.postedAt,
             localeIdentifier: appLanguage.localeIdentifier
         )
+        guard evidence.isReply,
+              let replyingTo = evidence.replyingTo,
+              !replyingTo.isEmpty
+        else { return timestamp }
+        return t("tibo.forecast.replyMeta", timestamp, replyingTo)
     }
 
-    func tiboStatusText(for signal: TiboResetSignal) -> String {
-        t("tibo.status.\(signal.status.rawValue)")
-    }
-
-    var tiboResetCycle: TiboResetCycle {
-        tiboSignalSnapshot.cycle()
-    }
-
-    var tiboCycleStateText: String {
-        if isTiboSignalRefreshing, tiboSignalSnapshot.signals.isEmpty {
-            return t("tibo.status.checking")
+    var tiboSocialEvidenceAssessmentText: String {
+        guard let kind = tiboLatestSocialEvidence?.signalKind else {
+            return tiboForecastPublicSignalText
         }
+        return t("tibo.forecast.socialAssessment.\(kind.rawValue)")
+    }
+
+    var tiboForecastLastResetAgeText: String? {
+        let date = tiboForecast?.lastResetAt ?? tiboResetCycle.lastConfirmedSignal?.postedAt
+        guard let date else { return nil }
+        let days = max(0, clockNow.timeIntervalSince(date) / 86_400)
+        return t("tibo.forecast.lastResetAgeValue", localizedDecimal(days))
+    }
+
+    var tiboForecastProgress: Double {
+        Double(tiboForecast?.probability24hPercent ?? 0) / 100
+    }
+
+    var tiboForecastReferenceAt: Date? {
+        tiboResetCycle.activePrediction?.expectedStart ?? tiboForecast?.sevenDayReferenceAt
+    }
+
+    var tiboForecastReferenceLabel: String {
+        tiboResetCycle.activePrediction == nil
+            ? t("tibo.forecast.sevenDayReference")
+            : t("tibo.forecast.signalWindow")
+    }
+
+    var tiboForecastReferenceText: String {
         let cycle = tiboResetCycle
-        if cycle.activePrediction?.status == .forecast { return t("tibo.cycle.forecastActive") }
-        if cycle.activePrediction != nil { return t("tibo.cycle.predictionActive") }
-        if cycle.activeCandidate != nil { return t("tibo.cycle.signalActive") }
-        if cycle.lastConfirmedSignal != nil { return t("tibo.cycle.waiting") }
-        return tiboSignalSnapshot.sourceStatus == .healthy
-            ? t("tibo.cycle.awaitingFirst")
-            : t("tibo.status.unavailable")
-    }
-
-    var tiboCycleLastConfirmedText: String {
-        guard let date = tiboResetCycle.lastConfirmedSignal?.postedAt else {
-            return t("tibo.cycle.notObserved")
-        }
-        return tiboCycleTimeText(date)
-    }
-
-    var tiboCycleCurrentSignalText: String {
-        let cycle = tiboResetCycle
-        if cycle.activePrediction?.status == .forecast { return t("tibo.cycle.forecast") }
-        if cycle.activePrediction != nil { return t("tibo.cycle.expected") }
-        if cycle.activeCandidate != nil { return t("tibo.cycle.pending") }
-        if cycle.lastConfirmedSignal != nil { return t("tibo.cycle.noNewSignal") }
-        return t("tibo.cycle.waitingSignal")
-    }
-
-    var tiboCycleNextLabel: String {
-        switch tiboResetCycle.activePrediction?.status {
-        case .forecast: t("tibo.cycle.forecastWindow")
-        case .expected: t("tibo.cycle.predictedTime")
-        default: t("tibo.cycle.nextSignal")
-        }
-    }
-
-    var tiboCycleNextText: String {
-        let cycle = tiboResetCycle
-        if cycle.usesSignalPrediction {
+        if cycle.activePrediction != nil {
             return TiboResetSignalFormatter.compactLocalWindow(
                 start: cycle.activePrediction?.expectedStart,
                 end: cycle.activePrediction?.expectedEnd,
                 localeIdentifier: appLanguage.localeIdentifier
             ) ?? t("tibo.cycle.windowPending")
         }
-        return t("tibo.cycle.noPublicWindow")
+        guard let date = tiboForecast?.sevenDayReferenceAt else { return "—" }
+        return tiboCycleTimeText(date)
     }
 
-    var tiboCycleOverviewText: String {
+    var tiboForecastCountdownText: String {
         let cycle = tiboResetCycle
-        if cycle.activePrediction?.status == .forecast {
-            return t("tibo.cycle.overviewForecast")
+        let target = cycle.activePrediction?.expectedEnd
+            ?? cycle.activePrediction?.expectedStart
+            ?? tiboForecast?.sevenDayReferenceAt
+        guard let target else { return t("tibo.forecast.countdownUnavailable") }
+        guard let countdown = TiboResetSignalFormatter.countdown(to: target, now: clockNow) else {
+            return t("tibo.forecast.referenceReached")
         }
-        if cycle.activePrediction != nil {
-            return t("tibo.cycle.overviewPrediction")
+        let basis = cycle.activePrediction == nil
+            ? t("tibo.forecast.sevenDayBasis")
+            : t("tibo.forecast.announcedBasis")
+        return t("tibo.forecast.countdown", countdown, basis)
+    }
+
+    var tiboForecastLastConfirmedText: String {
+        let date = tiboForecast?.lastResetAt ?? tiboResetCycle.lastConfirmedSignal?.postedAt
+        guard let date else { return t("tibo.cycle.notObserved") }
+        return TiboResetSignalFormatter.localTimestamp(
+            date,
+            localeIdentifier: appLanguage.localeIdentifier
+        )
+    }
+
+    var tiboForecastCadenceText: String? {
+        guard let cadence = tiboForecast?.cadence else { return nil }
+        return t(
+            "tibo.forecast.cadenceValue",
+            cadence.recentSample,
+            localizedDecimal(cadence.recentMedianDays),
+            localizedDecimal(cadence.weightedMeanDays)
+        )
+    }
+
+    var tiboForecastCommonWindowText: String? {
+        guard let window = tiboForecast?.commonTimeWindow else { return nil }
+        return t("tibo.forecast.commonWindowValue", window.label, window.timeZoneIdentifier)
+    }
+
+    var tiboForecastConfidenceText: String {
+        guard let confidence = tiboForecast?.confidence else {
+            return t("tibo.forecast.confidence.unknown")
         }
-        if cycle.activeCandidate != nil { return t("tibo.cycle.overviewCandidate") }
-        if let confirmed = cycle.lastConfirmedSignal {
-            return t("tibo.cycle.overviewConfirmed", tiboCycleTimeText(confirmed.postedAt))
-        }
-        return tiboCycleStateText
+        return t("tibo.forecast.confidence.\(confidence.rawValue)")
+    }
+
+    var tiboForecastResetReasonText: String? {
+        guard let reason = tiboForecast?.latestResetReason else { return nil }
+        return t("tibo.forecast.reason.\(reason.rawValue)")
+    }
+
+    private func localizedDecimal(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: appLanguage.localeIdentifier)
+        formatter.minimumFractionDigits = 1
+        formatter.maximumFractionDigits = 1
+        return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.1f", value)
     }
 
     var tiboCycleHasSource: Bool {
@@ -776,28 +856,8 @@ final class DashboardViewModel: ObservableObject {
         menuLayoutRevision &+= 1
     }
 
-    func menuPageChanged(isOverview: Bool) {
-        menuUsesHeroTopBridge = isOverview
+    func menuPageChanged() {
         menuLayoutRevision &+= 1
-    }
-
-    var tiboSignalHelpText: String {
-        guard let signal = tiboSignalSnapshot.latestSignal else {
-            if let error = tiboSignalErrorMessage { return error }
-            return t("tibo.help.none")
-        }
-        let relative = RelativeDateTimeFormatter()
-        relative.locale = Locale(identifier: appLanguage.localeIdentifier)
-        relative.unitsStyle = .full
-        let age = relative.localizedString(for: signal.postedAt, relativeTo: Date())
-        let evidence = t(
-            "tibo.help.signal",
-            t("tibo.status.\(signal.status.rawValue)"),
-            age,
-            signal.ruleVersion
-        )
-        if tiboSignalSnapshot.sourceStatus == .healthy { return evidence }
-        return "\(evidence) · \(t("tibo.help.cached"))"
     }
 
     func chooseCodexHome() {
@@ -1091,8 +1151,8 @@ final class DashboardViewModel: ObservableObject {
             let script = """
             #!/bin/zsh
             clear
-            echo 'Token Pulse · Codex OAuth'
-            echo 'Complete authorization in the browser, then return to Token Pulse.'
+            echo 'Codex Lens · Codex OAuth'
+            echo 'Complete authorization in the browser, then return to Codex Lens.'
             export CODEX_HOME=\(Self.shellQuote(profile.path))
             \(Self.shellQuote(executable.path)) login
             echo

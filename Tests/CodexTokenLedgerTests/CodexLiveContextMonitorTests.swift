@@ -58,6 +58,34 @@ final class CodexLiveContextMonitorTests: XCTestCase {
         XCTAssertEqual(changed.first?.taskTotal.inputTokens, 1_200)
         let accountingAppendParseCount = await monitor.fullParseCountForTesting()
         XCTAssertEqual(accountingAppendParseCount, 2)
+
+        try append(
+            #"{"timestamp":"2026-08-25T01:01:00.000Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-monitor"}}"#,
+            to: file
+        )
+        try append(
+            #"{"timestamp":"2026-08-25T01:01:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-next","model_context_window":258400}}"#,
+            to: file
+        )
+        try append(
+            #"{"timestamp":"2026-08-25T01:01:02.000Z","type":"turn_context","payload":{"turn_id":"turn-next","cwd":"/Projects/Monitor","model":"gpt-5.6-sol","effort":"high"}}"#,
+            to: file
+        )
+        try append(
+            #"{"timestamp":"2026-08-25T01:01:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":80,"cached_input_tokens":50,"output_tokens":20},"last_token_usage":{"input_tokens":80,"cached_input_tokens":50,"output_tokens":20},"model_context_window":258400}}}"#,
+            to: file
+        )
+        let resetCounter = try await monitor.readContexts(
+            codexHome: home,
+            preferredSourcePaths: [file.path],
+            maximumResults: 8,
+            discover: false
+        )
+        XCTAssertEqual(resetCounter.first?.turnID, "turn-next")
+        XCTAssertEqual(resetCounter.first?.taskTotal.inputTokens, 1_280)
+        XCTAssertEqual(resetCounter.first?.taskTotal.totalTokens, 1_430)
+        let resetParseCount = await monitor.fullParseCountForTesting()
+        XCTAssertEqual(resetParseCount, 3)
     }
 
     private func append(_ line: String, to file: URL) throws {

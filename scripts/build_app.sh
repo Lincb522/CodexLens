@@ -18,5 +18,5 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   build
 
-APP="$DERIVED_DATA/Build/Products/$CONFIGURATION/CodexTokenLedger.app"
+APP="$DERIVED_DATA/Build/Products/$CONFIGURATION/Codex Lens.app"
 echo "Built: $APP"

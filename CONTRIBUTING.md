@@ -7,7 +7,7 @@
 ## 准备
 
 ```bash
-git clone https://github.com/Lincb522/CodexTokenLedger.git
+git clone https://github.com/Lincb522/CodexLens.git
 cd CodexTokenLedger
 xcodegen generate
 xcodebuild test \

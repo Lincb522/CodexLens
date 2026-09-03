@@ -2,9 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="${SOURCE_APP:-$ROOT/dist/CodexTokenLedger.app}"
+APP="${SOURCE_APP:-$ROOT/dist/Codex Lens.app}"
 DIST="${DIST_DIR:-$ROOT/dist}"
-DMG="$DIST/CodexTokenLedger-menu-bar-macOS.dmg"
+DMG="$DIST/Codex-Lens-macOS.dmg"
 IDENTITY="${CODESIGN_IDENTITY:-}"
 STAGING="$(mktemp -d "${TMPDIR:-/tmp}/CodexTokenLedger.dmg.XXXXXX")"
 
@@ -20,12 +20,12 @@ fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP"
 mkdir -p "$DIST"
-/usr/bin/ditto "$APP" "$STAGING/CodexTokenLedger.app"
+/usr/bin/ditto "$APP" "$STAGING/Codex Lens.app"
 ln -s /Applications "$STAGING/Applications"
 
 rm -f "$DMG"
 /usr/bin/hdiutil create \
-  -volname "Codex Token Ledger" \
+  -volname "Codex Lens" \
   -srcfolder "$STAGING" \
   -format UDZO \
   -ov \

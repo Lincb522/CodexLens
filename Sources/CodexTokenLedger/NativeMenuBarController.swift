@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import QuartzCore
 import SwiftUI
 
 /// Uses the same presentation primitive as CodexBar: a real `NSStatusItem`
@@ -39,7 +38,6 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
     private let menu = NativeDashboardMenu()
     private let dashboardItem = NativeDashboardMenuItem()
     private let hostingView: NativeDashboardHostingView
-    private let menuTopBridge = MenuTopBridgeView()
     private var updateObservation: AnyCancellable?
     private var themeObservation: AnyCancellable?
     private var layoutObservation: AnyCancellable?
@@ -79,7 +77,6 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         layoutObservation = nil
         settledLayoutWorkItem?.cancel()
         settledLayoutWorkItem = nil
-        menuTopBridge.removeFromSuperview()
         statusItem.menu = nil
         NSStatusBar.system.removeStatusItem(statusItem)
     }
@@ -89,21 +86,16 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         resizeDashboardIfNeeded(force: true)
         viewModel.refreshLaunchAtLoginState()
         viewModel.scheduledLiveContextTick()
-        DispatchQueue.main.async { [weak self] in
-            self?.installMenuTopBridge()
-        }
     }
 
-    func menuDidOpen(_ menu: NSMenu) {
-        installMenuTopBridge()
-    }
+    func menuDidOpen(_ menu: NSMenu) {}
 
     private func configureStatusItem() {
         guard let button = statusItem.button else { return }
         button.imageScaling = .scaleProportionallyDown
         button.imagePosition = .imageLeading
         button.font = .monospacedSystemFont(ofSize: 12.5, weight: .medium)
-        button.setAccessibilityTitle("Token Pulse")
+        button.setAccessibilityTitle("Codex Lens")
         button.setAccessibilityIdentifier("CodexTokenLedger.StatusItem")
         refreshStatusItemLabel()
     }
@@ -209,7 +201,7 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         button.title = text
         button.imagePosition = text.isEmpty ? .imageOnly : .imageLeading
         let metricTitle = viewModel.menuMetricTitle(viewModel.menuBarMetric)
-        let accessibleText = text.isEmpty ? "Token Pulse" : "Token Pulse · \(metricTitle): \(text)"
+        let accessibleText = text.isEmpty ? "Codex Lens" : "Codex Lens · \(metricTitle): \(text)"
         button.toolTip = accessibleText
         button.setAccessibilityTitle(accessibleText)
     }
@@ -219,7 +211,7 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
     /// downward; the title can therefore remain a clean numeric readout.
     private func statusIcon() -> NSImage? {
         if viewModel.menuBarMetric == .iconOnly {
-            guard let source = NSImage(named: "TokenPulseAppIcon") else { return nil }
+            guard let source = NSImage(named: "CodexLensAppIcon") else { return nil }
             let size = NSSize(width: 14, height: 14)
             let image = NSImage(size: size, flipped: false) { rect in
                 source.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
@@ -284,10 +276,6 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         hostingView.needsDisplay = true
         hostingView.window?.contentView?.needsDisplay = true
         hostingView.window?.invalidateShadow()
-        menuTopBridge.updateAppearance(
-            theme: theme ?? viewModel.appTheme,
-            fallback: hostingView.effectiveAppearance
-        )
         menu.update()
     }
 
@@ -310,82 +298,6 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         )
         hostingView.layoutSubtreeIfNeeded()
         menu.update()
-        DispatchQueue.main.async { [weak self] in
-            self?.installMenuTopBridge()
-        }
-    }
-
-    /// A native NSMenu reserves a small strip above a custom menu-item view.
-    /// On the overview that strip exposed the light menu material above the
-    /// edge-to-edge hero gradient. Cover only that reserved inset, leaving the
-    /// rest of AppKit's glass and rounded window untouched.
-    private func installMenuTopBridge() {
-        guard viewModel.menuUsesHeroTopBridge,
-              let contentView = hostingView.window?.contentView
-        else {
-            menuTopBridge.removeFromSuperview()
-            return
-        }
-
-        let bounds = contentView.bounds
-        let hosted = hostingView.convert(hostingView.bounds, to: contentView)
-        guard let bridgeFrame = NativeMenuTopBridgeGeometry.frame(
-            contentBounds: bounds,
-            hostedFrame: hosted,
-            contentIsFlipped: contentView.isFlipped
-        ) else {
-            // NSMenu can briefly report stale coordinates while its window is
-            // opening or resizing. Never let that transient value turn this
-            // decorative inset into an overlay that clips the identity row.
-            menuTopBridge.removeFromSuperview()
-            return
-        }
-
-        if menuTopBridge.superview !== contentView {
-            menuTopBridge.removeFromSuperview()
-            contentView.addSubview(menuTopBridge, positioned: .above, relativeTo: nil)
-        }
-
-        // The frame ends exactly where the hosted SwiftUI view begins. There
-        // is deliberately no one-point overlap: the bridge may fill AppKit's
-        // reserved inset, but it can never cover or crop the hero itself.
-        menuTopBridge.frame = bridgeFrame
-        menuTopBridge.updateAppearance(
-            theme: viewModel.appTheme,
-            fallback: hostingView.effectiveAppearance
-        )
-    }
-}
-
-/// Computes a bounded, non-overlapping frame for AppKit's native menu inset.
-/// Normal NSMenu top padding is only a few points; a larger value is stale
-/// window geometry and must be rejected rather than painted over SwiftUI.
-enum NativeMenuTopBridgeGeometry {
-    static let minimumGap: CGFloat = 0.5
-    static let maximumGap: CGFloat = 12
-
-    static func frame(
-        contentBounds: NSRect,
-        hostedFrame: NSRect,
-        contentIsFlipped: Bool
-    ) -> NSRect? {
-        let measuredGap = contentIsFlipped
-            ? hostedFrame.minY - contentBounds.minY
-            : contentBounds.maxY - hostedFrame.maxY
-
-        guard measuredGap.isFinite,
-              measuredGap >= minimumGap,
-              measuredGap <= maximumGap,
-              contentBounds.width.isFinite,
-              contentBounds.width > 0
-        else { return nil }
-
-        return NSRect(
-            x: contentBounds.minX,
-            y: contentIsFlipped ? contentBounds.minY : hostedFrame.maxY,
-            width: contentBounds.width,
-            height: measuredGap
-        )
     }
 }
 
@@ -413,60 +325,4 @@ private final class NativeDashboardHostingView: NSHostingView<AnyView> {
     override var allowsVibrancy: Bool { true }
     override var isOpaque: Bool { false }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-}
-
-/// Paints only the NSMenu-reserved top inset so the overview gradient reaches
-/// the rounded menu edge. It is event-transparent and removed on other pages.
-private final class MenuTopBridgeView: NSView {
-    private let heroTopGradient = CAGradientLayer()
-
-    override init(frame frameRect: NSRect) {
-        super.init(frame: frameRect)
-        wantsLayer = true
-        layer?.masksToBounds = true
-        layer?.backgroundColor = NSColor.clear.cgColor
-        heroTopGradient.startPoint = CGPoint(x: 0, y: 0.5)
-        heroTopGradient.endPoint = CGPoint(x: 1, y: 0.5)
-        heroTopGradient.locations = MenuHeroTopPalette.bridgeLocations
-        heroTopGradient.actions = [
-            "bounds": NSNull(),
-            "position": NSNull(),
-            "colors": NSNull(),
-            "locations": NSNull(),
-        ]
-        layer?.addSublayer(heroTopGradient)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) { nil }
-
-    override func layout() {
-        super.layout()
-        heroTopGradient.frame = bounds
-    }
-
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
-
-    func updateAppearance(theme: AppTheme, fallback: NSAppearance) {
-        let isDark: Bool
-        switch theme {
-        case .dark:
-            isDark = true
-        case .light:
-            isDark = false
-        case .system:
-            isDark = fallback.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        }
-
-        let base: NSColor
-        let trailing: NSColor
-        if isDark {
-            base = MenuHeroTopPalette.darkBase
-            trailing = MenuHeroTopPalette.darkTopTrailing
-        } else {
-            base = MenuHeroTopPalette.lightBase
-            trailing = MenuHeroTopPalette.lightTopTrailing
-        }
-        heroTopGradient.colors = [base.cgColor, base.cgColor, trailing.cgColor]
-    }
 }

@@ -4,9 +4,9 @@
 
 ---
 
-版本：**2.1.0 (22)**
+版本：**2.4.1 (41)**
 
-日期：**2026-08-27**
+日期：**2026-09-03**
 
 工具：**Xcode 26.4 / Swift 6.3**
 
@@ -21,7 +21,7 @@ xcodebuild test \
   -destination 'platform=macOS'
 ```
 
-结果：73 项测试，72 项通过，1 项网络测试跳过，0 项失败。
+结果：125 项测试，124 项通过，1 项网络测试跳过，0 项失败。
 
 覆盖范围：
 
@@ -47,7 +47,7 @@ docs/images/token-details-light.png
 固定条件：
 
 - `NSStatusItem` + 原生 `NSMenu`
-- 菜单宽 340pt，主页面高 705pt
+- 菜单宽 340pt，所有页面高 740pt
 - 主页面无 `ScrollView`
 - 详情展开前后菜单尺寸不变
 - 可见字号不小于 12pt
@@ -57,7 +57,7 @@ docs/images/token-details-light.png
 
 ## Release
 
-[GitHub Release v2.1.0](https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.0)
+[GitHub Release v2.4.1](https://github.com/Lincb522/CodexLens/releases/tag/v2.4.1)
 
 ```bash
 xcodebuild \
@@ -72,26 +72,19 @@ xcodebuild \
   build
 
 ./scripts/package_release.sh
-codesign --verify --deep --strict --verbose=2 dist/CodexTokenLedger.app
-lipo -archs dist/CodexTokenLedger.app/Contents/MacOS/CodexTokenLedger
-unzip -t dist/CodexTokenLedger-menu-bar-macOS.zip
+codesign --verify --deep --strict --verbose=2 "dist/Codex Lens.app"
+lipo -archs "dist/Codex Lens.app/Contents/MacOS/Codex Lens"
+unzip -t dist/Codex-Lens-macOS.zip
 ```
 
-验证结果：
+本地 Release 构建验证：
 
 | 项目 | 结果 |
 | --- | --- |
 | 架构 | `x86_64 arm64` |
-| 签名 | 本地 ad-hoc，有效 |
-| ZIP | 完整性通过 |
-| MIT 许可 | 已写入应用资源，内容与仓库 `LICENSE` 一致 |
-| Tibo Watch 许可 | 已随应用打包 |
+| 应用名称 | `Codex Lens` |
+| 可执行文件 | `Codex Lens` |
+| Bundle ID | `com.tokenledger.CodexTokenLedger`（保持不变，兼容既有安装） |
+| 版本 | `2.4.1 (41)` |
 
-产物：
-
-| 文件 | SHA-256 |
-| --- | --- |
-| `CodexTokenLedger` | `1cbed7c15477c2dd0b8783aebf9d91c305dd1d6564b891f4b4997c6688a30f0c` |
-| `CodexTokenLedger-menu-bar-macOS.zip` | `f2ecfd06973cfce38576b109ad3acd5bb8b4634069d482c1e8cda56c42daaf31` |
-
-ZIP 大小：4,448,293 bytes。当前包未经过 Apple 公证。
+`v*` tag 工作流生成 Developer ID 签名、未经 Apple 公证的 DMG 与 ZIP；手动触发工作流可选择提交公证。

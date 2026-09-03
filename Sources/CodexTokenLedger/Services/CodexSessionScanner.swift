@@ -21,7 +21,7 @@ enum CodexSessionScannerError: AppLocalizedError {
 
 struct CodexSessionScanner: Sendable {
     private let maximumReportedIssues = 100
-    private let cacheVersion = 4
+    private let cacheVersion = 6
     private let quickTailWindow = 256 * 1_024
 
     func scan(codexHome: URL, includeArchived: Bool) throws -> UsageSnapshot {
@@ -73,9 +73,18 @@ struct CodexSessionScanner: Sendable {
             if let cached = reusableCache[file.path],
                cached.fileSize == fileSize,
                cached.modificationDate == modificationDate {
-                parsed = ParsedFile(records: cached.records, metadata: cached.metadata, issues: cached.issues)
+                parsed = ParsedFile(
+                    records: cached.records,
+                    metadata: cached.metadata,
+                    issues: cached.issues,
+                    usageCheckpoint: cached.usageCheckpoint
+                )
             } else {
-                parsed = parse(file: file)
+                parsed = parse(
+                    file: file,
+                    codexHome: codexHome,
+                    previous: reusableCache[file.path]
+                )
             }
 
             updatedCacheFiles[file.path] = CachedFileAnalysis(
@@ -83,7 +92,8 @@ struct CodexSessionScanner: Sendable {
                 modificationDate: modificationDate,
                 records: parsed.records,
                 metadata: parsed.metadata,
-                issues: parsed.issues
+                issues: parsed.issues,
+                usageCheckpoint: parsed.usageCheckpoint
             )
             if let metadata = parsed.metadata {
                 sessionMetadata[metadata.id] = metadata
@@ -171,27 +181,42 @@ struct CodexSessionScanner: Sendable {
         }
     }
 
-    private func parse(file: URL) -> ParsedFile {
+    private func parse(
+        file: URL,
+        codexHome: URL,
+        previous: CachedFileAnalysis?
+    ) -> ParsedFile {
         guard let data = try? Data(contentsOf: file, options: [.mappedIfSafe]) else {
             return ParsedFile(
                 records: [],
                 metadata: nil,
-                issues: [issue(file: file, line: 0, message: "file_unreadable")]
+                issues: [issue(file: file, line: 0, message: "file_unreadable")],
+                usageCheckpoint: nil
             )
         }
 
-        // Modern Codex token_count events include total_token_usage. Reading the
-        // first metadata line and the last accounting/context lines gives an
-        // exact session total without walking multi-GB embedded image/tool data.
-        // Files without a cumulative counter fall back to the detailed parser.
-        if let summary = parseCumulativeSummary(file: file, data: data) {
+        // Modern Codex token_count events include total_token_usage. The usage
+        // index follows that cumulative counter across turns and carries forward
+        // only the epochs where the upstream counter actually restarts.
+        // Files without cumulative accounting fall back to the detailed parser.
+        if let summary = parseCumulativeSummary(
+            file: file,
+            data: data,
+            codexHome: codexHome,
+            previous: previous
+        ) {
             return summary
         }
 
         return parseDetailed(file: file, data: data)
     }
 
-    private func parseCumulativeSummary(file: URL, data: Data) -> ParsedFile? {
+    private func parseCumulativeSummary(
+        file: URL,
+        data: Data,
+        codexHome: URL,
+        previous: CachedFileAnalysis?
+    ) -> ParsedFile? {
         guard !data.isEmpty else { return nil }
 
         let fallbackDate = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
@@ -218,15 +243,14 @@ struct CodexSessionScanner: Sendable {
                 ?? startedAt
         }
 
-        let tokenObject = lastEventObject(kind: "token_count", in: data)
-        guard
-            let tokenObject,
-            let payload = tokenObject["payload"] as? [String: Any],
-            let info = payload["info"] as? [String: Any],
-            let cumulative = info["total_token_usage"] as? [String: Any],
-            let usage = parseUsage(cumulative),
-            usage.totalTokens > 0
-        else { return nil }
+        let usageCheckpoint = CodexConversationUsageIndex().checkpoint(
+            file: file,
+            sessionID: sessionID,
+            codexHome: codexHome,
+            previous: previous?.usageCheckpoint
+        )
+        let usage = usageCheckpoint.totalUsage
+        guard usage.totalTokens > 0 else { return nil }
 
         var currentModel = "unknown"
         var reasoningEffort: String?
@@ -237,7 +261,7 @@ struct CodexSessionScanner: Sendable {
             projectPath = string(contextPayload["cwd"]) ?? projectPath
         }
 
-        let timestamp = parseDate(tokenObject["timestamp"], parser: parser) ?? fallbackDate
+        let timestamp = parseDate(usageCheckpoint.latestTokenTimestamp, parser: parser) ?? fallbackDate
         let record = UsageRecord(
             id: "\(sessionID)|cumulative",
             timestamp: timestamp,
@@ -251,7 +275,8 @@ struct CodexSessionScanner: Sendable {
         return ParsedFile(
             records: [record],
             metadata: ParsedSessionMetadata(id: sessionID, startedAt: startedAt, projectPath: projectPath),
-            issues: []
+            issues: [],
+            usageCheckpoint: usageCheckpoint
         )
     }
 
@@ -398,7 +423,8 @@ struct CodexSessionScanner: Sendable {
         return ParsedFile(
             records: records,
             metadata: ParsedSessionMetadata(id: sessionID, startedAt: startedAt, projectPath: projectPath),
-            issues: issues
+            issues: issues,
+            usageCheckpoint: nil
         )
     }
 
@@ -553,6 +579,7 @@ struct CachedFileAnalysis: Codable, Sendable {
     let records: [UsageRecord]
     let metadata: ParsedSessionMetadata?
     let issues: [ScanIssue]
+    let usageCheckpoint: CodexConversationUsageCheckpoint?
 }
 
 struct ParsedSessionMetadata: Codable, Sendable {
@@ -565,4 +592,5 @@ private struct ParsedFile {
     let records: [UsageRecord]
     let metadata: ParsedSessionMetadata?
     let issues: [ScanIssue]
+    let usageCheckpoint: CodexConversationUsageCheckpoint?
 }

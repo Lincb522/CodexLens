@@ -7,8 +7,8 @@ MASTER = ROOT / "Design/AppIconMaster.png"
 BRAND_MASTER = ROOT / "Design/BrandMarkMaster.png"
 ASSETS = ROOT / "Sources/CodexTokenLedger/Resources/Assets.xcassets"
 APP_ICON = ASSETS / "AppIcon.appiconset"
-PRODUCT_ICON = ASSETS / "TokenPulseAppIcon.imageset"
-BRAND_MARK = ASSETS / "TokenPulseBrandMark.imageset"
+PRODUCT_ICON = ASSETS / "CodexLensAppIcon.imageset"
+BRAND_MARK = ASSETS / "CodexLensBrandMark.imageset"
 
 
 def save_scaled(image: Image.Image, directory: Path, names_and_sizes: list[tuple[str, int]]) -> None:

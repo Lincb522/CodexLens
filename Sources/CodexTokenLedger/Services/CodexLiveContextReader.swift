@@ -11,6 +11,11 @@ enum CodexLiveContextReaderError: AppLocalizedError {
     }
 }
 
+struct CodexLiveContextReadResult: Sendable {
+    let snapshot: CodexLiveContextSnapshot
+    let usageCheckpoint: CodexConversationUsageCheckpoint
+}
+
 /// Reads Codex's accounting stream directly. The latest model call is used for
 /// context occupancy, while every distinct cumulative delta after the latest
 /// task_started event is aggregated as the current user turn.
@@ -68,7 +73,12 @@ struct CodexLiveContextReader: Sendable {
                 guard Date().timeIntervalSince(modified) <= activeDiscoveryWindow else { continue }
             }
             guard let data = try? Data(contentsOf: file, options: [.mappedIfSafe]), !data.isEmpty,
-                  let context = read(file: file, data: data)
+                  let context = readResult(
+                      file: file,
+                      data: data,
+                      codexHome: codexHome,
+                      previousUsageCheckpoint: nil
+                  )?.snapshot
             else { continue }
             if fallback == nil || context.updatedAt > fallback!.updatedAt { fallback = context }
             if context.isTaskActive {
@@ -82,29 +92,58 @@ struct CodexLiveContextReader: Sendable {
     }
 
     func read(file: URL) -> CodexLiveContextSnapshot? {
-        guard let data = try? Data(contentsOf: file, options: [.mappedIfSafe]), !data.isEmpty else { return nil }
-        return read(file: file, data: data)
+        readResult(file: file, previousUsageCheckpoint: nil)?.snapshot
     }
 
-    private func read(file: URL, data: Data) -> CodexLiveContextSnapshot? {
+    func readResult(
+        file: URL,
+        previousUsageCheckpoint: CodexConversationUsageCheckpoint?
+    ) -> CodexLiveContextReadResult? {
+        guard let data = try? Data(contentsOf: file, options: [.mappedIfSafe]), !data.isEmpty else { return nil }
+        return readResult(
+            file: file,
+            data: data,
+            codexHome: CodexConversationUsageIndex.inferredCodexHome(for: file),
+            previousUsageCheckpoint: previousUsageCheckpoint
+        )
+    }
+
+    private func readResult(
+        file: URL,
+        data: Data,
+        codexHome: URL?,
+        previousUsageCheckpoint: CodexConversationUsageCheckpoint?
+    ) -> CodexLiveContextReadResult? {
         let metadata = firstEventObject(kind: "session_meta", in: data)
         let metadataPayload = metadata?["payload"] as? [String: Any] ?? [:]
         let fallbackID = file.deletingPathExtension().lastPathComponent
         let sessionID = string(metadataPayload["id"] ?? metadataPayload["session_id"]) ?? fallbackID
         let fallbackDate = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
             ?? Date()
+        let usageCheckpoint = CodexConversationUsageIndex().checkpoint(
+            file: file,
+            sessionID: sessionID,
+            codexHome: codexHome,
+            previous: previousUsageCheckpoint
+        )
 
-        guard let taskLine = lastEventLine(kind: "task_started", in: data, range: data.startIndex..<data.endIndex),
+        let indexedTaskLine = usageCheckpoint.currentTurnOffset.flatMap {
+            eventLine(at: $0, in: data)
+        }
+        guard let taskLine = indexedTaskLine
+                ?? lastEventLine(kind: "task_started", in: data, range: data.startIndex..<data.endIndex),
               let taskObject = jsonObject(data.subdata(in: taskLine)),
               isEvent(taskObject, kind: "task_started")
         else {
-            return readLatestCallFallback(
+            guard let snapshot = readLatestCallFallback(
                 file: file,
                 data: data,
                 metadataPayload: metadataPayload,
                 sessionID: sessionID,
-                fallbackDate: fallbackDate
-            )
+                fallbackDate: fallbackDate,
+                taskTotal: usageCheckpoint.totalUsage
+            ) else { return nil }
+            return CodexLiveContextReadResult(snapshot: snapshot, usageCheckpoint: usageCheckpoint)
         }
 
         let taskPayload = taskObject["payload"] as? [String: Any] ?? [:]
@@ -114,25 +153,13 @@ struct CodexLiveContextReader: Sendable {
         var reasoningEffort: String?
         var contextWindow = integer(taskPayload["model_context_window"])
 
-        if let priorContext = lastEventObject(
-            kind: "turn_context",
-            in: data,
-            range: data.startIndex..<taskLine.lowerBound
-        ), let payload = priorContext["payload"] as? [String: Any] {
-            currentModel = string(payload["model"]) ?? currentModel
-            reasoningEffort = string(payload["effort"])
-            projectPath = string(payload["cwd"]) ?? projectPath
-        }
-
-        var previousCumulative = lastValidTokenEvent(
-            in: data,
-            before: taskLine.lowerBound
-        )?.total
+        var previousCumulative: TokenUsage? = nil
         var latestCall: TokenUsage?
         var latestTotal: TokenUsage?
         var latestTimestamp = parseDate(taskObject["timestamp"]) ?? fallbackDate
         var calls: [CodexModelCallUsage] = []
         var duplicatesIgnored = 0
+        var isTaskActive = true
 
         walkLines(in: data, range: taskLine.lowerBound..<data.endIndex) { line in
             guard isPotentialAccountingEvent(line),
@@ -144,6 +171,11 @@ struct CodexLiveContextReader: Sendable {
                 currentModel = string(payload["model"]) ?? currentModel
                 reasoningEffort = string(payload["effort"]) ?? reasoningEffort
                 projectPath = string(payload["cwd"]) ?? projectPath
+                return
+            }
+
+            if isEvent(object, kind: "task_complete") {
+                isTaskActive = false
                 return
             }
 
@@ -180,7 +212,7 @@ struct CodexLiveContextReader: Sendable {
                 } else if let delta = total.subtracting(previous) {
                     accepted = delta
                 } else {
-                    // A cumulative session counter is monotonic. Ignore stale
+                    // A cumulative task counter is monotonic. Ignore stale
                     // or out-of-order events instead of accepting last_usage
                     // and then double-counting the recovery delta.
                     duplicatesIgnored += 1
@@ -208,18 +240,41 @@ struct CodexLiveContextReader: Sendable {
             )
         }
 
-        guard let latestCall, let latestTotal else {
-            return readLatestCallFallback(
+        if currentModel == "unknown",
+           let priorContext = lastEventObject(
+               kind: "turn_context",
+               in: data,
+               range: data.startIndex..<taskLine.lowerBound
+           ),
+           let payload = priorContext["payload"] as? [String: Any] {
+            currentModel = string(payload["model"]) ?? currentModel
+            reasoningEffort = string(payload["effort"]) ?? reasoningEffort
+            projectPath = string(payload["cwd"]) ?? projectPath
+            calls = calls.map {
+                CodexModelCallUsage(
+                    id: $0.id,
+                    timestamp: $0.timestamp,
+                    model: currentModel,
+                    usage: $0.usage,
+                    cumulativeTaskUsage: $0.cumulativeTaskUsage
+                )
+            }
+        }
+
+        guard let latestCall, latestTotal != nil else {
+            guard let snapshot = readLatestCallFallback(
                 file: file,
                 data: data,
                 metadataPayload: metadataPayload,
                 sessionID: sessionID,
-                fallbackDate: fallbackDate
-            )
+                fallbackDate: fallbackDate,
+                taskTotal: usageCheckpoint.totalUsage
+            ) else { return nil }
+            return CodexLiveContextReadResult(snapshot: snapshot, usageCheckpoint: usageCheckpoint)
         }
         let turnUsage = calls.reduce(into: TokenUsage()) { $0 += $1.usage }
 
-        return CodexLiveContextSnapshot(
+        let snapshot = CodexLiveContextSnapshot(
             id: sessionID,
             sourcePath: file.path,
             projectPath: projectPath,
@@ -232,11 +287,12 @@ struct CodexLiveContextReader: Sendable {
             lastRequest: latestCall,
             currentTurnUsage: turnUsage,
             currentTurnCalls: calls,
-            taskTotal: latestTotal,
+            taskTotal: usageCheckpoint.totalUsage,
             modelContextWindow: contextWindow,
             duplicateEventsIgnored: duplicatesIgnored,
-            isTaskActive: taskIsActive(in: data)
+            isTaskActive: isTaskActive
         )
+        return CodexLiveContextReadResult(snapshot: snapshot, usageCheckpoint: usageCheckpoint)
     }
 
     private func updateDuplicateCall(
@@ -266,7 +322,8 @@ struct CodexLiveContextReader: Sendable {
         data: Data,
         metadataPayload: [String: Any],
         sessionID: String,
-        fallbackDate: Date
+        fallbackDate: Date,
+        taskTotal: TokenUsage
     ) -> CodexLiveContextSnapshot? {
         guard let event = lastValidTokenEvent(in: data, before: data.endIndex) else { return nil }
         let contextObject = lastEventObject(
@@ -297,7 +354,7 @@ struct CodexLiveContextReader: Sendable {
             lastRequest: event.last,
             currentTurnUsage: event.last,
             currentTurnCalls: [call],
-            taskTotal: event.total,
+            taskTotal: taskTotal.totalTokens > 0 ? taskTotal : event.total,
             modelContextWindow: event.contextWindow,
             duplicateEventsIgnored: 0,
             isTaskActive: taskIsActive(in: data)
@@ -375,6 +432,16 @@ struct CodexLiveContextReader: Sendable {
         return start..<end
     }
 
+    private func eventLine(at offset: Int64, in data: Data) -> Range<Data.Index>? {
+        guard offset >= 0,
+              offset < Int64(data.count),
+              let start = Data.Index(exactly: offset)
+        else { return nil }
+        let end = data.range(of: Data([0x0A]), in: start..<data.endIndex)?.lowerBound ?? data.endIndex
+        guard end > start, end - start <= maximumEventLineBytes else { return nil }
+        return start..<end
+    }
+
     private struct ValidTokenEvent {
         let object: [String: Any]
         let last: TokenUsage
@@ -440,6 +507,8 @@ struct CodexLiveContextReader: Sendable {
             || line.range(of: Data("\"type\": \"turn_context\"".utf8)) != nil
             || line.range(of: Data("\"type\":\"token_count\"".utf8)) != nil
             || line.range(of: Data("\"type\": \"token_count\"".utf8)) != nil
+            || line.range(of: Data("\"type\":\"task_complete\"".utf8)) != nil
+            || line.range(of: Data("\"type\": \"task_complete\"".utf8)) != nil
     }
 
     private func eventNeedles(_ kind: String) -> [Data] {

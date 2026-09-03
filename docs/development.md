@@ -51,16 +51,16 @@ CODESIGN_IDENTITY='Developer ID Application: …' ./scripts/package_release.sh
 输出：
 
 ```text
-build/DerivedData/Build/Products/Release/CodexTokenLedger.app
-dist/CodexTokenLedger.app
-dist/CodexTokenLedger-menu-bar-macOS.zip
+build/DerivedData/Build/Products/Release/Codex Lens.app
+dist/Codex Lens.app
+dist/Codex-Lens-macOS.zip
 ```
 
 打包脚本把 `LICENSE` 写入应用资源，启用 hardened runtime，并要求 Developer ID Application 身份。
 
 ## GitHub Actions
 
-`ci.yml` 在 push 和 pull request 上运行测试。`release.yml` 在 `v*` tag 或手动触发时完成签名、公证、票据装订、ZIP 校验和 Release 上传。
+`ci.yml` 在 push 和 pull request 上运行测试。`release.yml` 在 `v*` tag 时完成签名、校验和 Release 上传；手动触发时可选择公证并装订票据。
 
 Release 仓库 Secrets：
 

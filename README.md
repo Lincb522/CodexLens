@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Design/AppIconMaster.png" width="112" alt="Codex Token Ledger">
+  <img src="Design/AppIconMaster.png" width="112" alt="Codex Lens">
 </p>
 
-<h1 align="center">Codex Token Ledger</h1>
+<h1 align="center">Codex Lens</h1>
 
 <p align="center">
   <a href="#下载">下载</a> ·
@@ -18,7 +18,7 @@
   <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
   <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square"></a>
-  <a href="https://github.com/Lincb522/CodexTokenLedger/releases/tag/v2.1.3"><img alt="Download v2.1.3" src="https://img.shields.io/badge/Download-v2.1.3-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
+  <a href="https://github.com/Lincb522/CodexLens/releases/tag/v2.4.1"><img alt="Download v2.4.1" src="https://img.shields.io/badge/Download-v2.4.1-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -28,9 +28,9 @@
 
 ## 下载
 
-[CodexTokenLedger-menu-bar-macOS.dmg](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.3/CodexTokenLedger-menu-bar-macOS.dmg) · [ZIP](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.3/CodexTokenLedger-menu-bar-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexTokenLedger/releases/download/v2.1.3/SHA256SUMS.txt)
+[Codex-Lens-macOS.dmg](https://github.com/Lincb522/CodexLens/releases/download/v2.4.1/Codex-Lens-macOS.dmg) · [ZIP](https://github.com/Lincb522/CodexLens/releases/download/v2.4.1/Codex-Lens-macOS.zip) · [SHA256SUMS.txt](https://github.com/Lincb522/CodexLens/releases/download/v2.4.1/SHA256SUMS.txt)
 
-macOS 14+ · x86_64 + arm64 · Developer ID 签名 · Apple 公证
+macOS 14+ · x86_64 + arm64 · Developer ID 签名
 
 ## 数据
 
@@ -45,7 +45,7 @@ macOS 14+ · x86_64 + arm64 · Developer ID 签名 · Apple 公证
 | 账号用量与额度 | Codex `app-server` |
 | 费用 | 完整 Token 明细 × 模型费率 |
 | 剩余时间 | 同一账号、同一额度窗口的历史样本 |
-| Tibo | 预测与确认的公共重置信号；不计入账号额度 |
+| Tibo | 公开模型的 24 小时概率、确认记录与重置信号；不计入账号额度 |
 
 > [!NOTE]
 > 无法确认的字段显示“不可用”。不按字符数估算 Token，不用本地会话推算账号额度。计算规则见 [Token 计算](docs/calculation-spec.md)。
@@ -71,14 +71,14 @@ macOS 14+ · x86_64 + arm64 · Developer ID 签名 · Apple 公证
 <summary><strong>构建</strong></summary>
 
 ```bash
-git clone https://github.com/Lincb522/CodexTokenLedger.git
-cd CodexTokenLedger
+git clone https://github.com/Lincb522/CodexLens.git
+cd CodexLens
 xcodegen generate
 ./scripts/build_app.sh
 ```
 
 ```text
-build/DerivedData/Build/Products/Release/CodexTokenLedger.app
+build/DerivedData/Build/Products/Release/Codex Lens.app
 ```
 
 ```bash
@@ -87,7 +87,7 @@ export CODESIGN_IDENTITY='Developer ID Application: …'
 ./scripts/package_dmg.sh
 ```
 
-`package_release.sh` 只接受 Developer ID Application 身份。`package_dmg.sh` 生成包含“应用程序”快捷入口的 DMG。GitHub Release 工作流负责签名、公证和装订票据。
+`package_release.sh` 只接受 Developer ID Application 身份。`package_dmg.sh` 生成包含“应用程序”快捷入口的 DMG。GitHub Release 工作流负责签名与打包；手动运行时可选择提交 Apple 公证。
 
 </details>
 

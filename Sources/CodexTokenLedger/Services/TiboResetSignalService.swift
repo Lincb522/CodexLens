@@ -24,6 +24,7 @@ struct TiboResetSignalService: @unchecked Sendable {
     static let ruleVersion = "tibo-watch-rules-v1.2.0+token-pulse-2"
     static let endpoint = URL(string: "https://api.fxtwitter.com/2/profile/thsottiaux/statuses?count=100&with_replies=true")!
     static let forecastEndpoint = URL(string: "https://codex-reset.com/api/forecast")!
+    static let feedEndpoint = URL(string: "https://codex-reset.com/api/feed")!
 
     private let session: URLSession
     private let now: @Sendable () -> Date
@@ -36,14 +37,23 @@ struct TiboResetSignalService: @unchecked Sendable {
     func fetch() async throws -> TiboResetMonitorSnapshot {
         var snapshots: [TiboResetMonitorSnapshot] = []
         var lastError: Error?
+        var forecastAvailable = false
+        var socialEvidenceAvailable = false
 
         do {
             snapshots.append(try Self.decodeForecast(try await data(from: Self.forecastEndpoint), now: now()))
+            forecastAvailable = true
         } catch {
             lastError = error
         }
         do {
             snapshots.append(try Self.decode(try await data(from: Self.endpoint), now: now()))
+        } catch {
+            lastError = error
+        }
+        do {
+            snapshots.append(try Self.decodeFeed(try await data(from: Self.feedEndpoint), now: now()))
+            socialEvidenceAvailable = true
         } catch {
             lastError = error
         }
@@ -54,10 +64,72 @@ struct TiboResetSignalService: @unchecked Sendable {
         for snapshot in snapshots.dropFirst() {
             combined = combined.mergingRemote(snapshot)
         }
-        if snapshots.count < 2 || snapshots.contains(where: { $0.sourceStatus != .healthy }) {
+        if !forecastAvailable
+            || !socialEvidenceAvailable
+            || snapshots.contains(where: { $0.sourceStatus != .healthy }) {
             combined.sourceStatus = .degraded
         }
         return combined
+    }
+
+    static func decodeFeed(_ data: Data, now: Date) throws -> TiboResetMonitorSnapshot {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let fetchedAt = isoDate(root["fetched_at"]),
+              fetchedAt >= now.addingTimeInterval(-7 * 86_400),
+              fetchedAt <= now.addingTimeInterval(300),
+              let tweets = root["tweets"] as? [[String: Any]]
+        else { throw TiboResetSignalError.invalidPayload }
+
+        let cutoff = now.addingTimeInterval(-14 * 86_400)
+        let evidence = tweets.compactMap { tweet -> TiboSocialEvidence? in
+            guard let postID = tweet["id"] as? String,
+                  !postID.isEmpty,
+                  let sourceURL = tiboURL(tweet["url"]),
+                  let postedAt = isoDate(tweet["at"]),
+                  postedAt >= cutoff,
+                  postedAt <= now.addingTimeInterval(300),
+                  let rawText = tweet["text"] as? String
+            else { return nil }
+
+            let text = normalizedText(rawText)
+            guard !text.isEmpty else { return nil }
+            let explicit = tweet["explicit_reset_claim"] as? Bool ?? false
+            let tease = (tweet["tease_classification"] as? [String: Any])?["teasing"] as? Bool ?? false
+            let resetRelated = (tweet["tibo_lane"] as? String) == "reset_related"
+            guard explicit || tease || resetRelated else { return nil }
+
+            let signalKind: TiboSocialSignalKind
+            if explicit {
+                signalKind = .explicit
+            } else if tease {
+                signalKind = .tease
+            } else {
+                signalKind = .context
+            }
+            return TiboSocialEvidence(
+                postID: postID,
+                sourceURL: sourceURL,
+                postedAt: postedAt,
+                text: text,
+                isReply: tweet["is_reply"] as? Bool ?? false,
+                replyingTo: tweet["replying_to"] as? String,
+                signalKind: signalKind
+            )
+        }
+        .sorted { $0.postedAt > $1.postedAt }
+
+        guard !evidence.isEmpty else { throw TiboResetSignalError.invalidPayload }
+        let stale = root["stale"] as? Bool ?? true
+        return TiboResetMonitorSnapshot(
+            sourceStatus: stale ? .degraded : .healthy,
+            checkedAt: now,
+            lastSuccessAt: fetchedAt,
+            latestSignal: nil,
+            recentSignals: nil,
+            lastErrorCode: stale ? "feed_stale" : nil,
+            forecast: nil,
+            socialEvidence: Array(evidence.prefix(16))
+        )
     }
 
     private func data(from url: URL) async throws -> Data {
@@ -133,6 +205,8 @@ struct TiboResetSignalService: @unchecked Sendable {
               updatedAt <= now.addingTimeInterval(300)
         else { throw TiboResetSignalError.invalidPayload }
 
+        let forecast = forecastSnapshot(root, updatedAt: updatedAt)
+
         var signals: [TiboResetSignal] = []
         if let lastResetAt = isoDate(root["last_reset_at"]),
            lastResetAt <= now.addingTimeInterval(300),
@@ -207,7 +281,7 @@ struct TiboResetSignalService: @unchecked Sendable {
             )
         }
 
-        guard !signals.isEmpty else { throw TiboResetSignalError.invalidPayload }
+        guard !signals.isEmpty || forecast != nil else { throw TiboResetSignalError.invalidPayload }
         let ordered = Dictionary(grouping: signals, by: \TiboResetSignal.postID)
             .compactMap { _, values in values.max { statusRank($0.status) < statusRank($1.status) } }
             .sorted { $0.postedAt > $1.postedAt }
@@ -218,7 +292,72 @@ struct TiboResetSignalService: @unchecked Sendable {
             lastSuccessAt: updatedAt,
             latestSignal: ordered.first,
             recentSignals: ordered,
-            lastErrorCode: fresh ? nil : "forecast_stale"
+            lastErrorCode: fresh ? nil : "forecast_stale",
+            forecast: forecast
+        )
+    }
+
+    private static func forecastSnapshot(
+        _ root: [String: Any],
+        updatedAt: Date
+    ) -> TiboForecastSnapshot? {
+        guard let probabilities = root["probabilities"] as? [String: Any] else { return nil }
+        let rounded24h = integer(probabilities["rounded_24h"])
+            ?? number(probabilities["raw_24h"]).map { Int(($0 * 100).rounded()) }
+        guard let rounded24h, (0...100).contains(rounded24h) else { return nil }
+
+        let rounded48h = integer(probabilities["rounded_48h"])
+            ?? number(probabilities["raw_48h"]).map { Int(($0 * 100).rounded()) }
+        let confidence = (root["confidence"] as? String)
+            .flatMap(TiboForecastConfidence.init(rawValue:)) ?? .unknown
+        let lastResetAt = isoDate(root["last_reset_at"])
+
+        let cadence: TiboForecastCadence?
+        if let value = root["cadence"] as? [String: Any],
+           let median = number(value["recent_median_days"]),
+           let sample = integer(value["recent_sample"]),
+           let weightedMean = number(value["weighted_mean_days"]) {
+            cadence = TiboForecastCadence(
+                recentMedianDays: median,
+                recentSample: sample,
+                weightedMeanDays: weightedMean
+            )
+        } else {
+            cadence = nil
+        }
+
+        let commonTimeWindow: TiboForecastTimeWindow?
+        if let value = root["time_window"] as? [String: Any],
+           let startHour = integer(value["start_hour"]),
+           let endHour = integer(value["end_hour"]),
+           let label = value["label"] as? String,
+           let timeZone = value["timezone"] as? String,
+           !label.isEmpty,
+           !timeZone.isEmpty {
+            commonTimeWindow = TiboForecastTimeWindow(
+                startHour: startHour,
+                endHour: endHour,
+                label: label,
+                timeZoneIdentifier: timeZone
+            )
+        } else {
+            commonTimeWindow = nil
+        }
+
+        let latestSummary = (root["latest_alert"] as? [String: Any])?["summary"] as? String
+        let resetReason: TiboResetReason? = latestSummary?
+            .lowercased()
+            .contains("25m active users") == true ? .milestone25M : nil
+
+        return TiboForecastSnapshot(
+            updatedAt: updatedAt,
+            probability24hPercent: rounded24h,
+            probability48hPercent: rounded48h.flatMap { (0...100).contains($0) ? $0 : nil },
+            confidence: confidence,
+            lastResetAt: lastResetAt,
+            cadence: cadence,
+            commonTimeWindow: commonTimeWindow,
+            latestResetReason: resetReason
         )
     }
 
@@ -242,8 +381,23 @@ struct TiboResetSignalService: @unchecked Sendable {
         return fractional.date(from: text) ?? ISO8601DateFormatter().date(from: text)
     }
 
+    private static func number(_ value: Any?) -> Double? {
+        (value as? NSNumber)?.doubleValue
+    }
+
+    private static func integer(_ value: Any?) -> Int? {
+        (value as? NSNumber)?.intValue
+    }
+
     private static func digest(_ value: String) -> String {
         SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func normalizedText(_ value: String) -> String {
+        value
+            .split(whereSeparator: \Character.isWhitespace)
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func statusRank(_ status: TiboSignalStatus) -> Int {

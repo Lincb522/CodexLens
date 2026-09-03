@@ -51,6 +51,74 @@ final class CodexSessionScannerTests: XCTestCase {
         XCTAssertEqual(snapshot.sessions.first?.projectName, "fast")
     }
 
+    func testScannerKeepsConversationTotalWhenTaskCounterResets() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedgerResetCounter-\(UUID().uuidString)", isDirectory: true)
+        let sessions = root.appendingPathComponent("sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: sessions, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = sessions.appendingPathComponent("reset.jsonl")
+
+        let firstTask = #"""
+        {"timestamp":"2026-08-23T01:00:00.000Z","type":"session_meta","payload":{"id":"reset-counter","cwd":"/tmp/reset"}}
+        {"timestamp":"2026-08-23T01:00:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-1"}}
+        {"timestamp":"2026-08-23T01:00:02.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-23T01:00:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":100,"output_tokens":10},"last_token_usage":{"input_tokens":100,"output_tokens":10}}}}
+        """#
+        try firstTask.write(to: file, atomically: true, encoding: .utf8)
+
+        let scanner = CodexSessionScanner()
+        let first = try scanner.scanWithCache(codexHome: root, includeArchived: false, cache: nil)
+        XCTAssertEqual(first.snapshot.sessions.first?.usage.totalTokens, 110)
+
+        let secondTask = #"""
+
+        {"timestamp":"2026-08-23T01:01:00.000Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-1"}}
+        {"timestamp":"2026-08-23T01:01:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-2"}}
+        {"timestamp":"2026-08-23T01:01:02.000Z","type":"turn_context","payload":{"model":"gpt-5.6-sol"}}
+        {"timestamp":"2026-08-23T01:01:03.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":50,"output_tokens":5},"last_token_usage":{"input_tokens":50,"output_tokens":5}}}}
+        """#
+        let handle = try FileHandle(forWritingTo: file)
+        try handle.seekToEnd()
+        try handle.write(contentsOf: Data(secondTask.utf8))
+        try handle.close()
+
+        let updated = try scanner.scanWithCache(
+            codexHome: root,
+            includeArchived: false,
+            cache: first.cache
+        )
+        XCTAssertEqual(updated.snapshot.sessions.first?.usage.inputTokens, 150)
+        XCTAssertEqual(updated.snapshot.sessions.first?.usage.outputTokens, 15)
+        XCTAssertEqual(updated.snapshot.sessions.first?.usage.totalTokens, 165)
+    }
+
+    func testScannerDoesNotAddTaskBoundariesWhenCounterRemainsSessionCumulative() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexTokenLedgerLegacyCounter-\(UUID().uuidString)", isDirectory: true)
+        let sessions = root.appendingPathComponent("sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: sessions, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let fixture = #"""
+        {"timestamp":"2026-08-23T01:00:00.000Z","type":"session_meta","payload":{"id":"legacy-counter"}}
+        {"timestamp":"2026-08-23T01:00:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-1"}}
+        {"timestamp":"2026-08-23T01:00:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":100,"output_tokens":10},"last_token_usage":{"input_tokens":100,"output_tokens":10}}}}
+        {"timestamp":"2026-08-23T01:01:01.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-2"}}
+        {"timestamp":"2026-08-23T01:01:02.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":150,"output_tokens":15},"last_token_usage":{"input_tokens":50,"output_tokens":5}}}}
+        """#
+        try fixture.write(
+            to: sessions.appendingPathComponent("legacy.jsonl"),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let snapshot = try CodexSessionScanner().scan(codexHome: root, includeArchived: false)
+
+        XCTAssertEqual(snapshot.sessions.first?.usage.inputTokens, 150)
+        XCTAssertEqual(snapshot.sessions.first?.usage.outputTokens, 15)
+        XCTAssertEqual(snapshot.sessions.first?.usage.totalTokens, 165)
+    }
+
     func testScannerReadsIncrementalTokenEventsAndIgnoresMessageBodies() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexTokenLedgerTests-\(UUID().uuidString)", isDirectory: true)

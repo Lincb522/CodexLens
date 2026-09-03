@@ -2642,16 +2642,16 @@
             "value": "Waiting for token or JSON"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待输入 Token 或 JSON"
+            "value": "Esperando token o JSON"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待輸入 Token 或 JSON"
+            "value": "En attente d’un token ou JSON"
           }
         },
         "ja": {
@@ -2666,16 +2666,16 @@
             "value": "Token 또는 JSON 입력 대기 중"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esperando token o JSON"
+            "value": "等待输入 Token 或 JSON"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "En attente d’un token ou JSON"
+            "value": "等待輸入 Token 或 JSON"
           }
         }
       }
@@ -2689,16 +2689,16 @@
             "value": "Paste access token, API key, auth.json, nested JSON, batch JSON, or JSON Lines…"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘贴 access token、API key、auth.json、嵌套/批量 JSON 或 JSON Lines…"
+            "value": "Pega access token, API key, auth.json, JSON anidado/por lotes o JSON Lines…"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "貼上 access token、API key、auth.json、巢狀/批次 JSON 或 JSON Lines…"
+            "value": "Collez access token, API key, auth.json, JSON imbriqué/groupé ou JSON Lines…"
           }
         },
         "ja": {
@@ -2713,16 +2713,16 @@
             "value": "access token, API key, auth.json, 중첩/일괄 JSON 또는 JSON Lines 붙여넣기…"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pega access token, API key, auth.json, JSON anidado/por lotes o JSON Lines…"
+            "value": "粘贴 access token、API key、auth.json、嵌套/批量 JSON 或 JSON Lines…"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collez access token, API key, auth.json, JSON imbriqué/groupé ou JSON Lines…"
+            "value": "貼上 access token、API key、auth.json、巢狀/批次 JSON 或 JSON Lines…"
           }
         }
       }
@@ -2736,16 +2736,16 @@
             "value": "Token login"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 登录"
+            "value": "Inicio con token"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 登入"
+            "value": "Connexion par token"
           }
         },
         "ja": {
@@ -2760,16 +2760,16 @@
             "value": "Token 로그인"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inicio con token"
+            "value": "Token 登录"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexion par token"
+            "value": "Token 登入"
           }
         }
       }
@@ -2783,16 +2783,16 @@
             "value": "Paste a raw token or any JSON export. Its structure is detected automatically."
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘贴原始 Token 或任意 JSON 导出，结构会自动识别。"
+            "value": "Pega un token sin procesar o cualquier JSON exportado. La estructura se detecta automáticamente."
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "貼上原始 Token 或任意 JSON 匯出，結構會自動辨識。"
+            "value": "Collez un token brut ou tout export JSON. La structure est détectée automatiquement."
           }
         },
         "ja": {
@@ -2807,16 +2807,16 @@
             "value": "원시 Token 또는 JSON 내보내기를 붙여 넣으세요. 구조는 자동으로 감지됩니다."
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pega un token sin procesar o cualquier JSON exportado. La estructura se detecta automáticamente."
+            "value": "粘贴原始 Token 或任意 JSON 导出，结构会自动识别。"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collez un token brut ou tout export JSON. La structure est détectée automatiquement."
+            "value": "貼上原始 Token 或任意 JSON 匯出，結構會自動辨識。"
           }
         }
       }
@@ -2830,16 +2830,16 @@
             "value": "Sign in now"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "立即登录 Codex"
+            "value": "Iniciar sesión ahora"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "立即登入 Codex"
+            "value": "Se connecter maintenant"
           }
         },
         "ja": {
@@ -2854,16 +2854,16 @@
             "value": "지금 Codex 로그인"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Iniciar sesión ahora"
+            "value": "立即登录 Codex"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se connecter maintenant"
+            "value": "立即登入 Codex"
           }
         }
       }
@@ -2877,16 +2877,16 @@
             "value": "Monitor only"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅监控"
+            "value": "Solo supervisar"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "僅監控"
+            "value": "Surveiller seulement"
           }
         },
         "ja": {
@@ -2901,16 +2901,16 @@
             "value": "모니터링만"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo supervisar"
+            "value": "仅监控"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Surveiller seulement"
+            "value": "僅監控"
           }
         }
       }
@@ -2924,16 +2924,16 @@
             "value": "AFTER IMPORT"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "导入后"
+            "value": "DESPUÉS DE IMPORTAR"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "匯入後"
+            "value": "APRÈS IMPORT"
           }
         },
         "ja": {
@@ -2948,16 +2948,16 @@
             "value": "가져온 후"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "DESPUÉS DE IMPORTAR"
+            "value": "导入后"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "APRÈS IMPORT"
+            "value": "匯入後"
           }
         }
       }
@@ -2971,16 +2971,16 @@
             "value": "Recognized %d account(s) · %@"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "已识别 %d 个账号 · %@"
+            "value": "%d cuenta(s) reconocidas · %@"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "已辨識 %d 個帳號 · %@"
+            "value": "%d compte(s) reconnu(s) · %@"
           }
         },
         "ja": {
@@ -2995,16 +2995,16 @@
             "value": "계정 %d개 인식 · %@"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d cuenta(s) reconocidas · %@"
+            "value": "已识别 %d 个账号 · %@"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%d compte(s) reconnu(s) · %@"
+            "value": "已辨識 %d 個帳號 · %@"
           }
         }
       }
@@ -3018,16 +3018,16 @@
             "value": "Paste"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘贴"
+            "value": "Pegar"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "貼上"
+            "value": "Coller"
           }
         },
         "ja": {
@@ -3042,16 +3042,16 @@
             "value": "붙여넣기"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pegar"
+            "value": "粘贴"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coller"
+            "value": "貼上"
           }
         }
       }
@@ -3065,16 +3065,16 @@
             "value": "Parsed locally · private auth.json only · never logged"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅本地解析 · 只写入私有 auth.json · 不记录日志"
+            "value": "Análisis local · solo auth.json privado · sin registros"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "僅本機解析 · 只寫入私人 auth.json · 不記錄日誌"
+            "value": "Analyse locale · auth.json privé uniquement · jamais journalisé"
           }
         },
         "ja": {
@@ -3089,16 +3089,16 @@
             "value": "로컬에서만 분석 · 비공개 auth.json에만 저장 · 로그 기록 안 함"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Análisis local · solo auth.json privado · sin registros"
+            "value": "仅本地解析 · 只写入私有 auth.json · 不记录日志"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analyse locale · auth.json privé uniquement · jamais journalisé"
+            "value": "僅本機解析 · 只寫入私人 auth.json · 不記錄日誌"
           }
         }
       }
@@ -3112,16 +3112,16 @@
             "value": "Parse & monitor"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "解析并监控"
+            "value": "Analizar y supervisar"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "解析並監控"
+            "value": "Analyser et surveiller"
           }
         },
         "ja": {
@@ -3136,16 +3136,16 @@
             "value": "분석 후 모니터링"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analizar y supervisar"
+            "value": "解析并监控"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analyser et surveiller"
+            "value": "解析並監控"
           }
         }
       }
@@ -3159,16 +3159,16 @@
             "value": "Parse & sign in"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "解析并登录"
+            "value": "Analizar e iniciar sesión"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "解析並登入"
+            "value": "Analyser et se connecter"
           }
         },
         "ja": {
@@ -3183,16 +3183,16 @@
             "value": "분석 후 로그인"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analizar e iniciar sesión"
+            "value": "解析并登录"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analyser et se connecter"
+            "value": "解析並登入"
           }
         }
       }
@@ -3582,16 +3582,16 @@
             "value": "Clear"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "清空"
+            "value": "Borrar"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "清除"
+            "value": "Effacer"
           }
         },
         "ja": {
@@ -3606,16 +3606,16 @@
             "value": "지우기"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar"
+            "value": "清空"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Effacer"
+            "value": "清除"
           }
         }
       }
@@ -3720,43 +3720,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quit Token Pulse"
+            "value": "Quit Codex Lens"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salir de Token Pulse"
+            "value": "Salir de Codex Lens"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitter Token Pulse"
+            "value": "Quitter Codex Lens"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse を終了"
+            "value": "Codex Lens を終了"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse 종료"
+            "value": "Codex Lens 종료"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "退出 Token Pulse"
+            "value": "退出 Codex Lens"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "結束 Token Pulse"
+            "value": "結束 Codex Lens"
           }
         }
       }
@@ -5976,43 +5976,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse for Codex"
+            "value": "Codex Lens"
           }
         }
       }
@@ -6117,43 +6117,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse puts Codex usage in your menu bar."
+            "value": "Codex Lens puts Codex usage in your menu bar."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse muestra el uso de Codex en la barra."
+            "value": "Codex Lens muestra el uso de Codex en la barra."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse affiche l’usage de Codex dans la barre."
+            "value": "Codex Lens affiche l’usage de Codex dans la barre."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse で Codex の使用量をメニューバーに。"
+            "value": "Codex Lens で Codex の使用量をメニューバーに。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse로 Codex 사용량을 메뉴 막대에."
+            "value": "Codex Lens로 Codex 사용량을 메뉴 막대에."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse，把 Codex 用量放进菜单栏。"
+            "value": "Codex Lens，把 Codex 用量放进菜单栏。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse，把 Codex 用量放進選單列。"
+            "value": "Codex Lens，把 Codex 用量放進選單列。"
           }
         }
       }
@@ -6684,16 +6684,16 @@
             "value": "The pasted text is not a recognized token or JSON credential."
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "粘贴内容不是可识别的 Token 或 JSON 凭据。"
+            "value": "El texto pegado no es un token ni una credencial JSON reconocida."
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "貼上內容不是可辨識的 Token 或 JSON 憑證。"
+            "value": "Le texte collé n’est pas un token ou identifiant JSON reconnu."
           }
         },
         "ja": {
@@ -6708,16 +6708,16 @@
             "value": "붙여넣은 내용이 인식 가능한 Token 또는 JSON 자격 증명이 아닙니다."
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "El texto pegado no es un token ni una credencial JSON reconocida."
+            "value": "粘贴内容不是可识别的 Token 或 JSON 凭据。"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le texte collé n’est pas un token ou identifiant JSON reconnu."
+            "value": "貼上內容不是可辨識的 Token 或 JSON 憑證。"
           }
         }
       }
@@ -6778,16 +6778,16 @@
             "value": "Credential input exceeds the 10 MB local parsing limit."
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "凭据输入超过 10 MB 本地解析上限。"
+            "value": "La entrada supera el límite de análisis local de 10 MB."
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "憑證輸入超過 10 MB 本機解析上限。"
+            "value": "La saisie dépasse la limite d’analyse locale de 10 Mo."
           }
         },
         "ja": {
@@ -6802,16 +6802,16 @@
             "value": "자격 증명 입력이 10MB 로컬 분석 한도를 초과했습니다."
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "La entrada supera el límite de análisis local de 10 MB."
+            "value": "凭据输入超过 10 MB 本地解析上限。"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "La saisie dépasse la limite d’analyse locale de 10 Mo."
+            "value": "憑證輸入超過 10 MB 本機解析上限。"
           }
         }
       }
@@ -8514,43 +8514,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local data\n\nToken Pulse reads Codex session files and account usage on this Mac. Parsed usage, preferences, and indexes stay in the app’s local container. Imported credentials are written only to the Codex home selected for that account. Raw tokens are not placed in usage exports or app logs.\n\nThe app has no advertising SDK, behavioral analytics, or cross-app tracking. CSV and JSON exports are created only when you choose an export action."
+            "value": "Local data\n\nCodex Lens reads Codex session files and account usage on this Mac. Parsed usage, preferences, and indexes stay in the app’s local container. Imported credentials are written only to the Codex home selected for that account. Raw tokens are not placed in usage exports or app logs.\n\nThe app has no advertising SDK, behavioral analytics, or cross-app tracking. CSV and JSON exports are created only when you choose an export action."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Datos locales\n\nToken Pulse lee archivos de sesión y uso de cuentas de Codex en este Mac. El uso analizado, las preferencias y los índices permanecen en el contenedor local de la app. Las credenciales importadas solo se escriben en el directorio Codex elegido para esa cuenta. Los tokens sin procesar no se incluyen en exportaciones ni registros.\n\nLa app no contiene publicidad, analítica de comportamiento ni seguimiento entre apps. Las exportaciones CSV y JSON solo se crean cuando eliges exportar."
+            "value": "Datos locales\n\nCodex Lens lee archivos de sesión y uso de cuentas de Codex en este Mac. El uso analizado, las preferencias y los índices permanecen en el contenedor local de la app. Las credenciales importadas solo se escriben en el directorio Codex elegido para esa cuenta. Los tokens sin procesar no se incluyen en exportaciones ni registros.\n\nLa app no contiene publicidad, analítica de comportamiento ni seguimiento entre apps. Las exportaciones CSV y JSON solo se crean cuando eliges exportar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Données locales\n\nToken Pulse lit les fichiers de session et l’utilisation des comptes Codex sur ce Mac. Les données analysées, préférences et index restent dans le conteneur local de l’app. Les identifiants importés sont écrits uniquement dans le dossier Codex choisi pour ce compte. Les jetons bruts ne figurent ni dans les exports ni dans les journaux.\n\nL’app ne contient ni publicité, ni analyse comportementale, ni suivi entre applications. Les exports CSV et JSON sont créés uniquement à votre demande."
+            "value": "Données locales\n\nCodex Lens lit les fichiers de session et l’utilisation des comptes Codex sur ce Mac. Les données analysées, préférences et index restent dans le conteneur local de l’app. Les identifiants importés sont écrits uniquement dans le dossier Codex choisi pour ce compte. Les jetons bruts ne figurent ni dans les exports ni dans les journaux.\n\nL’app ne contient ni publicité, ni analyse comportementale, ni suivi entre applications. Les exports CSV et JSON sont créés uniquement à votre demande."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ローカルデータ\n\nToken Pulse は、この Mac 上の Codex セッションファイルとアカウント使用量を読み取ります。解析した使用量、設定、インデックスはアプリのローカルコンテナに保存されます。インポートした認証情報は、そのアカウント用に選択した Codex ホームにのみ書き込まれます。生のトークンは使用量の書き出しやアプリログに含まれません。\n\n広告 SDK、行動分析、アプリ横断トラッキングはありません。CSV と JSON は、書き出し操作を選んだ場合にのみ作成されます。"
+            "value": "ローカルデータ\n\nCodex Lens は、この Mac 上の Codex セッションファイルとアカウント使用量を読み取ります。解析した使用量、設定、インデックスはアプリのローカルコンテナに保存されます。インポートした認証情報は、そのアカウント用に選択した Codex ホームにのみ書き込まれます。生のトークンは使用量の書き出しやアプリログに含まれません。\n\n広告 SDK、行動分析、アプリ横断トラッキングはありません。CSV と JSON は、書き出し操作を選んだ場合にのみ作成されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "로컬 데이터\n\nToken Pulse는 이 Mac의 Codex 세션 파일과 계정 사용량을 읽습니다. 분석된 사용량, 환경 설정 및 인덱스는 앱의 로컬 컨테이너에 보관됩니다. 가져온 자격 증명은 해당 계정에 선택된 Codex 홈에만 기록됩니다. 원본 토큰은 사용량 내보내기나 앱 로그에 포함되지 않습니다.\n\n광고 SDK, 행동 분석 또는 앱 간 추적 기능이 없습니다. CSV와 JSON 내보내기는 사용자가 내보내기를 선택한 경우에만 생성됩니다."
+            "value": "로컬 데이터\n\nCodex Lens는 이 Mac의 Codex 세션 파일과 계정 사용량을 읽습니다. 분석된 사용량, 환경 설정 및 인덱스는 앱의 로컬 컨테이너에 보관됩니다. 가져온 자격 증명은 해당 계정에 선택된 Codex 홈에만 기록됩니다. 원본 토큰은 사용량 내보내기나 앱 로그에 포함되지 않습니다.\n\n광고 SDK, 행동 분석 또는 앱 간 추적 기능이 없습니다. CSV와 JSON 내보내기는 사용자가 내보내기를 선택한 경우에만 생성됩니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地数据\n\nToken Pulse 会读取这台 Mac 上的 Codex 会话文件和账号使用量。解析后的用量、偏好设置与索引保存在应用的本地容器中。导入的凭据只会写入该账号所选的 Codex Home。原始 Token 不会进入用量导出或应用日志。\n\n应用不包含广告 SDK、行为分析或跨应用跟踪。CSV 与 JSON 文件只会在你主动选择导出时生成。"
+            "value": "本地数据\n\nCodex Lens 会读取这台 Mac 上的 Codex 会话文件和账号使用量。解析后的用量、偏好设置与索引保存在应用的本地容器中。导入的凭据只会写入该账号所选的 Codex Home。原始 Token 不会进入用量导出或应用日志。\n\n应用不包含广告 SDK、行为分析或跨应用跟踪。CSV 与 JSON 文件只会在你主动选择导出时生成。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "本機資料\n\nToken Pulse 會讀取這台 Mac 上的 Codex 工作階段檔案和帳號使用量。解析後的用量、偏好設定與索引保存在應用程式的本機容器中。匯入的憑據只會寫入該帳號所選的 Codex Home。原始 Token 不會進入用量匯出或應用程式日誌。\n\n應用程式不包含廣告 SDK、行為分析或跨應用程式追蹤。CSV 與 JSON 檔案只會在你主動選擇匯出時產生。"
+            "value": "本機資料\n\nCodex Lens 會讀取這台 Mac 上的 Codex 工作階段檔案和帳號使用量。解析後的用量、偏好設定與索引保存在應用程式的本機容器中。匯入的憑據只會寫入該帳號所選的 Codex Home。原始 Token 不會進入用量匯出或應用程式日誌。\n\n應用程式不包含廣告 SDK、行為分析或跨應用程式追蹤。CSV 與 JSON 檔案只會在你主動選擇匯出時產生。"
           }
         }
       }
@@ -8655,43 +8655,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Effective: August 27, 2026\n\nToken Pulse is a macOS menu bar utility that reads local Codex usage records and displays context, quota, and API-equivalent cost estimates. By installing, launching, or continuing to use the app, you accept this agreement.\n\nYou may use, copy, and modify the app subject to applicable law and its open-source license. You may not use it to access accounts, data, or systems without authorization, or to bypass rules imposed by Codex, OpenAI, or another service."
+            "value": "Effective: August 27, 2026\n\nCodex Lens is a macOS menu bar utility that reads local Codex usage records and displays context, quota, and API-equivalent cost estimates. By installing, launching, or continuing to use the app, you accept this agreement.\n\nYou may use, copy, and modify the app subject to applicable law and its open-source license. You may not use it to access accounts, data, or systems without authorization, or to bypass rules imposed by Codex, OpenAI, or another service."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vigente desde el 27 de agosto de 2026\n\nToken Pulse es una utilidad de barra de menús para macOS que lee registros locales de uso de Codex y muestra contexto, cuota y estimaciones de coste equivalentes a la API. Al instalar, abrir o seguir usando la app, aceptas este acuerdo.\n\nPuedes usar, copiar y modificar la app conforme a la ley aplicable y a su licencia de código abierto. No puedes usarla para acceder sin autorización a cuentas, datos o sistemas, ni para eludir las reglas de Codex, OpenAI u otro servicio."
+            "value": "Vigente desde el 27 de agosto de 2026\n\nCodex Lens es una utilidad de barra de menús para macOS que lee registros locales de uso de Codex y muestra contexto, cuota y estimaciones de coste equivalentes a la API. Al instalar, abrir o seguir usando la app, aceptas este acuerdo.\n\nPuedes usar, copiar y modificar la app conforme a la ley aplicable y a su licencia de código abierto. No puedes usarla para acceder sin autorización a cuentas, datos o sistemas, ni para eludir las reglas de Codex, OpenAI u otro servicio."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En vigueur le 27 août 2026\n\nToken Pulse est un utilitaire de barre des menus macOS qui lit les journaux locaux de Codex et affiche le contexte, les quotas et des estimations de coût équivalent API. En installant, lançant ou continuant à utiliser l’app, vous acceptez ces conditions.\n\nVous pouvez utiliser, copier et modifier l’app dans le respect de la loi et de sa licence open source. Vous ne pouvez pas l’utiliser pour accéder sans autorisation à des comptes, données ou systèmes, ni pour contourner les règles de Codex, OpenAI ou d’un autre service."
+            "value": "En vigueur le 27 août 2026\n\nCodex Lens est un utilitaire de barre des menus macOS qui lit les journaux locaux de Codex et affiche le contexte, les quotas et des estimations de coût équivalent API. En installant, lançant ou continuant à utiliser l’app, vous acceptez ces conditions.\n\nVous pouvez utiliser, copier et modifier l’app dans le respect de la loi et de sa licence open source. Vous ne pouvez pas l’utiliser pour accéder sans autorisation à des comptes, données ou systèmes, ni pour contourner les règles de Codex, OpenAI ou d’un autre service."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "適用日：2026年8月27日\n\nToken Pulse は、ローカルの Codex 利用記録を読み取り、コンテキスト、クォータ、API 相当コストの推定値を表示する macOS メニューバーユーティリティです。インストール、起動、または利用の継続により、本規約に同意したものとみなされます。\n\n適用法およびオープンソースライセンスに従って、本アプリを利用、複製、変更できます。権限のないアカウント、データ、システムへのアクセスや、Codex、OpenAI、その他のサービスの規則を回避する目的には使用できません。"
+            "value": "適用日：2026年8月27日\n\nCodex Lens は、ローカルの Codex 利用記録を読み取り、コンテキスト、クォータ、API 相当コストの推定値を表示する macOS メニューバーユーティリティです。インストール、起動、または利用の継続により、本規約に同意したものとみなされます。\n\n適用法およびオープンソースライセンスに従って、本アプリを利用、複製、変更できます。権限のないアカウント、データ、システムへのアクセスや、Codex、OpenAI、その他のサービスの規則を回避する目的には使用できません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "시행일: 2026년 8월 27일\n\nToken Pulse는 로컬 Codex 사용 기록을 읽고 컨텍스트, 할당량 및 API 환산 비용 추정치를 표시하는 macOS 메뉴 막대 유틸리티입니다. 앱을 설치하거나 실행하거나 계속 사용하면 본 계약에 동의한 것으로 간주됩니다.\n\n관련 법률과 오픈 소스 라이선스에 따라 앱을 사용, 복사, 수정할 수 있습니다. 권한 없이 계정, 데이터 또는 시스템에 접근하거나 Codex, OpenAI 또는 다른 서비스의 규칙을 우회하는 데 사용할 수 없습니다."
+            "value": "시행일: 2026년 8월 27일\n\nCodex Lens는 로컬 Codex 사용 기록을 읽고 컨텍스트, 할당량 및 API 환산 비용 추정치를 표시하는 macOS 메뉴 막대 유틸리티입니다. 앱을 설치하거나 실행하거나 계속 사용하면 본 계약에 동의한 것으로 간주됩니다.\n\n관련 법률과 오픈 소스 라이선스에 따라 앱을 사용, 복사, 수정할 수 있습니다. 권한 없이 계정, 데이터 또는 시스템에 접근하거나 Codex, OpenAI 또는 다른 서비스의 규칙을 우회하는 데 사용할 수 없습니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生效日期：2026年8月27日\n\nToken Pulse 是一款 macOS 菜单栏工具，用于读取本机 Codex 使用记录，并展示上下文、额度与 API 等价花费估算。安装、启动或继续使用本应用，即表示你接受本协议。\n\n你可以在遵守适用法律及开源许可的前提下使用、复制和修改本应用。不得利用本应用访问未经授权的账号、数据或系统，也不得绕过 Codex、OpenAI 或其他服务的规则。"
+            "value": "生效日期：2026年8月27日\n\nCodex Lens 是一款 macOS 菜单栏工具，用于读取本机 Codex 使用记录，并展示上下文、额度与 API 等价花费估算。安装、启动或继续使用本应用，即表示你接受本协议。\n\n你可以在遵守适用法律及开源许可的前提下使用、复制和修改本应用。不得利用本应用访问未经授权的账号、数据或系统，也不得绕过 Codex、OpenAI 或其他服务的规则。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "生效日期：2026年8月27日\n\nToken Pulse 是一款 macOS 選單列工具，用於讀取本機 Codex 使用記錄，並顯示上下文、額度與 API 等價花費估算。安裝、啟動或繼續使用本應用程式，即表示你接受本協議。\n\n你可以在遵守適用法律及開源授權的前提下使用、複製和修改本應用程式。不得利用本應用程式存取未經授權的帳號、資料或系統，也不得繞過 Codex、OpenAI 或其他服務的規則。"
+            "value": "生效日期：2026年8月27日\n\nCodex Lens 是一款 macOS 選單列工具，用於讀取本機 Codex 使用記錄，並顯示上下文、額度與 API 等價花費估算。安裝、啟動或繼續使用本應用程式，即表示你接受本協議。\n\n你可以在遵守適用法律及開源授權的前提下使用、複製和修改本應用程式。不得利用本應用程式存取未經授權的帳號、資料或系統，也不得繞過 Codex、OpenAI 或其他服務的規則。"
           }
         }
       }
@@ -11375,6 +11375,147 @@
         }
       }
     },
+    "nav.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記錄"
+          }
+        }
+      }
+    },
+    "nav.live": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En vivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライブ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실시간"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即時"
+          }
+        }
+      }
+    },
+    "nav.settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        }
+      }
+    },
     "overview.tab.account": {
       "extractionState": "manual",
       "localizations": {
@@ -11851,43 +11992,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token Pulse"
+            "value": "Codex Lens"
           }
         }
       }
@@ -11898,43 +12039,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tibo reset cycle"
+            "value": "Tibo reset forecast"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ciclo Tibo"
+            "value": "Previsión de Tibo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycle Tibo"
+            "value": "Prévision Tibo"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tibo リセット周期"
+            "value": "Tibo リセット予測"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tibo 재설정 주기"
+            "value": "Tibo 재설정 예측"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tibo 重置周期"
+            "value": "Tibo 重置预测"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tibo 重置週期"
+            "value": "Tibo 重置預測"
           }
         }
       }
@@ -11948,16 +12089,16 @@
             "value": "Token login"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 登录"
+            "value": "Inicio con token"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token 登入"
+            "value": "Connexion par token"
           }
         },
         "ja": {
@@ -11972,16 +12113,16 @@
             "value": "Token 로그인"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inicio con token"
+            "value": "Token 登录"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexion par token"
+            "value": "Token 登入"
           }
         }
       }
@@ -13684,43 +13825,43 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public reset cycle"
+            "value": "Public reset probability"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ciclo público"
+            "value": "Probabilidad pública"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycle public"
+            "value": "Probabilité publique"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "公開リセット周期"
+            "value": "公開リセット確率"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "공개 재설정 주기"
+            "value": "공개 재설정 확률"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "公开信号周期"
+            "value": "公共重置概率"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "公開信號週期"
+            "value": "公共重置機率"
           }
         }
       }
@@ -13734,16 +13875,16 @@
             "value": "Universal credential parser"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "通用凭据解析器"
+            "value": "Analizador universal de credenciales"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "通用憑證解析器"
+            "value": "Analyseur universel d’identifiants"
           }
         },
         "ja": {
@@ -13758,16 +13899,16 @@
             "value": "범용 자격 증명 파서"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analizador universal de credenciales"
+            "value": "通用凭据解析器"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Analyseur universel d’identifiants"
+            "value": "通用憑證解析器"
           }
         }
       }
@@ -16318,16 +16459,16 @@
             "value": "No reset updates in the last 14 days"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近 14 天没有重置动态"
+            "value": "Sin novedades en los últimos 14 días"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近 14 天沒有重置動態"
+            "value": "Aucune actualité ces 14 derniers jours"
           }
         },
         "ja": {
@@ -16342,16 +16483,16 @@
             "value": "최근 14일간 재설정 소식 없음"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sin novedades en los últimos 14 días"
+            "value": "最近 14 天没有重置动态"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune actualité ces 14 derniers jours"
+            "value": "最近 14 天沒有重置動態"
           }
         }
       }
@@ -16364,16 +16505,16 @@
             "value": "Reset updates"
           }
         },
-        "zh-Hans": {
+        "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "重置动态"
+            "value": "Actualizaciones"
           }
         },
-        "zh-Hant": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "重置動態"
+            "value": "Actualités de réinitialisation"
           }
         },
         "ja": {
@@ -16388,16 +16529,16 @@
             "value": "재설정 소식"
           }
         },
-        "es": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Actualizaciones"
+            "value": "重置动态"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Actualités de réinitialisation"
+            "value": "重置動態"
           }
         }
       }
@@ -18329,143 +18470,331 @@
         }
       }
     },
-    "update.releaseNote.fixedHeight": {
+    "update.releaseNote.dashboard": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fixed-height update page without scrolling"
+            "value": "Live context, turn and task totals separated"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Página de altura fija sin desplazamiento"
+            "value": "Contexto, turno y total de tarea separados"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Page à hauteur fixe sans défilement"
+            "value": "Contexte, tour et total de tâche séparés"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新画面は固定高さでスクロール不要"
+            "value": "コンテキスト・ターン・タスク累計を分離"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스크롤 없는 고정 높이 업데이트 화면"
+            "value": "컨텍스트·현재 턴·작업 누적 분리"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新页保持固定高度，无需滚动"
+            "value": "重排首页层级，区分实时上下文、本轮与任务累计"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新頁保持固定高度，無需捲動"
+            "value": "重排首頁層級，區分即時上下文、本輪與任務累計"
           }
         }
       }
     },
-    "update.releaseNote.history": {
+    "update.releaseNote.glass": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Version notes on the update page"
+            "value": "Full-window native menu glass"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Novedades en la página de actualización"
+            "value": "Cristal nativo en toda la ventana"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notes sur la page de mise à jour"
+            "value": "Verre natif sur toute la fenêtre"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新画面にバージョン履歴を追加"
+            "value": "ウインドウ全体をネイティブガラス化"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "업데이트 화면에 버전 기록 추가"
+            "value": "전체 창에 네이티브 글라스 적용"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新页新增版本日志"
+            "value": "整扇菜单使用 macOS 原生毛玻璃"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "更新頁新增版本記錄"
+            "value": "整扇選單使用 macOS 原生毛玻璃"
           }
         }
       }
     },
-    "update.releaseNote.localized": {
+    "update.releaseNote.layout": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Version notes follow the app language"
+            "value": "Consistent side insets and fixed page size"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las novedades siguen el idioma de la app"
+            "value": "Márgenes laterales y tamaño fijo coherentes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les notes suivent la langue de l’app"
+            "value": "Marges latérales et taille fixe cohérentes"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "バージョン履歴がアプリの言語に対応"
+            "value": "左右余白と固定ページサイズを統一"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "버전 기록에 앱 언어 적용"
+            "value": "좌우 여백과 고정 페이지 크기 통일"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本日志跟随应用语言"
+            "value": "统一所有页面的左右安全边距和固定尺寸"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本記錄跟隨應用程式語言"
+            "value": "統一所有頁面的左右安全邊距和固定尺寸"
+          }
+        }
+      }
+    },
+    "update.releaseNote.navigation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clearer live dashboard and labeled navigation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel en vivo y navegación más claros"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tableau en direct et navigation plus clairs"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライブ画面とラベル付きナビを整理"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실시간 화면과 라벨 탐색 정리"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新整理首页信息与文字导航"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新整理首頁資訊與文字導覽"
+          }
+        }
+      }
+    },
+    "update.releaseNote.quotaSummary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account cycles and credit balance restored"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuotas de cuenta y créditos restaurados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycles du compte et solde de crédits restaurés"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウント周期とクレジット残高を復元"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 주기와 크레딧 잔액 복원"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复账号周期额度与积分余额"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復帳號週期額度與點數餘額"
+          }
+        }
+      }
+    },
+    "update.releaseNote.usageDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily, 30-day and monthly usage detail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalle diario, de 30 días y mensual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détail quotidien, sur 30 jours et mensuel"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日別・30日・月別の使用詳細"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일별·30일·월별 사용 상세"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增每日选择、近 30 天和月度用量详情"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增每日選擇、近 30 天和每月用量詳情"
+          }
+        }
+      }
+    },
+    "update.releaseNote.usageHeatmap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-year account Token heatmap"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa anual de Token de la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte annuelle des Token du compte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントの年間 Token ヒートマップ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 연간 Token 사용 히트맵"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增账号近一年 Token 使用热力图"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增帳號近一年 Token 使用熱力圖"
           }
         }
       }
@@ -18513,6 +18842,2873 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本記錄"
+          }
+        }
+      }
+    },
+    "usage.accountHistory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account Token history"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial de tokens de la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique des tokens du compte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントの Token 使用履歴"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 Token 사용 기록"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号 Token 使用记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號 Token 使用記錄"
+          }
+        }
+      }
+    },
+    "usage.activeDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d active days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d días activos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d jours actifs"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブ %d 日"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "활동일 %d일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 个活跃日"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d 個活躍日"
+          }
+        }
+      }
+    },
+    "usage.activeDaysShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Días activos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jours actifs"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブ日"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "활동일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活跃日"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活躍日"
+          }
+        }
+      }
+    },
+    "usage.dailyTotal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total diario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total du jour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日の使用量"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "일일 사용량"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当日用量"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "當日用量"
+          }
+        }
+      }
+    },
+    "usage.last30Days": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 30 days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 30 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 derniers jours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "過去30日"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 30일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 30 天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 30 天"
+          }
+        }
+      }
+    },
+    "usage.lastTwelveMonths": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 12 months"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 12 meses"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "12 derniers mois"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "過去12か月"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 12개월"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 12 个月"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 12 個月"
+          }
+        }
+      }
+    },
+    "usage.lifetime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total de la cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total du compte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウント累計"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계정 누적"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号累计"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帳號累計"
+          }
+        }
+      }
+    },
+    "usage.monthly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monthly usage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso mensual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation mensuelle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月別使用量"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "월별 사용량"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月度使用"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每月用量"
+          }
+        }
+      }
+    },
+    "usage.selectDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez un jour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日付を選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "날짜 선택"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择日期"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇日期"
+          }
+        }
+      }
+    },
+    "usage.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token usage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso de tokens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisation des tokens"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 使用履歴"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 사용 기록"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 使用记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token 使用記錄"
+          }
+        }
+      }
+    },
+    "usage.today": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aujourd’hui"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        }
+      }
+    },
+    "tibo.forecast.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex reset forecast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previsión de reinicio Codex"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prévision de reset Codex"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex リセット予測"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 재설정 예측"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 重置预测"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 重置預測"
+          }
+        }
+      }
+    },
+    "tibo.forecast.level.high": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High probability"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilidad alta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilité élevée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高確率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "높은 확률"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高概率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高機率"
+          }
+        }
+      }
+    },
+    "tibo.forecast.level.medium": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medium probability"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilidad media"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilité moyenne"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中確率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중간 확률"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中等概率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中等機率"
+          }
+        }
+      }
+    },
+    "tibo.forecast.level.low": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low probability"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilidad baja"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilité faible"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低確率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "낮은 확률"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低概率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低機率"
+          }
+        }
+      }
+    },
+    "tibo.forecast.level.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting forecast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando previsión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prévision en attente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "予測待ち"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예측 대기 중"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待预测"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待預測"
+          }
+        }
+      }
+    },
+    "tibo.forecast.sevenDayReference": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7-day reference"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referencia de 7 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repère à 7 jours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7日基準"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7일 기준점"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天参考点"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 天參考點"
+          }
+        }
+      }
+    },
+    "tibo.forecast.signalWindow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announced window"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ventana anunciada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenêtre annoncée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "告知時間帯"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발표된 시간대"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告窗口"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告時段"
+          }
+        }
+      }
+    },
+    "tibo.forecast.countdown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ remaining · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faltan %@ · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reste %@ · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残り %@ · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 남음 · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "倒计时 %@ · %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "倒數 %@ · %@"
+          }
+        }
+      }
+    },
+    "tibo.forecast.sevenDayBasis": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7-day reference"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "referencia de 7 días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "repère à 7 jours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7日基準"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7일 기준"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 7 天参考线"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 7 天參考線"
+          }
+        }
+      }
+    },
+    "tibo.forecast.announcedBasis": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "announced window"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ventana anunciada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fenêtre annoncée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "告知時間帯"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발표 시간대"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按公告窗口"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按公告時段"
+          }
+        }
+      }
+    },
+    "tibo.forecast.countdownUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No countdown"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin cuenta atrás"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun compte à rebours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カウントダウンなし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카운트다운 없음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无倒计时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫無倒數"
+          }
+        }
+      }
+    },
+    "tibo.forecast.referenceReached": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference reached"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referencia alcanzada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repère atteint"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基準時刻に到達"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기준점 도달"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到参考点"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到參考點"
+          }
+        }
+      }
+    },
+    "tibo.forecast.lastConfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest confirmed reset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último reinicio confirmado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier reset confirmé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新の確認済みリセット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 확인된 재설정"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次确认重置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次確認重置"
+          }
+        }
+      }
+    },
+    "tibo.forecast.basis": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forecast basis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base de la previsión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base de la prévision"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "予測の根拠"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "예측 근거"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预测依据"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "預測依據"
+          }
+        }
+      }
+    },
+    "tibo.forecast.modelProbability": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo público"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modèle public"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開モデル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공개 모델"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开模型"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開模型"
+          }
+        }
+      }
+    },
+    "tibo.forecast.modelProbabilityValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@ confidence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · confianza %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · confiance %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 信頼度 %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 신뢰도 %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@置信度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@信心度"
+          }
+        }
+      }
+    },
+    "tibo.forecast.recentCadence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent cadence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritmo reciente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rythme récent"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近の間隔"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 주기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近期节奏"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近期節奏"
+          }
+        }
+      }
+    },
+    "tibo.forecast.cadenceValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d resets · median %@d · weighted %@d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d reinicios · mediana %@ d · ponderada %@ d"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d resets · médiane %@ j · pondérée %@ j"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d回 · 中央値%@日 · 加重%@日"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d회 · 중앙값 %@일 · 가중 %@일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 %d 次 · 中位 %@ 天 · 加权 %@ 天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 %d 次 · 中位 %@ 天 · 加權 %@ 天"
+          }
+        }
+      }
+    },
+    "tibo.forecast.commonWindow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Common window"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Franja frecuente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créneau fréquent"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高頻度の時間帯"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "주요 시간대"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高发时段"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高發時段"
+          }
+        }
+      }
+    },
+    "tibo.forecast.commonWindowValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "tibo.forecast.confidence.low": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "low"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "baja"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "faible"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "낮음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "低"
+          }
+        }
+      }
+    },
+    "tibo.forecast.confidence.medium": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "medium"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "media"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "moyenne"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보통"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中"
+          }
+        }
+      }
+    },
+    "tibo.forecast.confidence.high": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "high"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "alta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "élevée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "높음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高"
+          }
+        }
+      }
+    },
+    "tibo.forecast.confidence.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "desconocida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "inconnue"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알 수 없음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        }
+      }
+    },
+    "tibo.forecast.reason.milestone25M": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex reached 25 million active users. Tibo confirmed that usage was reset for every paid ChatGPT Work and Codex subscription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex alcanzó 25 millones de usuarios activos. Tibo confirmó el reinicio del uso de todas las suscripciones de pago de ChatGPT Work y Codex."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex a atteint 25 millions d’utilisateurs actifs. Tibo a confirmé la remise à zéro de tous les abonnements payants ChatGPT Work et Codex."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex のアクティブユーザーが2,500万人に到達。Tibo は ChatGPT Work と Codex の全有料契約の使用量リセットを確認しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 활성 사용자가 2,500만 명에 도달했습니다. Tibo는 모든 ChatGPT Work 및 Codex 유료 구독의 사용량 재설정을 확인했습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 达到 2500 万活跃用户。Tibo 已确认 ChatGPT Work 与 Codex 所有付费订阅的使用额度完成重置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 達到 2500 萬活躍使用者。Tibo 已確認 ChatGPT Work 與 Codex 所有付費訂閱的使用額度完成重置。"
+          }
+        }
+      }
+    },
+    "tibo.forecast.horizon24h": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 hours"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 horas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 heures"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24時間以内"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24시간 이내"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 小时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 小時"
+          }
+        }
+      }
+    },
+    "tibo.forecast.resetProbability": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "reset chance"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "prob. de reinicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "probabilité de reset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセット確率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재설정 확률"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置概率"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置機率"
+          }
+        }
+      }
+    },
+    "update.releaseNote.tiboForecast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 24-hour reset forecast and countdown"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previsión Tibo a 24 h y cuenta atrás"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prévision Tibo sur 24 h et compte à rebours"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo の24時間予測とカウントダウン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 24시간 예측 및 카운트다운"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 24 小时重置预测与倒计时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 24 小時重置預測與倒數"
+          }
+        }
+      }
+    },
+    "update.releaseNote.tiboProbability": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probability and confidence come from the public model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilidad y confianza del modelo público"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilité et confiance du modèle public"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確率と信頼度は公開モデルを使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확률과 신뢰도는 공개 모델 사용"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概率与置信度直接读取公开模型"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機率與信心度直接讀取公開模型"
+          }
+        }
+      }
+    },
+    "update.releaseNote.tiboEvidence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed reset, cadence and common window in one view"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset confirmado, ritmo y franja en una vista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset confirmé, rythme et créneau réunis"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認済み履歴・間隔・時間帯を一画面に表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인 기록, 주기, 시간대를 한 화면에 표시"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集中显示确认重置、近期节奏和高发时段"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集中顯示確認重置、近期節奏和高發時段"
+          }
+        }
+      }
+    },
+    "tibo.forecast.judgementTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por qué: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pourquoi : %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@の判断根拠"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 판단 근거"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的判断依据"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的判斷依據"
+          }
+        }
+      }
+    },
+    "tibo.forecast.probabilityBand": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probability band"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nivel de probabilidad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niveau de probabilité"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確率区分"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확률 구간"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概率分级"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機率分級"
+          }
+        }
+      }
+    },
+    "tibo.forecast.probabilityBand.low": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · below 40%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · menos del 40%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · moins de 40%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40%%未満"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40%% 미만"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 低于 40%%"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 低於 40%%"
+          }
+        }
+      }
+    },
+    "tibo.forecast.probabilityBand.medium": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 40–69%%"
+          }
+        }
+      }
+    },
+    "tibo.forecast.probabilityBand.high": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 70%% or above"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 70%% o más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 70%% ou plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 70%%以上"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 70%% 이상"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 不低于 70%%"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d%% · 不低於 70%%"
+          }
+        }
+      }
+    },
+    "tibo.forecast.probabilityBand.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No model result"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin resultado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun résultat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル結果なし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모델 결과 없음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无模型结果"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫無模型結果"
+          }
+        }
+      }
+    },
+    "tibo.forecast.publicSignal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public signal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Señal pública"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signal public"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開シグナル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공개 신호"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公开信号"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公開訊號"
+          }
+        }
+      }
+    },
+    "tibo.forecast.publicSignal.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No new Tibo signal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin señal nueva de Tibo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun nouveau signal Tibo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiboの新しい予告なし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 Tibo 예고 없음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无 Tibo 新预告"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫無 Tibo 新預告"
+          }
+        }
+      }
+    },
+    "tibo.forecast.publicSignal.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tibo signal detected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva señal de Tibo detectada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau signal Tibo détecté"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiboの新しい予告あり"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 Tibo 예고 감지"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已发现 Tibo 新预告"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已發現 Tibo 新預告"
+          }
+        }
+      }
+    },
+    "tibo.forecast.modelConfidence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model confidence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confianza del modelo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confiance du modèle"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデル信頼度"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모델 신뢰도"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型置信度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型信心度"
+          }
+        }
+      }
+    },
+    "tibo.forecast.lastResetAge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last reset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último reinicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier reset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回のリセット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "최근 리셋"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距上次重置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距上次重置"
+          }
+        }
+      }
+    },
+    "tibo.forecast.lastResetAgeValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ days ago"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hace %@ días"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "il y a %@ j"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@日前"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@일 전"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 天"
+          }
+        }
+      }
+    },
+    "update.releaseNote.tiboJudgement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probability judgement now includes Tibo’s latest posts and replies"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La evaluación incluye las últimas publicaciones y respuestas de Tibo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’évaluation inclut les derniers posts et réponses de Tibo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確率の判断にTiboの最新投稿と返信を反映"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확률 판단에 Tibo의 최신 게시물과 답글 반영"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概率判断纳入 Tibo 最新推文与回复"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機率判斷納入 Tibo 最新推文與回覆"
+          }
+        }
+      }
+    },
+    "tibo.forecast.latestPost": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest Tibo post"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última publicación de Tibo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier post de Tibo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiboの最新投稿"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 최신 게시물"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 最新推文"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 最新推文"
+          }
+        }
+      }
+    },
+    "tibo.forecast.latestReply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest Tibo reply"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última respuesta de Tibo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière réponse de Tibo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiboの最新返信"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 최신 답글"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 最新回复"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibo 最新回覆"
+          }
+        }
+      }
+    },
+    "tibo.forecast.replyMeta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · reply to @%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · respuesta a @%@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · réponse à @%@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · @%@への返信"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · @%@에게 답글"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 回复 @%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 回覆 @%@"
+          }
+        }
+      }
+    },
+    "tibo.forecast.socialAssessment.explicit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit reset signal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Señal explícita de reinicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signal explicite de reset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明確なリセット予告"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "명시적 리셋 신호"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确重置信号"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明確重置訊號"
+          }
+        }
+      }
+    },
+    "tibo.forecast.socialAssessment.tease": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Possible reset tease"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posible pista de reinicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Possible indice de reset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセットの示唆"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "리셋 암시 가능성"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能的重置暗示"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可能的重置暗示"
+          }
+        }
+      }
+    },
+    "tibo.forecast.socialAssessment.context": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reset commitment"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin compromiso de reinicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun engagement de reset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセットの約束なし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "리셋 약속 없음"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未形成重置承诺"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未形成重置承諾"
+          }
+        }
+      }
+    },
+    "update.releaseNote.rename": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app is now called Codex Lens"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app ahora se llama Codex Lens"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’app s’appelle désormais Codex Lens"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリ名を Codex Lens に統一"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱 이름을 Codex Lens로 통일"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用名称统一为 Codex Lens"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "應用程式名稱統一為 Codex Lens"
           }
         }
       }
