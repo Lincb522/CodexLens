@@ -52,7 +52,7 @@ enum ConsolePanel: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-private enum PulsePalette {
+enum PulsePalette {
     // The native panel owns the backdrop; these fills only group content.
     private static func adaptiveColor(light: NSColor, dark: NSColor) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
@@ -208,6 +208,8 @@ struct MenuBarDashboardView: View {
     @State private var legalPage = 0
     @State private var selectedUsageDayKey: String?
     @State private var usageHistoryShowsRecentHalf = true
+    @State private var overviewUsageRange: OverviewUsageRange
+    @State private var isEditingUsageRange: Bool
     @State private var quotaWindowID: String?
     @State private var quotaGroupID: String?
     @State private var quotaShowsEstimateEvidence = false
@@ -226,7 +228,9 @@ struct MenuBarDashboardView: View {
         initialLegalDocument: LegalDocument = .userAgreement,
         initiallyExpandedLiveDetails: Bool = false,
         initialDetailScope: TokenDetailScope = .context,
-        initiallyShowingTiboEvidence: Bool = false
+        initiallyShowingTiboEvidence: Bool = false,
+        initialOverviewUsageRange: OverviewUsageRange = .monthToDate,
+        initiallyEditingUsageRange: Bool = false
     ) {
         _updateService = ObservedObject(wrappedValue: updateService)
         _page = State(initialValue: initiallyExpandedLiveDetails ? .tokenDetails : initialPage)
@@ -235,6 +239,8 @@ struct MenuBarDashboardView: View {
         _legalDocument = State(initialValue: initialLegalDocument)
         _selectedUsageDayKey = State(initialValue: nil)
         _tiboShowsEvidence = State(initialValue: initiallyShowingTiboEvidence)
+        _overviewUsageRange = State(initialValue: initialOverviewUsageRange)
+        _isEditingUsageRange = State(initialValue: initiallyEditingUsageRange)
         self.initialDetailScope = initialDetailScope
     }
 
@@ -383,7 +389,7 @@ struct MenuBarDashboardView: View {
     }
 
     private var overview: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             overviewHero
             if let account = viewModel.selectedAccount {
                 if let error = viewModel.accountErrorMessage {
@@ -449,44 +455,77 @@ struct MenuBarDashboardView: View {
     }
 
     private func accountUsageOverview(_ account: CodexAccountUsageSnapshot) -> some View {
-        let heatmap = TokenUsageHeatmap.make(dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? [])
-        let visibleWeeks = Array(heatmap.weeks.suffix(OverviewUsageCalendar.weekCount))
+        let heatmap = TokenUsageHeatmap.make(dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? [],
+                                             referenceDate: viewModel.clockNow)
         let compact = viewModel.accountErrorMessage != nil
         return VStack(alignment: .leading, spacing: 12) {
             PulsePalette.divider.frame(height: 1)
-            Button {
-                selectedUsageDayKey = nil
-                usageHistoryShowsRecentHalf = true
-                page = .usageHistory
-            } label: {
-                HStack(spacing: 8) {
-                    MarqueeLabel(text: viewModel.t("usage.overviewTitle"), font: .system(size: 14, weight: .regular), color: PulsePalette.ink)
-                        .frame(height: 20)
-                    Spacer(minLength: 0)
-                    Text(viewModel.t("usage.recentWeeks", OverviewUsageCalendar.weekCount))
-                        .font(.system(size: 12))
-                        .foregroundStyle(PulsePalette.muted)
-                    PulseIcon(name: "chevron-down").frame(width: 8, height: 8)
-                        .foregroundStyle(PulsePalette.muted)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PulsePressStyle())
-            .accessibilityIdentifier("Overview.UsageHistory")
-            if !compact {
-                OverviewUsageCalendar(
-                    weeks: visibleWeeks,
-                    locale: Locale(identifier: viewModel.appLanguage.localeIdentifier),
-                    chartLabel: viewModel.t("usage.accountHistory"),
-                    dayLabel: usageDayAccessibilityLabel
-                ) { day in
-                    selectedUsageDayKey = day.dateKey
+            HStack(spacing: 8) {
+                Button {
+                    selectedUsageDayKey = nil
                     usageHistoryShowsRecentHalf = true
                     page = .usageHistory
+                } label: {
+                    HStack(spacing: 4) {
+                        MarqueeLabel(text: viewModel.t("usage.overviewTitle"), font: .system(size: 14, weight: .regular), color: PulsePalette.ink)
+                            .frame(height: 20)
+                        PulseIcon(name: "arrow-right").frame(width: 10, height: 10)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PulsePressStyle())
+                .accessibilityIdentifier("Overview.UsageHistory")
+                Spacer(minLength: 0)
+                Button { isEditingUsageRange.toggle() } label: {
+                    HStack(spacing: 4) {
+                        Text(overviewRangeLabel(heatmap)).font(.system(size: 12))
+                        PulseIcon(name: "chevron-down").frame(width: 8, height: 8)
+                    }
+                    .foregroundStyle(PulsePalette.muted)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(PulsePressStyle())
+                .disabled(compact)
+                .accessibilityLabel(viewModel.t("usage.range.choose") + ": " + overviewRangeLabel(heatmap))
+                .accessibilityIdentifier("Overview.UsageRange")
+            }
+            if !compact {
+                if isEditingUsageRange {
+                    OverviewUsageRangeEditor(heatmap: heatmap, selection: overviewUsageRange,
+                                             language: viewModel.appLanguage) { range in
+                        overviewUsageRange = range
+                        isEditingUsageRange = false
+                    } onCancel: {
+                        isEditingUsageRange = false
+                    }
+                } else {
+                    OverviewUsageCalendar(
+                        weeks: overviewUsageRange.displayWeeks(in: heatmap),
+                        selectedRange: overviewUsageRange.resolved(in: heatmap),
+                        locale: Locale(identifier: viewModel.appLanguage.localeIdentifier),
+                        chartLabel: viewModel.t("usage.accountHistory"),
+                        dayLabel: usageDayAccessibilityLabel
+                    ) { day in
+                        selectedUsageDayKey = day.dateKey
+                        usageHistoryShowsRecentHalf = heatmap.showsRecentHalf(for: day)
+                        page = .usageHistory
+                    }
+                    .id(overviewUsageRange)
                 }
             }
         }
-        .frame(height: compact ? 46 : 182, alignment: .top)
+        .frame(height: compact ? 46 : OverviewUsageCalendar.height + 45, alignment: .top)
+    }
+
+    private func overviewRangeLabel(_ heatmap: TokenUsageHeatmap) -> String {
+        let range = overviewUsageRange.resolved(in: heatmap)
+        let calendar = OverviewUsageRange.calendar
+        let formatter = DateIntervalFormatter()
+        formatter.locale = Locale(identifier: viewModel.appLanguage.localeIdentifier)
+        formatter.calendar = calendar
+        formatter.timeZone = .gmt
+        formatter.dateTemplate = calendar.component(.year, from: range.lowerBound) == calendar.component(.year, from: range.upperBound) ? "Md" : "yyMd"
+        return formatter.string(from: range.lowerBound, to: range.upperBound)
     }
 
     @ViewBuilder
@@ -520,10 +559,14 @@ struct MenuBarDashboardView: View {
     private var usageHistory: some View {
         if let account = viewModel.selectedAccount {
             let heatmap = TokenUsageHeatmap.make(
-                dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? []
+                dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? [],
+                referenceDate: viewModel.clockNow
             )
             let selectedDay = selectedUsageDay(in: heatmap)
             let months = usageMonthSummaries(heatmap)
+            let summaryLayout = viewModel.abbreviateTokenCounts
+                ? AnyLayout(HStackLayout(spacing: 0))
+                : AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
             let visibleWeeks = usageHistoryShowsRecentHalf
                 ? Array(heatmap.weeks.suffix(27))
                 : Array(heatmap.weeks.prefix(26))
@@ -538,10 +581,7 @@ struct MenuBarDashboardView: View {
                             Text(viewModel.t("usage.lastTwelveMonths"))
                                 .font(.system(size: 12, weight: .semibold, design: .default))
                                 .foregroundStyle(PulsePalette.muted)
-                            Text("\(DisplayFormat.tokens(heatmap.totalTokens)) Token")
-                                .font(.system(size: 22, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(PulsePalette.ink)
-                                .monospacedDigit()
+                            TokenAmount(value: heatmap.totalTokens, size: 22)
                         }
 
                         Spacer()
@@ -604,24 +644,24 @@ struct MenuBarDashboardView: View {
 
                 usageSelectedDayRow(selectedDay)
 
-                HStack(spacing: 0) {
+                summaryLayout {
                     usageMetric(
                         title: viewModel.t("usage.last30Days"),
-                        value: "\(DisplayFormat.tokens(heatmap.last30DaysTokens)) Token"
+                        value: "\(viewModel.tokenText(heatmap.last30DaysTokens)) Token"
                     )
-                    PulsePalette.divider.frame(width: 1, height: 34)
+                    if viewModel.abbreviateTokenCounts { PulsePalette.divider.frame(width: 1, height: 34) }
                     usageMetric(
                         title: viewModel.t("usage.activeDaysShort"),
                         value: heatmap.activeDays.formatted()
                     )
-                    PulsePalette.divider.frame(width: 1, height: 34)
+                    if viewModel.abbreviateTokenCounts { PulsePalette.divider.frame(width: 1, height: 34) }
                     usageMetric(
                         title: viewModel.t("usage.lifetime"),
                         value: account.accountTokenUsage?.summary.lifetimeTokens
-                            .map { "\(DisplayFormat.tokens($0)) Token" } ?? "—"
+                            .map { "\(viewModel.tokenText($0)) Token" } ?? "—"
                     )
                 }
-                .frame(height: 58)
+                .frame(height: viewModel.abbreviateTokenCounts ? 58 : nil)
 
                 Text(viewModel.t("usage.monthly"))
                     .font(.system(size: 13, weight: .semibold, design: .default))
@@ -659,27 +699,37 @@ struct MenuBarDashboardView: View {
                     .foregroundStyle(PulsePalette.muted)
             }
             Spacer()
-            Text(day.map { "\(DisplayFormat.integer($0.tokens)) Token" } ?? "—")
+            Text(day.map { "\(viewModel.tokenText($0.tokens)) Token" } ?? "—")
                 .font(.system(size: 13, weight: .semibold, design: .monospaced))
                 .foregroundStyle(PulsePalette.accent)
                 .monospacedDigit()
+                .multilineTextAlignment(.trailing)
         }
         .padding(.horizontal, 11)
         .frame(height: 48)
         .background(PulsePalette.surface.opacity(0.48), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
+    @ViewBuilder
     private func usageMetric(title: String, value: String) -> some View {
-        VStack(alignment: .center, spacing: 3) {
-            Text(title)
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-            Text(value)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
+        if viewModel.abbreviateTokenCounts {
+            VStack(alignment: .center, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 12, weight: .medium)).foregroundStyle(PulsePalette.muted)
+                Text(value)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced)).foregroundStyle(PulsePalette.ink)
+            }
+            .frame(maxWidth: .infinity)
+        } else {
+            LabeledContent {
+                Text(value).font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(PulsePalette.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.trailing)
+            } label: {
+                Text(title).font(.system(size: 12, weight: .medium)).foregroundStyle(PulsePalette.muted)
+            }
         }
-        .frame(maxWidth: .infinity)
     }
 
     private func usageMonthRow(_ month: TokenUsageMonthSummary, peak: Int64) -> some View {
@@ -701,11 +751,9 @@ struct MenuBarDashboardView: View {
             }
             .frame(height: 4)
 
-            Text("\(DisplayFormat.tokens(month.tokens)) Token")
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
-                .frame(width: 104, alignment: .trailing)
+            MarqueeLabel(text: "\(viewModel.tokenText(month.tokens)) Token",
+                         font: .system(size: 12, weight: .semibold, design: .monospaced), color: PulsePalette.ink)
+                .frame(width: viewModel.abbreviateTokenCounts ? 104 : 190, height: 16)
         }
         .frame(height: 23)
     }
@@ -762,7 +810,8 @@ struct MenuBarDashboardView: View {
     }
 
     private func usageDayAccessibilityLabel(_ day: TokenUsageHeatmapDay) -> String {
-        "\(usageDayLabel(day.date)) · \(DisplayFormat.integer(day.tokens)) Token"
+        DisplayFormat.dailyTokenUsage(date: day.date, tokens: day.tokens, language: viewModel.appLanguage,
+                                      abbreviated: viewModel.abbreviateTokenCounts)
     }
 
     private func scopedQuotaTitle(_ group: CodexScopedQuotaGroup) -> String {
@@ -1332,7 +1381,7 @@ struct MenuBarDashboardView: View {
                 title: viewModel.t("ledger.local"),
                 value: viewModel.isScanning && viewModel.snapshot.records.isEmpty
                     ? viewModel.t("ledger.indexing")
-                    : DisplayFormat.tokens(viewModel.localConversationTotalUsage.totalTokens),
+                    : viewModel.tokenText(viewModel.localConversationTotalUsage.totalTokens),
                 action: { page = .sessions }
             )
             .help(viewModel.t("local.exactHelp"))
@@ -1517,11 +1566,10 @@ struct MenuBarDashboardView: View {
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                                Text(DisplayFormat.tokens(context.contextInputTokens))
-                                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                                    .foregroundStyle(selected ? PulsePalette.accent : PulsePalette.ink)
-                                    .monospacedDigit()
-                                    .frame(width: 62, alignment: .trailing)
+                                MarqueeLabel(text: viewModel.tokenText(context.contextInputTokens),
+                                             font: .system(size: 13, weight: .semibold, design: .monospaced),
+                                             color: selected ? PulsePalette.accent : PulsePalette.ink)
+                                    .frame(width: viewModel.abbreviateTokenCounts ? 62 : 96, height: 18)
 
                                 PulseIcon(name: "arrow-right")
                                     .frame(width: 8, height: 8)
@@ -1533,7 +1581,7 @@ struct MenuBarDashboardView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(PulsePressStyle())
-                        .accessibilityLabel("\(context.displayTitle), \(viewModel.t("metric.context")) \(DisplayFormat.tokens(context.contextInputTokens))")
+                        .accessibilityLabel("\(context.displayTitle), \(viewModel.t("metric.context")) \(viewModel.tokenText(context.contextInputTokens))")
                     }
                 }
                 .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -1695,6 +1743,11 @@ struct MenuBarDashboardView: View {
         VStack(spacing: 14) {
             PulseSettingsGroup(title: viewModel.t("console.appearance")) {
                 themeSelectionRow
+                settingsDivider
+                SettingsToggleRow(title: viewModel.t("console.abbreviateTokens"), isOn: $viewModel.abbreviateTokenCounts) {
+                    viewModel.persistPreferences()
+                }
+                .accessibilityIdentifier("Settings.AbbreviateTokens")
                 settingsDivider
                 settingsMenuRow(title: viewModel.t("console.language"), value: viewModel.languageTitle(viewModel.appLanguage)) {
                     ForEach(AppLanguage.allCases) { language in
@@ -2485,10 +2538,10 @@ struct MenuBarDashboardView: View {
 
     private var currentReleaseNoteKeys: [String] {
         [
-            "update.releaseNote.roundedIcons",
-            "update.releaseNote.luminousHeatmap",
-            "update.releaseNote.pageBounds",
-            "update.releaseNote.astraPricing",
+            "update.releaseNote.tokenFormat",
+            "update.releaseNote.dailyRange",
+            "update.releaseNote.dayHover",
+            "update.releaseNote.fullCountRows",
         ]
     }
 
@@ -2656,74 +2709,6 @@ private struct TokenUsageMonthLabels: View {
     }
 }
 
-struct OverviewUsageCalendar: View {
-    let weeks: [[TokenUsageHeatmapDay]]
-    let chartLabel: String
-    let dayLabel: (TokenUsageHeatmapDay) -> String
-    let onSelect: (TokenUsageHeatmapDay) -> Void
-    static let weekCount = 16
-    static let weekdayWidth: CGFloat = 28
-    private let cellSize: CGFloat = 14.5
-    private let gap: CGFloat = 2.25
-    private let weekdays: [String]
-    private let monthLabels: [Int: String]
-
-    init(weeks: [[TokenUsageHeatmapDay]], locale: Locale, chartLabel: String,
-         dayLabel: @escaping (TokenUsageHeatmapDay) -> String,
-         onSelect: @escaping (TokenUsageHeatmapDay) -> Void) {
-        self.weeks = weeks
-        self.chartLabel = chartLabel
-        self.dayLabel = dayLabel
-        self.onSelect = onSelect
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .gmt
-        let formatter = DateFormatter()
-        formatter.locale = locale
-        formatter.timeZone = calendar.timeZone
-        weekdays = formatter.shortWeekdaySymbols
-        formatter.setLocalizedDateFormatFromTemplate("MMM")
-        var labels: [Int: String] = [:]
-        for (index, week) in weeks.enumerated() {
-            guard let first = week.first else { continue }
-            let monthStart = week.first { calendar.component(.day, from: $0.date) == 1 }
-            if let monthStart {
-                labels[index] = formatter.string(from: monthStart.date)
-            } else if index == 0 && calendar.component(.day, from: first.date) < 20 {
-                labels[index] = formatter.string(from: first.date)
-            }
-        }
-        monthLabels = labels
-    }
-
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 6) {
-            VStack(spacing: gap) {
-                ForEach(0..<7) { index in
-                    Text(weekdays[index])
-                        .font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
-                        .frame(width: Self.weekdayWidth, height: cellSize, alignment: .leading)
-                }
-            }
-            .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: gap) {
-                    ForEach(weeks.indices, id: \.self) { index in
-                        Color.clear.frame(width: cellSize, height: 16)
-                            .overlay(alignment: index > weeks.count - 3 ? .trailing : .leading) {
-                                if let label = monthLabels[index] {
-                                    Text(label).font(.system(size: 12)).foregroundStyle(PulsePalette.muted).fixedSize()
-                                }
-                            }
-                    }
-                }
-                .accessibilityHidden(true)
-                TokenUsageHeatmapGrid(weeks: weeks, cellSize: cellSize, cellSpacing: gap,
-                                      selectedDayKey: nil, onSelect: onSelect, chartLabel: chartLabel, dayLabel: dayLabel)
-            }
-        }
-    }
-}
-
 private struct TokenUsageHeatmapGrid: View {
     let weeks: [[TokenUsageHeatmapDay]]
     let cellSize: CGFloat
@@ -2838,13 +2823,7 @@ private struct LiveContextCard: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(viewModel.t("detail.currentContext"))
                         .font(.system(size: 13)).foregroundStyle(PulsePalette.muted)
-                    HStack(alignment: .firstTextBaseline, spacing: 5) {
-                        Text(DisplayFormat.integer(context.contextInputTokens))
-                            .font(.system(size: 30, weight: .regular))
-                            .tracking(-0.5).monospacedDigit()
-                        Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
-                    }
-                    .foregroundStyle(PulsePalette.ink)
+                    TokenAmount(value: context.contextInputTokens, size: 30, wrapsUnit: false)
                 }
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing, spacing: 4) {
@@ -2856,7 +2835,7 @@ private struct LiveContextCard: View {
                 }
             }
             ContextCapacityRuler(capacity: context.contextCapacityWindow, progress: (context.contextUsedPercent ?? 0) / 100)
-                .accessibilityLabel(context.contextCapacityWindow.map { viewModel.t("live.contextLimit", DisplayFormat.integer($0)) } ?? viewModel.t("live.single"))
+                .accessibilityLabel(context.contextCapacityWindow.map { viewModel.t("live.contextLimit", viewModel.tokenText($0)) } ?? viewModel.t("live.single"))
             HStack(spacing: 20) {
                 ContextTokenRow(direction: .cached, title: viewModel.t("live.cached"), value: context.lastRequest.cachedInputTokens)
                 PulsePalette.divider.frame(width: 1, height: 34)
@@ -2880,6 +2859,7 @@ private struct LiveContextCard: View {
 }
 
 private struct ContextCapacityRuler: View {
+    @EnvironmentObject private var viewModel: DashboardViewModel
     let capacity: Int64?
     let progress: Double
 
@@ -2899,7 +2879,7 @@ private struct ContextCapacityRuler: View {
             HStack {
                 Text("0")
                 Spacer(minLength: 0)
-                Text(capacity.map { DisplayFormat.integer($0) + " Token" } ?? "—")
+                Text(capacity.map { viewModel.tokenText($0) + " Token" } ?? "—")
             }
             .font(.system(size: 12)).monospacedDigit().foregroundStyle(PulsePalette.muted)
         }
@@ -3017,10 +2997,10 @@ private struct LiveTokenDetails: View {
 
     private var detailWindowText: String? {
         if showRuntimeWindow, let runtime = context.modelContextWindow {
-            return viewModel.t("live.runtime", DisplayFormat.tokens(runtime))
+            return viewModel.t("live.runtime", viewModel.tokenText(runtime))
         }
         return context.contextCapacityWindow.map {
-            viewModel.t("live.contextLimit", DisplayFormat.tokens($0))
+            viewModel.t("live.contextLimit", viewModel.tokenText($0))
         }
     }
 
@@ -3128,7 +3108,7 @@ private struct TokenScopeDetailSection: View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(.system(size: 13)).foregroundStyle(PulsePalette.muted)
-                ExactTokenNumber(value: headline, size: 32)
+                TokenAmount(value: headline, size: 32)
             }
             VStack(spacing: 8) {
                 DetailTokenMetric(direction: .input, title: inputTitle, value: inputValue)
@@ -3139,9 +3119,11 @@ private struct TokenScopeDetailSection: View {
     }
 }
 
-private struct ExactTokenNumber: View {
+private struct TokenAmount: View {
+    @EnvironmentObject private var viewModel: DashboardViewModel
     let value: Int64
     let size: CGFloat
+    var wrapsUnit = true
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
@@ -3149,17 +3131,25 @@ private struct ExactTokenNumber: View {
                 number.fixedSize()
                 Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                MarqueeLabel(text: DisplayFormat.integer(value), font: .system(size: size, weight: .regular), color: PulsePalette.ink)
-                    .frame(height: size * 1.2)
-                Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+            if wrapsUnit {
+                VStack(alignment: .leading, spacing: 2) {
+                    MarqueeLabel(text: viewModel.tokenText(value), font: .system(size: size, weight: .regular), color: PulsePalette.ink)
+                        .frame(height: size * 1.2)
+                    Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    MarqueeLabel(text: viewModel.tokenText(value), font: .system(size: size, weight: .regular), color: PulsePalette.ink)
+                        .frame(height: size * 1.2)
+                    Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted).fixedSize()
+                }
             }
         }
         .accessibilityElement(children: .combine)
     }
 
     private var number: some View {
-        Text(DisplayFormat.integer(value))
+        Text(viewModel.tokenText(value))
             .font(.system(size: size, weight: .regular))
             .monospacedDigit().foregroundStyle(PulsePalette.ink)
     }
@@ -3176,7 +3166,7 @@ private struct DetailTokenMetric: View {
                 .foregroundStyle(PulsePalette.muted)
             VStack(alignment: .leading, spacing: 5) {
                 MarqueeLabel(text: title, font: .system(size: 13), color: PulsePalette.muted).frame(height: 18)
-                ExactTokenNumber(value: value, size: 24)
+                TokenAmount(value: value, size: 24)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -3242,7 +3232,7 @@ private struct ContextTokenRow: View {
                 MarqueeLabel(text: title, font: .system(size: 12), color: PulsePalette.muted).frame(height: 17)
             }
             .foregroundStyle(PulsePalette.muted)
-            ExactTokenNumber(value: value, size: 18)
+            TokenAmount(value: value, size: 18)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: 60, alignment: .top)
@@ -3495,6 +3485,7 @@ private struct TokenFlowBar: View {
 }
 
 private struct TokenStat: View {
+    @EnvironmentObject private var viewModel: DashboardViewModel
     let title: String
     let value: Int64
     var alignment: HorizontalAlignment = .leading
@@ -3506,7 +3497,7 @@ private struct TokenStat: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(PulsePalette.muted)
 
-            Text(DisplayFormat.tokens(value))
+            Text(viewModel.tokenText(value))
                 .font(.system(size: 14, weight: .semibold, design: .default))
                 .foregroundStyle(PulsePalette.ink)
                 .monospacedDigit()
@@ -3627,6 +3618,7 @@ private struct QuotaPulseRow: View {
 }
 
 private struct PulseSessionRow: View {
+    @EnvironmentObject private var viewModel: DashboardViewModel
     let session: SessionSummary
     let title: String
     let subtitle: String
@@ -3646,11 +3638,9 @@ private struct PulseSessionRow: View {
                     color: PulsePalette.muted
                 )
                 .frame(height: 16)
-                Text("\(DisplayFormat.tokens(session.usage.totalTokens)) Token")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(PulsePalette.accent)
-                    .monospacedDigit()
-                    .fixedSize()
+                MarqueeLabel(text: "\(viewModel.tokenText(session.usage.totalTokens)) Token",
+                             font: .system(size: 13, weight: .semibold), color: PulsePalette.accent)
+                    .frame(width: viewModel.abbreviateTokenCounts ? 104 : 190, height: 18)
             }
         }
         .padding(.horizontal, 12)

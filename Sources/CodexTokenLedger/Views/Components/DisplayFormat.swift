@@ -1,21 +1,34 @@
 import Foundation
 
 enum DisplayFormat {
-    static func tokens(_ value: Int64) -> String {
-        if value >= 1_000_000_000 {
-            return String(format: "%.2fB", Double(value) / 1_000_000_000)
+    static func tokens(_ value: Int64, abbreviated: Bool, locale: Locale) -> String {
+        if abbreviated {
+            for (scale, suffix, decimals) in [(1_000_000_000_000, "T", 2), (1_000_000_000, "B", 2),
+                                              (1_000_000, "M", 2), (1_000, "K", 1)] {
+                if value.magnitude >= UInt64(scale) {
+                    let amount = (Double(value) / Double(scale))
+                        .formatted(.number.grouping(.never).precision(.fractionLength(decimals)).locale(locale))
+                    return amount + suffix
+                }
+            }
         }
-        if value >= 1_000_000 {
-            return String(format: "%.2fM", Double(value) / 1_000_000)
-        }
-        if value >= 1_000 {
-            return String(format: "%.1fK", Double(value) / 1_000)
-        }
-        return value.formatted()
+        return integer(value, locale: locale)
     }
 
-    static func integer(_ value: Int64) -> String {
-        value.formatted(.number.grouping(.automatic))
+    static func integer(_ value: Int64, locale: Locale = .current) -> String {
+        value.formatted(.number.grouping(.automatic).locale(locale))
+    }
+
+    static func dailyTokenUsage(date: Date, tokens: Int64, language: AppLanguage, abbreviated: Bool = false) -> String {
+        let locale = Locale(identifier: language.localeIdentifier)
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.calendar = Calendar(identifier: .gregorian)
+        // Match the account service's UTC day buckets, not the device's local date.
+        formatter.timeZone = .gmt
+        formatter.setLocalizedDateFormatFromTemplate("yMMMd")
+        let amount = Self.tokens(tokens, abbreviated: abbreviated, locale: locale)
+        return LocalizationCatalog.text("usage.dayDetail", language: language, arguments: [formatter.string(from: date), amount])
     }
 
     static func usd(_ value: Decimal) -> String {

@@ -487,7 +487,9 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             detailScope: TokenDetailScope = .context,
             tiboEvidence: Bool = false,
             canvasWidth: CGFloat = 340,
-            showOldestMonth: Bool = false
+            showOldestMonth: Bool = false,
+            usageRange: OverviewUsageRange = .monthToDate,
+            editingUsageRange: Bool = false
         ) throws -> CGSize {
             return try autoreleasepool {
                 viewModel.appTheme = theme
@@ -499,7 +501,9 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                     initialLegalDocument: legalDocument,
                     initiallyExpandedLiveDetails: initiallyExpandedLiveDetails,
                     initialDetailScope: detailScope,
-                    initiallyShowingTiboEvidence: tiboEvidence
+                    initiallyShowingTiboEvidence: tiboEvidence,
+                    initialOverviewUsageRange: usageRange,
+                    initiallyEditingUsageRange: editingUsageRange
                 )
                 .environmentObject(viewModel)
                 // Static test images cannot capture the desktop behind a real
@@ -613,6 +617,12 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             let size = try render(page: .overview, theme: theme, output: output, minimumHeight: 560, maximumHeight: 850)
             if theme == .dark { darkOverviewHeight = size.height }
             if theme == .light { lightOverviewHeight = size.height }
+            try render(page: .overview, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/daily-heatmap/home-editor-\(theme.rawValue).png"),
+                       minimumHeight: 560, maximumHeight: 850, editingUsageRange: true)
+            try render(page: .overview, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/daily-heatmap/home-thirty-\(theme.rawValue).png"),
+                       minimumHeight: 560, maximumHeight: 850, usageRange: .last30Days)
         }
         let activeTasksLightSize = try render(
             page: .activeTasks,
@@ -812,6 +822,17 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             }
         }
         viewModel.appLanguage = .zhHans
+        for compact in [false, true] {
+            viewModel.abbreviateTokenCounts = compact
+            for theme in [AppTheme.light, .dark] {
+                for destination in [MenuPopoverPage.overview, .tokenDetails, .usageHistory, .sessions, .activeTasks, .settings] {
+                    try render(page: destination, theme: theme,
+                               output: projectRoot.appendingPathComponent("build/token-display/\(destination.rawValue)-\(compact)-\(theme.rawValue).png"),
+                               minimumHeight: 650, canvasWidth: compact ? 420 : 340)
+                }
+            }
+        }
+        viewModel.abbreviateTokenCounts = false
         viewModel.accountErrorMessage = "Preview: account sync failed. Retry the connection."
         try render(page: .overview, theme: .light,
                    output: projectRoot.appendingPathComponent("build/ui-redesign/sync-error.png"), minimumHeight: 650)
@@ -991,10 +1012,10 @@ final class MenuBarVisualSmokeTests: XCTestCase {
     func testLocalizedVersionNotesFitTheUpdateCard() {
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         let keys = [
-            "update.releaseNote.roundedIcons",
-            "update.releaseNote.luminousHeatmap",
-            "update.releaseNote.pageBounds",
-            "update.releaseNote.astraPricing",
+            "update.releaseNote.tokenFormat",
+            "update.releaseNote.dailyRange",
+            "update.releaseNote.dayHover",
+            "update.releaseNote.fullCountRows",
         ]
 
         for language in AppLanguage.allCases where language != .system {
@@ -1064,26 +1085,6 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         }
     }
 
-    @MainActor
-    func testOverviewCalendarFitsLocalizedWeekdays() throws {
-        let weeks = Array(TokenUsageHeatmap.make(dailyBuckets: []).weeks.suffix(OverviewUsageCalendar.weekCount))
-        XCTAssertEqual(weeks.count, 16)
-        XCTAssertTrue(weeks.allSatisfy { $0.count == 7 })
-        for language in AppLanguage.allCases where language != .system {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: language.localeIdentifier)
-            for weekday in formatter.shortWeekdaySymbols {
-                let width = (weekday as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12)]).width
-                XCTAssertLessThanOrEqual(width, OverviewUsageCalendar.weekdayWidth, "\(language): \(weekday) would truncate")
-            }
-            let host = NSHostingView(rootView: OverviewUsageCalendar(
-                weeks: weeks, locale: formatter.locale, chartLabel: "Preview", dayLabel: { $0.dateKey }, onSelect: { _ in }
-            ))
-            XCTAssertLessThanOrEqual(host.fittingSize.width, 300)
-            XCTAssertLessThanOrEqual(host.fittingSize.height, 140)
-        }
-    }
-
     func testMenuPopoverUsesReadableTypeRamp() throws {
         let projectRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -1121,14 +1122,14 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(contents.contains("direction: .output"))
         XCTAssertTrue(contents.contains("private enum HeroTokenDirection"))
         XCTAssertTrue(contents.contains("PulseIcon(name: direction.iconName)"))
-        XCTAssertTrue(contents.contains("DisplayFormat.integer(context.contextInputTokens)"))
+        XCTAssertTrue(contents.contains("viewModel.tokenText(context.contextInputTokens)"))
         XCTAssertTrue(contents.contains("Text(viewModel.t(\"live.tokenDetail\"))"))
         XCTAssertTrue(contents.contains("viewModel.t(\"detail.currentContext\")"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.inputIncludesCache\")"))
         XCTAssertTrue(contents.contains("TokenScopeDetailSection("))
         XCTAssertTrue(contents.contains("DetailTokenMetric("))
-        XCTAssertTrue(contents.contains("DisplayFormat.integer(value)"))
-        XCTAssertTrue(contents.contains("private struct ExactTokenNumber"))
+        XCTAssertTrue(contents.contains("viewModel.tokenText(value)"))
+        XCTAssertTrue(contents.contains("private struct TokenAmount"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.perMillionTokens\")"))
         XCTAssertTrue(contents.contains("account.accountQuotaWindows.prefix(2)"))
         XCTAssertTrue(contents.contains("window.remainingPercent"))
@@ -1149,7 +1150,14 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(contents.contains(".allowsTightening(false)"))
         XCTAssertFalse(contents.contains(".lineLimit(2)"))
         XCTAssertFalse(contents.contains(".minimumScaleFactor"))
-        XCTAssertFalse(contents.contains(".fixedSize(horizontal: false"))
+        let metricStart = try XCTUnwrap(contents.range(of: "private func usageMetric(title:"))
+        let metricEnd = try XCTUnwrap(contents.range(of: "private func usageMonthRow("))
+        let metricRange = metricStart.lowerBound..<metricEnd.lowerBound
+        XCTAssertTrue(contents[metricRange].contains("LabeledContent"))
+        XCTAssertTrue(contents[metricRange].contains(".fixedSize(horizontal: false, vertical: true)"))
+        // Full Token counts may wrap within their summary rows, not resize the other pages.
+        let otherViews = contents.replacingCharacters(in: metricRange, with: "")
+        XCTAssertFalse(otherViews.contains(".fixedSize(horizontal: false"))
         XCTAssertFalse(contents.contains("design: .rounded"))
         XCTAssertFalse(contents.contains(".shadow("))
         XCTAssertFalse(contents.contains("flashOpacity"))

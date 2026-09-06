@@ -4,13 +4,13 @@
 
 ---
 
-版本：**2.4.1 (41)**
+版本：**2.5.1 (43)**
 
-日期：**2026-09-03**
-
-工具：**Xcode 26.4 / Swift 6.3**
+日期：**2026-09-06**
 
 ## 测试
+
+Xcode 26.4，运行环境为 Intel macOS 26.3。145 项测试中，144 项通过，1 项按需开启的 Tibo 在线审计跳过，0 项失败。
 
 ```bash
 xcodegen generate
@@ -21,70 +21,39 @@ xcodebuild test \
   -destination 'platform=macOS'
 ```
 
-结果：125 项测试，124 项通过，1 项网络测试跳过，0 项失败。
+本次覆盖：
 
-覆盖范围：
-
-- rollout Token 解析、去重和累计回退
-- 当前请求、当前轮次与任务累计
-- 多任务发现和标题来源
-- 账号 RPC、额度窗口与剩余时间预测
-- Token、JSON、JSONL、Sub2、CPA 和 Cockpit 导入
-- GPT-5.6 单次请求超长上下文费率
-- Tibo 来源过滤和周期状态
-- 七种语言
-- 菜单尺寸、主题、详情展开和长数字布局
+- Token 完整数值与 K / M / B / T 简写、七种语言、整数边界
+- 显示偏好保存与恢复、菜单栏即时切换，原始统计保持不变
+- 热力格日期与当天用量、UTC 跨日、跨月、闰年及自选日期范围
+- 完整使用记录不受首页筛选影响，单日跳转定位正确
+- 原有 Token 去重、累计、账号 RPC、额度和 Tibo 回归
 
 ## 界面
 
-已检查以下仓库内截图：
+本次检查的是 `NSHostingView` 测试渲染：
 
-```text
-docs/images/overview-light.png
-docs/images/token-details-light.png
-```
+- 主窗口仍为 340 × 680pt，固定底部导航
+- 340/420pt 画布下的完整和简写模式、浅色和深色页面
+- 热力图及范围编辑器的 280/300/380pt 布局
+- 首页小格尺寸不变，长区间可横向滚动
+- 完整数值汇总按行显示，数字、单位与底部导航不重叠
+- 长数字、七种语言、加载、空状态和错误状态
 
-固定条件：
+窗口使用透明 `NSPanel` 与原生菜单材质。测试渲染不能验证真实桌面的毛玻璃合成；鼠标悬停、键盘、VoiceOver 和 macOS 14 运行尚未实测。
 
-- `NSStatusItem` + 原生 `NSMenu`
-- 菜单宽 340pt，所有页面高 740pt
-- 主页面无 `ScrollView`
-- 详情展开前后菜单尺寸不变
-- 可见字号不小于 12pt
-- SwiftUI 根背景透明
-- 浅色、深色和跟随系统可即时切换
-- 应用内图标不使用 SVG
+## 分发
 
-## Release
+[GitHub Release v2.5.1](https://github.com/Lincb522/CodexLens/releases/tag/v2.5.1) · [发布工作流](https://github.com/Lincb522/CodexLens/actions/workflows/release.yml)
 
-[GitHub Release v2.4.1](https://github.com/Lincb522/CodexLens/releases/tag/v2.4.1)
+`v*` tag 工作流测试后生成通用架构 DMG、ZIP、SHA-256 清单和 Sparkle 更新源。安装包使用 Developer ID 签名，tag 发布不提交 Apple 公证；具体状态见对应发布页。
+
+下载后可验证：
 
 ```bash
-xcodebuild \
-  -project CodexTokenLedger.xcodeproj \
-  -scheme CodexTokenLedger \
-  -configuration Release \
-  -destination 'platform=macOS' \
-  -derivedDataPath build/DerivedData \
-  ARCHS='arm64 x86_64' \
-  ONLY_ACTIVE_ARCH=NO \
-  CODE_SIGNING_ALLOWED=NO \
-  build
-
-./scripts/package_release.sh
-codesign --verify --deep --strict --verbose=2 "dist/Codex Lens.app"
-lipo -archs "dist/Codex Lens.app/Contents/MacOS/Codex Lens"
-unzip -t dist/Codex-Lens-macOS.zip
+shasum -a 256 -c SHA256SUMS.txt
+unzip -t Codex-Lens-macOS.zip
+hdiutil verify Codex-Lens-macOS.dmg
+codesign --verify --deep --strict --verbose=2 "Codex Lens.app"
+lipo -archs "Codex Lens.app/Contents/MacOS/Codex Lens"
 ```
-
-本地 Release 构建验证：
-
-| 项目 | 结果 |
-| --- | --- |
-| 架构 | `x86_64 arm64` |
-| 应用名称 | `Codex Lens` |
-| 可执行文件 | `Codex Lens` |
-| Bundle ID | `com.tokenledger.CodexTokenLedger`（保持不变，兼容既有安装） |
-| 版本 | `2.4.1 (41)` |
-
-`v*` tag 工作流生成 Developer ID 签名、未经 Apple 公证的 DMG 与 ZIP；手动触发工作流可选择提交公证。

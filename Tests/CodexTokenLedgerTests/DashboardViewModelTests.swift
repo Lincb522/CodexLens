@@ -6,6 +6,7 @@ final class DashboardViewModelTests: XCTestCase {
     func testMenuBarShowsSelectedContextInputAndActiveTaskCount() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.ViewModel.\(UUID().uuidString)"))
         let viewModel = DashboardViewModel(defaults: defaults)
+        viewModel.abbreviateTokenCounts = true
         let first = context(id: "one", input: 600, updatedAt: Date())
         let second = context(id: "two", input: 1_200, updatedAt: Date().addingTimeInterval(-1))
         viewModel.liveContexts = [first, second]
@@ -19,6 +20,10 @@ final class DashboardViewModelTests: XCTestCase {
 
         viewModel.selectLiveContext(second.id)
         XCTAssertEqual(viewModel.menuBarText, "1.2K ×2")
+        viewModel.appLanguage = .english
+        viewModel.abbreviateTokenCounts = false
+        XCTAssertEqual(viewModel.menuBarText, "1,200 ×2")
+        XCTAssertEqual(viewModel.liveContext?.contextInputTokens, 1_200)
     }
 
     @MainActor
@@ -247,6 +252,8 @@ final class DashboardViewModelTests: XCTestCase {
             updatedAt: Date()
         )
 
+        XCTAssertEqual(viewModel.accountDailyValue(account), "2,000")
+        viewModel.abbreviateTokenCounts = true
         XCTAssertEqual(viewModel.accountDailyValue(account), "2.0K")
         XCTAssertTrue(viewModel.accountDailyTitle(account).contains("1/2"))
         XCTAssertFalse(viewModel.accountDailyTitle(account).contains("今日"))

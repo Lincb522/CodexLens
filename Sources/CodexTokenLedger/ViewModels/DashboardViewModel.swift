@@ -85,6 +85,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var threadMetadataByID: [String: CodexThreadMetadata]
     @Published var appTheme: AppTheme
     @Published var appLanguage: AppLanguage
+    @Published var abbreviateTokenCounts: Bool
     @Published var liveRefreshRate: LiveRefreshRate
     @Published var discoveryRate: DiscoveryRate
     @Published var accountRefreshRate: AccountRefreshRate
@@ -167,6 +168,7 @@ final class DashboardViewModel: ObservableObject {
         threadMetadataByID = [:]
         appTheme = AppTheme(rawValue: defaults.string(forKey: "appTheme") ?? "system") ?? .system
         appLanguage = AppLanguage(rawValue: defaults.string(forKey: "appLanguage") ?? "system") ?? .system
+        abbreviateTokenCounts = defaults.object(forKey: "abbreviateTokenCounts") as? Bool ?? false
         liveRefreshRate = LiveRefreshRate(rawValue: defaults.double(forKey: "liveRefreshRate")) ?? .two
         discoveryRate = DiscoveryRate(rawValue: defaults.double(forKey: "discoveryRate")) ?? .ten
         accountRefreshRate = AccountRefreshRate(rawValue: defaults.double(forKey: "accountRefreshRate")) ?? .fiveMinutes
@@ -259,7 +261,11 @@ final class DashboardViewModel: ObservableObject {
 
     func accountDailyValue(_ account: CodexAccountUsageSnapshot) -> String {
         account.accountTokenUsage?.latestDailyUsage
-            .map { DisplayFormat.tokens($0.tokens) } ?? "—"
+            .map { tokenText($0.tokens) } ?? "—"
+    }
+
+    func tokenText(_ value: Int64) -> String {
+        DisplayFormat.tokens(value, abbreviated: abbreviateTokenCounts, locale: Locale(identifier: appLanguage.localeIdentifier))
     }
 
     func accountDailyTitle(_ account: CodexAccountUsageSnapshot) -> String {
@@ -290,7 +296,7 @@ final class DashboardViewModel: ObservableObject {
         case .contextUsed:
             guard let context = liveContext else { return "—" }
             let taskSuffix = showConcurrentTaskCount && activeTaskCount > 1 ? " ×\(activeTaskCount)" : ""
-            return "\(DisplayFormat.tokens(context.contextInputTokens))\(taskSuffix)"
+            return "\(tokenText(context.contextInputTokens))\(taskSuffix)"
         case .requestAPICost:
             guard let total = liveRequestAPIUSD?.total else { return "—" }
             return "≈\(DisplayFormat.usd(total))"
@@ -298,7 +304,7 @@ final class DashboardViewModel: ObservableObject {
             return selectedAccount?.preferredMenuWindow.map { "\(Int($0.remainingPercent.rounded()))%" } ?? "—"
         case .weeklyRemaining:
             return selectedAccount?.weeklyWindow.map { "\(Int($0.remainingPercent.rounded()))%" } ?? "—"
-        case .tokens: return DisplayFormat.tokens(localConversationTotalUsage.totalTokens)
+        case .tokens: return tokenText(localConversationTotalUsage.totalTokens)
         case .credits:
             if selectedAccount?.credits?.unlimited == true { return "∞" }
             if let balance = selectedAccount?.credits?.balance {
@@ -924,6 +930,7 @@ final class DashboardViewModel: ObservableObject {
         defaults.set(pendingOAuthHomePath, forKey: "pendingOAuthHomePath")
         defaults.set(appTheme.rawValue, forKey: "appTheme")
         defaults.set(appLanguage.rawValue, forKey: "appLanguage")
+        defaults.set(abbreviateTokenCounts, forKey: "abbreviateTokenCounts")
         defaults.set(liveRefreshRate.rawValue, forKey: "liveRefreshRate")
         defaults.set(discoveryRate.rawValue, forKey: "discoveryRate")
         defaults.set(accountRefreshRate.rawValue, forKey: "accountRefreshRate")
