@@ -2,6 +2,59 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class BillingCalculatorTests: XCTestCase {
+    func testGPT6AstraUsesStandardRatesAtTheExactLongContextThreshold() {
+        let usage = TokenUsage(inputTokens: 272_000, cachedInputTokens: 100_000,
+                               cacheWriteInputTokens: 20_000, outputTokens: 2_000,
+                               reasoningOutputTokens: 500)
+        let cost = BillingCalculator.cost(for: usage, model: "gpt-6-astra")
+
+        XCTAssertTrue(cost.isPriced)
+        XCTAssertFalse(cost.isLongContext)
+        XCTAssertEqual(cost.input, Decimal(string: "1.52"))
+        XCTAssertEqual(cost.cachedInput, Decimal(string: "0.1"))
+        XCTAssertEqual(cost.cacheWrite, Decimal(string: "0.25"))
+        XCTAssertEqual(cost.output, Decimal(string: "0.1"))
+        XCTAssertEqual(cost.total, Decimal(string: "1.97"))
+    }
+
+    func testGPT6AstraAppliesLongContextRatesToEveryBucketAboveThreshold() {
+        let usage = TokenUsage(inputTokens: 272_001, cachedInputTokens: 100_000,
+                               cacheWriteInputTokens: 20_000, outputTokens: 2_000,
+                               reasoningOutputTokens: 500)
+        let cost = BillingCalculator.cost(for: usage, model: "gpt-6-astra")
+
+        XCTAssertTrue(cost.isPriced)
+        XCTAssertTrue(cost.isLongContext)
+        XCTAssertEqual(cost.input, Decimal(string: "3.04002"))
+        XCTAssertEqual(cost.cachedInput, Decimal(string: "0.2"))
+        XCTAssertEqual(cost.cacheWrite, Decimal(string: "0.5"))
+        XCTAssertEqual(cost.output, Decimal(string: "0.15"))
+        XCTAssertEqual(cost.total, Decimal(string: "3.89002"))
+    }
+
+    func testGPT6AstraTurnAndTaskTotalsPreserveRequestBoundaries() {
+        let usage = TokenUsage(inputTokens: 150_000, cachedInputTokens: 100_000, outputTokens: 1_000)
+        let totalUsage = TokenUsage(inputTokens: 300_000, cachedInputTokens: 200_000, outputTokens: 2_000)
+        let calls = [
+            CodexModelCallUsage(id: "astra-1", timestamp: .distantPast, model: "gpt-6-astra",
+                                usage: usage, cumulativeTaskUsage: usage),
+            CodexModelCallUsage(id: "astra-2", timestamp: .distantPast, model: "gpt-6-astra",
+                                usage: usage, cumulativeTaskUsage: totalUsage),
+        ]
+        let turn = BillingCalculator.cost(calls: calls)
+        XCTAssertTrue(turn.isPriced)
+        XCTAssertFalse(turn.isLongContext)
+        XCTAssertEqual(turn.total, Decimal(string: "1.3"))
+
+        let record = UsageRecord(id: "astra|cumulative", timestamp: .distantPast,
+                                 sessionID: "astra", sourcePath: "/tmp/astra.jsonl", projectPath: nil,
+                                 model: "gpt-6-astra", reasoningEffort: nil, usage: totalUsage)
+        let task = BillingCalculator.total(records: [record])
+        XCTAssertTrue(task.isPriced)
+        XCTAssertFalse(task.isLongContext)
+        XCTAssertEqual(task.total, turn.total)
+    }
+
     func testAuthoritativeTotalWithoutBreakdownIsCountedButNeverPriced() {
         let usage = TokenUsage(
             inputTokens: 0,

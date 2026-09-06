@@ -6,7 +6,7 @@ struct PricingCatalog: Sendable {
     /// the public model limit with the active runtime budget.
     static func publishedContextWindow(for rawModel: String) -> Int64? {
         switch normalize(model: rawModel) {
-        case "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.4":
+        case "gpt-6-astra", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5", "gpt-5.4":
             return 1_050_000
         default:
             return nil
@@ -14,10 +14,12 @@ struct PricingCatalog: Sendable {
     }
 
     /// Published API standard-processing rates, USD per 1M text tokens.
-    /// GPT-5.6 API cache writes are 1.25× uncached input. Requests over 272K
+    /// GPT-6 Astra and GPT-5.6 API cache writes are 1.25× uncached input. Requests over 272K
     /// input tokens use 2× input-side and 1.5× output-side pricing for the
     /// entire request. The threshold is deliberately request-scoped.
     static let apiRates: [TokenRate] = [
+        api("gpt-6-astra", "GPT-6 Astra", 10, 1, 50, hasLongContextTier: true,
+            sourceNote: "https://developers.openai.com/api/docs/models/gpt-6-astra, verified 2026-09-06"),
         api("gpt-5.6-sol", "GPT-5.6 Sol", 4, 0.4, 20, hasLongContextTier: true),
         api("gpt-5.6-terra", "GPT-5.6 Terra", 2, 0.2, 12, hasLongContextTier: true),
         api("gpt-5.6-luna", "GPT-5.6 Luna", 0.2, 0.02, 1.2, hasLongContextTier: true),
@@ -56,7 +58,8 @@ struct PricingCatalog: Sendable {
         _ input: Decimal,
         _ cached: Decimal,
         _ output: Decimal,
-        hasLongContextTier: Bool = false
+        hasLongContextTier: Bool = false,
+        sourceNote: String = "OpenAI API and ChatGPT rate cards, verified 2026-08-29"
     ) -> TokenRate {
         TokenRate(
             modelKey: key,
@@ -68,7 +71,7 @@ struct PricingCatalog: Sendable {
             longContextThreshold: hasLongContextTier ? 272_000 : nil,
             longContextInputMultiplier: 2,
             longContextOutputMultiplier: Decimal(string: "1.5")!,
-            sourceNote: "OpenAI API and ChatGPT rate cards, verified 2026-08-29"
+            sourceNote: sourceNote
         )
     }
 }

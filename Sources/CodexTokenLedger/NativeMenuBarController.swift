@@ -2,9 +2,6 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// Uses the same presentation primitive as CodexBar: a real `NSStatusItem`
-/// attached to a native `NSMenu`. AppKit owns the complete menu window and its
-/// system backdrop blur; SwiftUI only supplies transparent menu content.
 @MainActor
 final class CodexTokenLedgerAppDelegate: NSObject, NSApplicationDelegate {
     private let viewModel = DashboardViewModel()
@@ -29,154 +26,123 @@ final class CodexTokenLedgerAppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @MainActor
-final class NativeMenuBarController: NSObject, NSMenuDelegate {
+final class NativeMenuBarController: NSObject, NSWindowDelegate {
     static let contentWidth = MenuBarDashboardView.contentWidth
 
     private let viewModel: DashboardViewModel
     private let updateService: AppUpdateService
     private let statusItem: NSStatusItem
-    private let menu = NativeDashboardMenu()
-    private let dashboardItem = NativeDashboardMenuItem()
-    private let hostingView: NativeDashboardHostingView
+    private let statusBar: NSStatusBar
+    private let panel: FrostedDashboardPanel
     private var updateObservation: AnyCancellable?
     private var themeObservation: AnyCancellable?
-    private var layoutObservation: AnyCancellable?
-    private var settledLayoutWorkItem: DispatchWorkItem?
+    private var localClickMonitor: Any?
+    private var globalClickMonitor: Any?
     private var pollingTimer: Timer?
     private var lastAccountTick = Date.distantPast
 
-    init(
-        viewModel: DashboardViewModel,
-        updateService: AppUpdateService,
-        statusBar: NSStatusBar = .system
-    ) {
+    init(viewModel: DashboardViewModel, updateService: AppUpdateService, statusBar: NSStatusBar = .system) {
         self.viewModel = viewModel
         self.updateService = updateService
+        self.statusBar = statusBar
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
-        hostingView = NativeDashboardHostingView(
-            rootView: AnyView(
-                MenuBarDashboardView(updateService: updateService)
-                    .environmentObject(viewModel)
-            )
-        )
+        panel = FrostedDashboardPanel(content: AnyView(
+            MenuBarDashboardView(updateService: updateService).environmentObject(viewModel)
+        ))
         super.init()
+        panel.delegate = self
+        panel.onDismiss = { [weak self] in self?.dismissDashboard() }
         configureStatusItem()
-        configureNativeMenu()
         observeViewModel()
+        applyAppearance()
         startPolling()
     }
 
     func stop() {
+        dismissDashboard()
         pollingTimer?.invalidate()
         pollingTimer = nil
         updateObservation?.cancel()
-        updateObservation = nil
         themeObservation?.cancel()
+        updateObservation = nil
         themeObservation = nil
-        layoutObservation?.cancel()
-        layoutObservation = nil
-        settledLayoutWorkItem?.cancel()
-        settledLayoutWorkItem = nil
-        statusItem.menu = nil
-        NSStatusBar.system.removeStatusItem(statusItem)
+        panel.close()
+        statusBar.removeStatusItem(statusItem)
     }
 
-    func menuWillOpen(_ menu: NSMenu) {
+    @objc private func toggleDashboard() {
+        if panel.isVisible { dismissDashboard() } else { showDashboard() }
+    }
+
+    private func showDashboard() {
+        guard let button = statusItem.button, let window = button.window else { return }
+        let anchor = window.convertToScreen(button.convert(button.bounds, to: nil))
+        let screen = window.screen ?? NSScreen.main
+        guard let visibleFrame = screen?.visibleFrame else { return }
+        panel.setFrame(FrostedDashboardPanel.frame(anchoredTo: anchor, visibleFrame: visibleFrame), display: true)
         applyAppearance()
-        resizeDashboardIfNeeded(force: true)
+        panel.makeKeyAndOrderFront(nil)
+        button.highlight(true)
         viewModel.refreshLaunchAtLoginState()
         viewModel.scheduledLiveContextTick()
+        localClickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if event.window !== self.panel && event.window !== self.statusItem.button?.window {
+                    self.dismissDashboard()
+                }
+            }
+            return event
+        }
+        globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            MainActor.assumeIsolated { self?.dismissDashboard() }
+        }
     }
 
-    func menuDidOpen(_ menu: NSMenu) {}
+    private func dismissDashboard() {
+        if let localClickMonitor { NSEvent.removeMonitor(localClickMonitor) }
+        if let globalClickMonitor { NSEvent.removeMonitor(globalClickMonitor) }
+        localClickMonitor = nil
+        globalClickMonitor = nil
+        panel.orderOut(nil)
+        statusItem.button?.highlight(false)
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        if panel.attachedSheet == nil { dismissDashboard() }
+    }
 
     private func configureStatusItem() {
         guard let button = statusItem.button else { return }
         button.imageScaling = .scaleProportionallyDown
         button.imagePosition = .imageLeading
         button.font = .monospacedSystemFont(ofSize: 12.5, weight: .medium)
+        button.target = self
+        button.action = #selector(toggleDashboard)
         button.setAccessibilityTitle("Codex Lens")
         button.setAccessibilityIdentifier("CodexTokenLedger.StatusItem")
         refreshStatusItemLabel()
     }
 
-    private func configureNativeMenu() {
-        menu.autoenablesItems = false
-        menu.delegate = self
-
-        hostingView.wantsLayer = true
-        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
-        // Keep SwiftUI's ideal content height available even after an open
-        // NSMenu has temporarily grown for an expanded details transition.
-        hostingView.sizingOptions = [.intrinsicContentSize]
-        hostingView.frame = NSRect(
-            origin: .zero,
-            size: NSSize(width: Self.contentWidth, height: 1)
-        )
-
-        dashboardItem.title = ""
-        dashboardItem.isEnabled = true
-        dashboardItem.view = hostingView
-        menu.addItem(dashboardItem)
-        statusItem.menu = menu
-
-        applyAppearance()
-        resizeDashboardIfNeeded(force: true)
+    private func observeViewModel() {
+        themeObservation = viewModel.$appTheme.removeDuplicates().sink { [weak self] theme in
+            self?.applyAppearance(theme)
+        }
+        updateObservation = viewModel.objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in
+            self?.refreshStatusItemLabel()
+        }
     }
 
-    private func observeViewModel() {
-        // `objectWillChange` fires before an @Published value is assigned. Use
-        // the theme publisher's emitted value directly so the open native menu
-        // changes appearance synchronously instead of waiting for it to close.
-        themeObservation = viewModel.$appTheme
-            .removeDuplicates()
-            .sink { [weak self] theme in
-                self?.applyAppearance(theme)
-            }
-
-        updateObservation = viewModel.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
-                    self.refreshStatusItemLabel()
-                    self.resizeDashboardIfNeeded()
-                }
-            }
-
-        // Page and console-tab state live in SwiftUI. The revision bridges
-        // those changes back to AppKit so the NSMenu item is remeasured both
-        // immediately and after the page transition finishes. Without this,
-        // a shorter console can remain centered in the taller overview frame,
-        // leaving empty bands above and below it.
-        layoutObservation = viewModel.$menuLayoutRevision
-            .dropFirst()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                self.settledLayoutWorkItem?.cancel()
-                DispatchQueue.main.async { [weak self] in
-                    self?.resizeDashboardIfNeeded(force: true)
-                }
-
-                // Page transitions and the detail view's deferred unmount can
-                // briefly report an intermediate fitting height. Only the
-                // newest state gets a settled pass, so stale layout work cannot
-                // enlarge the menu again after the user has collapsed it.
-                let workItem = DispatchWorkItem { [weak self] in
-                    guard let self else { return }
-                    self.hostingView.invalidateIntrinsicContentSize()
-                    // Do not force an identical second NSMenu update. The
-                    // delayed pass only exists to catch a genuinely changed
-                    // post-transition intrinsic height; redundant updates can
-                    // visibly nudge an already settled menu window.
-                    self.resizeDashboardIfNeeded()
-                }
-                self.settledLayoutWorkItem = workItem
-                DispatchQueue.main.asyncAfter(
-                    deadline: .now() + 0.62,
-                    execute: workItem
-                )
-            }
+    private func applyAppearance(_ theme: AppTheme? = nil) {
+        let appearance: NSAppearance?
+        switch theme ?? viewModel.appTheme {
+        case .system: appearance = nil
+        case .light: appearance = NSAppearance(named: .aqua)
+        case .dark: appearance = NSAppearance(named: .darkAqua)
+        }
+        NSApp.appearance = appearance
+        panel.appearance = appearance
+        panel.contentView?.appearance = appearance
     }
 
     private func startPolling() {
@@ -251,77 +217,89 @@ final class NativeMenuBarController: NSObject, NSMenuDelegate {
         return image
     }
 
-    private func applyAppearance(_ theme: AppTheme? = nil) {
-        let appearance: NSAppearance?
-        switch theme ?? viewModel.appTheme {
-        case .system:
-            // Nil is important: assigning the current effective appearance
-            // would freeze the menu when macOS changes between light and dark.
-            appearance = nil
-        case .light:
-            appearance = NSAppearance(named: .aqua)
-        case .dark:
-            appearance = NSAppearance(named: .darkAqua)
-        }
-
-        // NSMenu owns the glass window. Applying the theme only to SwiftUI
-        // changes text but leaves that window in its previous appearance.
-        // Keep the application, menu, hosting view and already-open menu window
-        // on the same explicit appearance, or nil when following macOS.
-        NSApp.appearance = appearance
-        menu.appearance = appearance
-        hostingView.appearance = appearance
-        hostingView.window?.appearance = appearance
-        hostingView.needsLayout = true
-        hostingView.needsDisplay = true
-        hostingView.window?.contentView?.needsDisplay = true
-        hostingView.window?.invalidateShadow()
-        menu.update()
-    }
-
-    private func resizeDashboardIfNeeded(force: Bool = false) {
-        hostingView.invalidateIntrinsicContentSize()
-        hostingView.frame = NSRect(
-            origin: .zero,
-            size: NSSize(width: Self.contentWidth, height: max(1, hostingView.frame.height))
-        )
-        hostingView.layoutSubtreeIfNeeded()
-        let intrinsicHeight = hostingView.intrinsicContentSize.height
-        let idealHeight = intrinsicHeight.isFinite && intrinsicHeight > 0
-            ? intrinsicHeight
-            : hostingView.fittingSize.height
-        let measuredHeight = max(1, ceil(idealHeight))
-        guard force || abs(hostingView.frame.height - measuredHeight) > 0.5 else { return }
-        hostingView.frame = NSRect(
-            origin: .zero,
-            size: NSSize(width: Self.contentWidth, height: measuredHeight)
-        )
-        hostingView.layoutSubtreeIfNeeded()
-        menu.update()
-    }
 }
 
-private final class NativeDashboardMenu: NSMenu {
+/// A single behind-window material owns the entire surface, including its edges.
+@MainActor
+final class FrostedDashboardPanel: NSPanel {
+    let backdrop = NSVisualEffectView()
+    private let viewport = NSScrollView()
+    let hostingView: NSHostingView<AnyView>
+    var onDismiss: (() -> Void)?
+
+    init(content: AnyView) {
+        hostingView = TransparentDashboardHostingView(rootView: content)
+        super.init(contentRect: NSRect(x: 0, y: 0, width: MenuBarDashboardView.contentWidth, height: MenuBarDashboardView.primaryPageHeight),
+                   styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        isReleasedWhenClosed = false
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = true
+        hidesOnDeactivate = false
+        isMovable = false
+        level = .popUpMenu
+        collectionBehavior = [.transient, .moveToActiveSpace, .fullScreenAuxiliary]
+        animationBehavior = .none
+        backdrop.material = .menu
+        backdrop.blendingMode = .behindWindow
+        backdrop.state = .active
+        backdrop.wantsLayer = true
+        backdrop.layer?.cornerRadius = 14
+        backdrop.layer?.masksToBounds = true
+        backdrop.layer?.borderWidth = 0.5
+        backdrop.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.24).cgColor
+        contentView = backdrop
+
+        // Small displays retain the full layout with native vertical scrolling;
+        // at the normal 680 pt height there is no scroll range or scroller.
+        viewport.drawsBackground = false
+        viewport.contentView.drawsBackground = false
+        viewport.borderType = .noBorder
+        viewport.hasVerticalScroller = true
+        viewport.autohidesScrollers = true
+        viewport.scrollerStyle = .overlay
+        viewport.horizontalScrollElasticity = .none
+        viewport.verticalScrollElasticity = .none
+        viewport.translatesAutoresizingMaskIntoConstraints = false
+        hostingView.frame = NSRect(x: 0, y: 0, width: MenuBarDashboardView.contentWidth, height: MenuBarDashboardView.primaryPageHeight)
+        hostingView.sizingOptions = []
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        viewport.documentView = hostingView
+        backdrop.addSubview(viewport)
+        NSLayoutConstraint.activate([
+            viewport.leadingAnchor.constraint(equalTo: backdrop.leadingAnchor),
+            viewport.trailingAnchor.constraint(equalTo: backdrop.trailingAnchor),
+            viewport.topAnchor.constraint(equalTo: backdrop.topAnchor),
+            viewport.bottomAnchor.constraint(equalTo: backdrop.bottomAnchor)
+        ])
+    }
+
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+
+    override func cancelOperation(_ sender: Any?) { onDismiss?() }
+
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        guard event.type == .keyDown,
-              event.modifierFlags.intersection([.command, .option, .control, .shift]) == .command
-        else {
-            return super.performKeyEquivalent(with: event)
-        }
-        if event.charactersIgnoringModifiers?.lowercased() == "q" {
+        if event.modifierFlags.intersection([.command, .option, .control, .shift]) == .command,
+           event.charactersIgnoringModifiers?.lowercased() == "q" {
             NSApp.terminate(nil)
             return true
         }
         return super.performKeyEquivalent(with: event)
     }
+
+    static func frame(anchoredTo anchor: NSRect, visibleFrame: NSRect) -> NSRect {
+        let margin: CGFloat = 8
+        let width = MenuBarDashboardView.contentWidth
+        let top = min(anchor.minY - 6, visibleFrame.maxY - margin)
+        let height = min(MenuBarDashboardView.primaryPageHeight, max(1, top - visibleFrame.minY - margin))
+        let x = min(max(anchor.midX - width / 2, visibleFrame.minX + margin), visibleFrame.maxX - width - margin)
+        return NSRect(x: x, y: top - height, width: width, height: height)
+    }
 }
 
-/// Prevents AppKit from painting a full-row selection behind the dashboard.
-private final class NativeDashboardMenuItem: NSMenuItem {
-    override var isHighlighted: Bool { false }
-}
-
-private final class NativeDashboardHostingView: NSHostingView<AnyView> {
+private final class TransparentDashboardHostingView: NSHostingView<AnyView> {
     override var allowsVibrancy: Bool { true }
     override var isOpaque: Bool { false }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }

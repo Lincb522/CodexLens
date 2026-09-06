@@ -97,11 +97,11 @@ struct TokenUsageHeatmap: Hashable, Sendable {
     private static func intensity(tokens: Int64, peak: Int64) -> Int {
         guard tokens > 0, peak > 0 else { return 0 }
         guard tokens < peak else { return 4 }
-        let normalized = log1p(Double(tokens)) / log1p(Double(peak))
+        let normalized = Double(tokens) / Double(peak)
         switch normalized {
-        case ..<0.40: return 1
-        case ..<0.62: return 2
-        case ..<0.82: return 3
+        case ..<0.25: return 1
+        case ..<0.50: return 2
+        case ..<0.75: return 3
         default: return 4
         }
     }

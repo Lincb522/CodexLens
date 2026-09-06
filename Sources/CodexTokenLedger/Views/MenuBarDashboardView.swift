@@ -4,6 +4,7 @@ import SwiftUI
 enum MenuPopoverPage: String {
     case overview
     case usageHistory
+    case tokenDetails
     case quotaDetails
     case activeTasks
     case tiboSignal
@@ -52,10 +53,7 @@ enum ConsolePanel: String, CaseIterable, Identifiable {
 }
 
 private enum PulsePalette {
-    // The native NSMenu remains the translucent canvas. Keep the colour system
-    // deliberately narrow: one desaturated blue family, neutral glass surfaces
-    // and semantic colour only for actual state. Avoid stacked cyan/teal tints,
-    // heavy borders and milky overlays—the combination reads muddy on menu glass.
+    // The native panel owns the backdrop; these fills only group content.
     private static func adaptiveColor(light: NSColor, dark: NSColor) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
             let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
@@ -74,37 +72,23 @@ private enum PulsePalette {
         )
     }
 
-    static let surface = adaptiveColor(
-        light: NSColor(srgbRed: 0.98, green: 0.99, blue: 1.0, alpha: 0.48),
-        dark: NSColor(srgbRed: 0.13, green: 0.15, blue: 0.18, alpha: 0.58)
-    )
-    static let surfaceRaised = adaptiveColor(
-        light: NSColor(srgbRed: 0.88, green: 0.92, blue: 0.96, alpha: 0.70),
-        dark: NSColor(srgbRed: 0.20, green: 0.23, blue: 0.27, alpha: 0.78)
-    )
-    static let surfaceHover = adaptiveColor(
-        light: NSColor(srgbRed: 0.79, green: 0.86, blue: 0.92, alpha: 0.34),
-        dark: NSColor(srgbRed: 0.31, green: 0.38, blue: 0.45, alpha: 0.38)
-    )
-    // Light mode uses a cool blue graphite rather than neutral black. It keeps
-    // the required contrast while feeling connected to the atmospheric hero
-    // instead of looking printed on top of it.
+    static let surface = adaptive(light: 1, dark: 0.86, alpha: 0.018)
+    static let surfaceRaised = adaptive(light: 1, dark: 0.86, alpha: 0.045)
+    static let surfaceHover = adaptive(light: 0.38, dark: 1, alpha: 0.09)
     static let ink = adaptiveColor(
-        light: NSColor(srgbRed: 0.08, green: 0.16, blue: 0.23, alpha: 1),
-        dark: NSColor(calibratedWhite: 0.95, alpha: 1)
+        light: NSColor(srgbRed: 0.22, green: 0.25, blue: 0.30, alpha: 1),
+        dark: NSColor(calibratedWhite: 0.90, alpha: 1)
     )
     static let muted = adaptiveColor(
-        light: NSColor(srgbRed: 0.31, green: 0.40, blue: 0.48, alpha: 1),
-        dark: NSColor(calibratedWhite: 0.68, alpha: 1)
+        light: NSColor(srgbRed: 0.36, green: 0.39, blue: 0.43, alpha: 1),
+        dark: NSColor(calibratedWhite: 0.76, alpha: 1)
     )
-    static let faint = adaptiveColor(
-        light: NSColor(srgbRed: 0.45, green: 0.52, blue: 0.59, alpha: 1),
-        dark: NSColor(calibratedWhite: 0.56, alpha: 1)
-    )
+    static let faint = muted
     static let accent = adaptiveColor(
-        light: NSColor(srgbRed: 0.10, green: 0.39, blue: 0.68, alpha: 1),
-        dark: NSColor(srgbRed: 0.40, green: 0.66, blue: 0.92, alpha: 1)
+        light: NSColor(srgbRed: 0.20, green: 0.36, blue: 0.72, alpha: 1),
+        dark: NSColor(srgbRed: 0.43, green: 0.59, blue: 0.96, alpha: 1)
     )
+
     static let lime = adaptiveColor(
         light: NSColor(srgbRed: 0.02, green: 0.45, blue: 0.34, alpha: 1),
         dark: NSColor(srgbRed: 0.42, green: 0.88, blue: 0.70, alpha: 1)
@@ -117,37 +101,32 @@ private enum PulsePalette {
         light: NSColor(srgbRed: 0.66, green: 0.41, blue: 0.05, alpha: 1),
         dark: NSColor(srgbRed: 0.93, green: 0.70, blue: 0.29, alpha: 1)
     )
-    static let divider = adaptive(light: 0.14, dark: 0.92, alpha: 0.11)
-    static let selectionInk = adaptive(light: 0.98, dark: 0.98)
-    static let heroInk = adaptive(light: 0.99, dark: 0.98)
-    static let heroMuted = adaptive(light: 0.99, dark: 0.98, alpha: 0.74)
-    static let heroTile = adaptive(light: 1.0, dark: 1.0, alpha: 0.14)
-    static let focusSurface = adaptiveColor(
-        light: NSColor(srgbRed: 0.09, green: 0.25, blue: 0.39, alpha: 0.84),
-        dark: NSColor(srgbRed: 0.075, green: 0.16, blue: 0.24, alpha: 0.78)
+    static let divider = adaptive(light: 0.2, dark: 0.95, alpha: 0.12)
+
+    static let selectionInk = adaptiveColor(
+        light: NSColor(calibratedWhite: 0.98, alpha: 1),
+        dark: NSColor(srgbRed: 0.08, green: 0.16, blue: 0.23, alpha: 1)
     )
-    static let focusSurfaceRaised = adaptive(light: 1.0, dark: 1.0, alpha: 0.10)
-    static let heroLowerInk = adaptive(light: 0.99, dark: 0.98)
-    static let heroLowerMuted = adaptive(light: 0.99, dark: 0.98, alpha: 0.76)
-    // A restrained adaptive tint sits above SwiftUI's thin material.
-    // It keeps the drawer readable while allowing the hero gradient beneath
-    // to remain faintly visible as real frosted glass.
-    static let detailGlassTint = adaptiveColor(
-        light: NSColor(srgbRed: 0.94, green: 0.975, blue: 1.00, alpha: 0.95),
-        dark: NSColor(srgbRed: 0.035, green: 0.085, blue: 0.13, alpha: 0.94)
-    )
-    static let detailInk = adaptiveColor(
-        light: NSColor(srgbRed: 0.07, green: 0.16, blue: 0.23, alpha: 1),
-        dark: NSColor(calibratedWhite: 0.97, alpha: 1)
-    )
-    static let detailMuted = adaptiveColor(
-        light: NSColor(srgbRed: 0.29, green: 0.40, blue: 0.49, alpha: 1),
-        dark: NSColor(calibratedWhite: 0.76, alpha: 1)
-    )
-    static let detailDivider = adaptive(light: 0.12, dark: 0.90, alpha: 0.13)
+    static let detailMuted = muted
+
+    static func heatmapGlassTint(intensity: Int) -> Color {
+        let dark: NSColor
+        switch intensity {
+        case 1: dark = NSColor(srgbRed: 0.26, green: 0.36, blue: 0.54, alpha: 1)
+        case 2: dark = NSColor(srgbRed: 0.27, green: 0.43, blue: 0.80, alpha: 1)
+        case 3: dark = NSColor(srgbRed: 0.37, green: 0.55, blue: 1, alpha: 1)
+        default: dark = NSColor(srgbRed: 0.49, green: 0.65, blue: 1, alpha: 1)
+        }
+        return adaptiveColor(
+            light: intensity == 4
+                ? NSColor(srgbRed: 0.40, green: 0.62, blue: 0.95, alpha: 1)
+                : NSColor(srgbRed: 0.27, green: 0.49, blue: 0.84, alpha: 1),
+            dark: dark
+        )
+    }
     static let heatmapEmpty = adaptiveColor(
-        light: NSColor(srgbRed: 0.76, green: 0.82, blue: 0.87, alpha: 0.26),
-        dark: NSColor(srgbRed: 0.63, green: 0.72, blue: 0.80, alpha: 0.15)
+        light: NSColor(srgbRed: 0.58, green: 0.66, blue: 0.75, alpha: 0.11),
+        dark: NSColor(srgbRed: 0.58, green: 0.64, blue: 0.77, alpha: 0.16)
     )
     static let heatmapFuture = adaptiveColor(
         light: NSColor(calibratedWhite: 1, alpha: 0.12),
@@ -155,9 +134,15 @@ private enum PulsePalette {
     )
 }
 
-private struct PulseIcon: View {
+private extension View {
+    func glassOutline(radius: CGFloat = 9) -> some View {
+        background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: radius))
+            .overlay { RoundedRectangle(cornerRadius: radius).stroke(PulsePalette.divider, lineWidth: 0.5) }
+    }
+}
+
+struct PulseIcon: View {
     let name: String
-    var weight: Font.Weight = .semibold
 
     var body: some View {
         Image("PulseIcon-\(name)")
@@ -203,7 +188,7 @@ struct MenuBarLabelView: View {
 
 struct MenuBarDashboardView: View {
     static let contentWidth: CGFloat = 340
-    static let primaryPageHeight: CGFloat = 740
+    static let primaryPageHeight: CGFloat = 680
     private static let secondaryHeaderHeight: CGFloat = 62
     private static let footerHeight: CGFloat = 58
     private static let overviewPageContentHeight = primaryPageHeight - footerHeight
@@ -223,13 +208,15 @@ struct MenuBarDashboardView: View {
     @State private var legalPage = 0
     @State private var selectedUsageDayKey: String?
     @State private var usageHistoryShowsRecentHalf = true
-    private let initiallyExpandedLiveDetails: Bool
+    @State private var quotaWindowID: String?
+    @State private var quotaGroupID: String?
+    @State private var quotaShowsEstimateEvidence = false
+    @State private var tiboShowsEvidence: Bool
+    private let initialDetailScope: TokenDetailScope
 
-    // Eight 52pt rows use the fixed primary page height instead of leaving the
-    // lower half of the ledger empty. Pagination remains explicit and the page
-    // still contains no scrolling surface.
-    private let sessionsPerPage = 8
-    private let activeTasksPerPage = 8
+    // Pagination keeps every list inside the native menu viewport.
+    private let sessionsPerPage = 7
+    private let activeTasksPerPage = 7
 
     init(
         updateService: AppUpdateService,
@@ -237,15 +224,18 @@ struct MenuBarDashboardView: View {
         initialConsolePanel: ConsolePanel = .appearance,
         initialCredentialText: String = "",
         initialLegalDocument: LegalDocument = .userAgreement,
-        initiallyExpandedLiveDetails: Bool = false
+        initiallyExpandedLiveDetails: Bool = false,
+        initialDetailScope: TokenDetailScope = .context,
+        initiallyShowingTiboEvidence: Bool = false
     ) {
         _updateService = ObservedObject(wrappedValue: updateService)
-        _page = State(initialValue: initialPage)
+        _page = State(initialValue: initiallyExpandedLiveDetails ? .tokenDetails : initialPage)
         _consolePanel = State(initialValue: initialConsolePanel)
         _credentialText = State(initialValue: initialCredentialText)
         _legalDocument = State(initialValue: initialLegalDocument)
         _selectedUsageDayKey = State(initialValue: nil)
-        self.initiallyExpandedLiveDetails = initiallyExpandedLiveDetails
+        _tiboShowsEvidence = State(initialValue: initiallyShowingTiboEvidence)
+        self.initialDetailScope = initialDetailScope
     }
 
     var body: some View {
@@ -257,6 +247,7 @@ struct MenuBarDashboardView: View {
             Group {
                 switch page {
                 case .overview: overview
+                case .tokenDetails: tokenDetails
                 case .usageHistory: usageHistory
                 case .quotaDetails: quotaDetails
                 case .activeTasks: activeTasks
@@ -278,7 +269,6 @@ struct MenuBarDashboardView: View {
                     : Self.primaryPageContentHeight,
                 alignment: .top
             )
-            .transition(.opacity)
 
             footer
         }
@@ -290,7 +280,6 @@ struct MenuBarDashboardView: View {
         .preferredColorScheme(viewModel.appTheme.colorScheme)
         .environment(\.colorScheme, viewModel.appTheme.colorScheme ?? systemColorScheme)
         .environment(\.locale, Locale(identifier: viewModel.appLanguage.localeIdentifier))
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: page)
         .onChange(of: viewModel.searchText) { _, _ in sessionPage = 0 }
         .onChange(of: viewModel.filteredSessions.count) { _, _ in
             sessionPage = min(sessionPage, max(0, sessionPageCount - 1))
@@ -299,10 +288,6 @@ struct MenuBarDashboardView: View {
             activeTaskPage = min(activeTaskPage, max(0, activeTaskPageCount - 1))
         }
         .onChange(of: legalDocument) { _, _ in legalPage = 0 }
-        .onAppear { viewModel.menuPageChanged() }
-        .onChange(of: page) { _, _ in
-            viewModel.menuPageChanged()
-        }
     }
 
     private var isLightAppearance: Bool {
@@ -334,8 +319,8 @@ struct MenuBarDashboardView: View {
                 }
             } label: {
                 ZStack {
-                    Circle().fill(PulsePalette.surfaceRaised)
-                    PulseIcon(name: "arrow-left")
+                    PulseIcon(name: "chevron-down")
+                        .rotationEffect(.degrees(90))
                         .frame(width: 13, height: 13)
                         .foregroundStyle(PulsePalette.ink)
                 }
@@ -343,99 +328,46 @@ struct MenuBarDashboardView: View {
             }
             .buttonStyle(PulsePressStyle())
             .help(viewModel.t("action.back"))
+            .accessibilityLabel(viewModel.t("action.back"))
+            .accessibilityIdentifier("Page.Back")
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(pageTitle)
-                    .font(.system(size: 15, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                    .fixedSize(horizontal: true, vertical: false)
-                if !pageSubtitle.isEmpty {
-                    Text(pageSubtitle)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(PulsePalette.muted)
-                }
-            }
+            MarqueeLabel(text: pageTitle, font: .system(size: 19, weight: .semibold), color: PulsePalette.ink)
+                .frame(height: 25)
 
             Spacer(minLength: 8)
         }
         .frame(width: Self.contentWidth - 32, height: Self.secondaryHeaderHeight)
         .padding(.horizontal, 16)
-        .overlay(alignment: .bottom) {
-            PulsePalette.divider.frame(height: 1)
-        }
     }
 
-    @ViewBuilder
     private var accountContext: some View {
-        if let account = viewModel.selectedAccount {
-            Menu {
-                ForEach(viewModel.accountSnapshots) { item in
-                    Menu {
-                        Button {
-                            viewModel.switchAccount(to: item, mode: .monitorOnly)
-                        } label: {
-                            Text(viewModel.t("account.monitorOnly"))
-                        }
-                        Button {
-                            viewModel.switchAccount(to: item, mode: .activateCodex)
-                        } label: {
-                            Text(viewModel.t("account.activateCodex"))
-                        }
-                    } label: {
-                        Text(
-                            "\(item.id == account.id ? "● " : "")\(viewModel.accountName(item))"
-                                + (viewModel.accountIsCodexLogin(item) ? " · CODEX" : "")
-                        )
-                    }
-                }
-                Divider()
-                Menu(viewModel.t("account.addMore")) { accountAddActions }
-                if viewModel.hasPendingOAuth {
-                    Button(viewModel.t("account.oauthCheck")) { viewModel.checkPendingOAuth() }
-                }
-            } label: {
-                accountContextLabel(account)
+        Button {
+            consolePanel = .account
+            page = .settings
+        } label: {
+            HStack(spacing: 6) {
+                Text(viewModel.selectedAccount?.planDisplayName ?? viewModel.t("settings.tab.account"))
+                    .font(.system(size: 12, weight: .medium))
+                PulseIcon(name: "chevron-down").frame(width: 8, height: 8)
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .frame(
-                width: heroAccountLabelWidth(account),
-                height: 15,
-                alignment: .leading
-            )
-        } else {
-            Menu {
-                accountAddActions
-            } label: {
-                HStack(spacing: 5) {
-                    PulseIcon(name: "account").frame(width: 12, height: 12)
-                    Text(viewModel.isScanning ? viewModel.t("account.connecting") : viewModel.t("account.addCodex"))
-                }
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(PulsePalette.accent)
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
+            .foregroundStyle(PulsePalette.muted)
+            .padding(.horizontal, 9)
+            .frame(height: 28)
+            .background(PulsePalette.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay { RoundedRectangle(cornerRadius: 6).stroke(PulsePalette.divider, lineWidth: 0.5) }
+            .contentShape(Rectangle())
         }
-    }
-
-    private func accountContextLabel(_ account: CodexAccountUsageSnapshot) -> some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(viewModel.selectedAccountIsActive ? PulsePalette.lime : PulsePalette.warning)
-                .frame(width: 5, height: 5)
-            Text(viewModel.accountName(account))
-                .lineLimit(1)
-        }
-        .font(.system(size: 12, weight: .medium))
-        .foregroundStyle(PulsePalette.muted)
-        .contentShape(Rectangle())
+        .buttonStyle(PulsePressStyle())
+        .help(viewModel.selectedAccount.map { viewModel.accountName($0) } ?? viewModel.t("account.addCodex"))
+        .accessibilityLabel(viewModel.t("console.accounts"))
+        .accessibilityIdentifier("Overview.Accounts")
     }
 
     private var pageTitle: String {
         switch page {
         case .overview: viewModel.t("page.overview")
+        case .tokenDetails: viewModel.t("live.tokenDetail")
         case .usageHistory: viewModel.t("usage.title")
         case .quotaDetails: viewModel.t("quota.accountScope")
         case .activeTasks: viewModel.t("page.activeTasks")
@@ -450,41 +382,14 @@ struct MenuBarDashboardView: View {
         }
     }
 
-    private var pageSubtitle: String {
-        switch page {
-        case .overview: ""
-        case .usageHistory: viewModel.t("usage.accountHistory")
-        case .quotaDetails: ""
-        case .activeTasks: ""
-        case .tiboSignal: viewModel.t("subtitle.tiboSignal")
-        case .sessions: viewModel.t("subtitle.ledger")
-        case .settings: viewModel.t("subtitle.console")
-        case .tokenLogin: viewModel.t("subtitle.tokenLogin")
-        case .about: ""
-        case .updates: viewModel.t("subtitle.updates")
-        case .legal: ""
-        case .more: ""
-        }
-    }
-
     private var overview: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             overviewHero
-
             if let account = viewModel.selectedAccount {
                 if let error = viewModel.accountErrorMessage {
                     inlineFailure(error, title: viewModel.t("account.stale"))
                 }
                 accountUsageOverview(account)
-                VStack(spacing: 0) {
-                    quotaOverviewRow(account)
-                    if viewModel.tiboMonitoringEnabled {
-                        PulsePalette.divider.frame(height: 1).padding(.leading, 44)
-                        tiboGlobalSignalRow
-                    }
-                }
-                .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                Spacer(minLength: 0)
             } else if viewModel.isScanning {
                 accountLoadingSurface
             } else {
@@ -493,247 +398,122 @@ struct MenuBarDashboardView: View {
                     title: viewModel.t("account.unavailable")
                 )
             }
+            VStack(spacing: 8) {
+                if let account = viewModel.selectedAccount {
+                    quotaOverviewRow(account)
+                }
+                if viewModel.tiboMonitoringEnabled {
+                    tiboGlobalSignalRow
+                }
+            }
+            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
         .padding(.bottom, 8)
         .frame(maxHeight: .infinity, alignment: .top)
         .frame(width: Self.contentWidth)
     }
 
     private var overviewHero: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             overviewHeroHeader
-
-            if viewModel.activeTaskCount > 0 {
-                liveTaskSwitcher
-            }
-
+            if viewModel.activeTaskCount > 0 { liveTaskSwitcher }
             liveContextCard
         }
-        .zIndex(10)
     }
 
     private var overviewHeroHeader: some View {
-        HStack(spacing: 9) {
-            Image("CodexLensBrandMark")
-                .resizable()
-                .renderingMode(.template)
-                .scaledToFit()
-                .frame(width: 28, height: 28)
-                .foregroundStyle(PulsePalette.accent)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(viewModel.t("page.overview"))
-                    .font(.system(size: 15, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                accountContext
-            }
-
-            Spacer(minLength: 8)
-
+        HStack(spacing: 12) {
+            Text(viewModel.t("page.overview"))
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(PulsePalette.ink)
+                .fixedSize()
+            accountContext
+            Spacer(minLength: 0)
             Button(action: viewModel.refresh) {
-                ZStack {
-                    Circle().fill(PulsePalette.surfaceRaised)
-                    AnimatedRefreshIcon(
-                        isSpinning: viewModel.isScanning,
-                        idleColor: PulsePalette.ink,
-                        spinningColor: PulsePalette.warning
-                    )
-                }
-                .frame(width: 30, height: 30)
+                AnimatedRefreshIcon(
+                    isSpinning: viewModel.isScanning,
+                    idleColor: PulsePalette.ink,
+                    spinningColor: PulsePalette.warning
+                )
+                .frame(width: 30, height: 32)
+                .contentShape(Rectangle())
             }
             .buttonStyle(PulsePressStyle())
             .disabled(viewModel.isScanning)
+            .accessibilityLabel(viewModel.t("action.sync"))
             .help(viewModel.t("action.sync"))
         }
-        .frame(height: 42)
-    }
-
-    @ViewBuilder
-    private var heroAccountContext: some View {
-        if let account = viewModel.selectedAccount {
-            ZStack(alignment: .leading) {
-                Menu {
-                    ForEach(viewModel.accountSnapshots) { item in
-                        Menu {
-                            Button(viewModel.t("account.monitorOnly")) {
-                                viewModel.switchAccount(to: item, mode: .monitorOnly)
-                            }
-                            Button(viewModel.t("account.activateCodex")) {
-                                viewModel.switchAccount(to: item, mode: .activateCodex)
-                            }
-                        } label: {
-                            Text("\(item.id == account.id ? "● " : "")\(viewModel.accountName(item))")
-                        }
-                    }
-                    Divider()
-                    Menu(viewModel.t("account.addMore")) { accountAddActions }
-                } label: {
-                    // The native borderless Menu owns the click target only.
-                    // Its macOS Light appearance otherwise forces label text
-                    // to black, regardless of SwiftUI's foreground style.
-                    Color.clear
-                        .contentShape(Rectangle())
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                // Keep the visible label outside the native Menu so AppKit
-                // cannot recolor it and so its width participates in layout.
-                heroAccountLabel(account)
-                    .allowsHitTesting(false)
-            }
-            .frame(width: heroAccountLabelWidth(account), height: 15, alignment: .leading)
-            .accessibilityLabel(viewModel.accountName(account))
-        } else {
-            Button(viewModel.t("account.addCodex")) { page = .tokenLogin }
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .buttonStyle(.plain)
-                .foregroundStyle(PulsePalette.heroMuted)
-        }
-    }
-
-    private func heroAccountLabel(_ account: CodexAccountUsageSnapshot) -> some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(viewModel.selectedAccountIsActive ? PulsePalette.heroInk : PulsePalette.warning)
-                .frame(width: 5, height: 5)
-            Text(viewModel.accountName(account))
-                .foregroundColor(.white.opacity(0.82))
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-        }
-        .font(.system(size: 12, weight: .semibold, design: .default))
-    }
-
-    private func heroAccountLabelWidth(_ account: CodexAccountUsageSnapshot) -> CGFloat {
-        let font = NSFont.systemFont(ofSize: 12, weight: .semibold)
-        let textWidth = ceil(
-            (viewModel.accountName(account) as NSString)
-                .size(withAttributes: [.font: font])
-                .width
-        )
-        return textWidth + 10 // 5pt state dot + 5pt spacing
+        .frame(height: 40)
     }
 
     private func accountUsageOverview(_ account: CodexAccountUsageSnapshot) -> some View {
-        let heatmap = TokenUsageHeatmap.make(
-            dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? []
-        )
-        let visibleWeeks = Array(heatmap.weeks.suffix(27))
-
-        return VStack(alignment: .leading, spacing: 9) {
+        let heatmap = TokenUsageHeatmap.make(dailyBuckets: account.accountTokenUsage?.dailyBuckets ?? [])
+        let visibleWeeks = Array(heatmap.weeks.suffix(OverviewUsageCalendar.weekCount))
+        let compact = viewModel.accountErrorMessage != nil
+        return VStack(alignment: .leading, spacing: 12) {
+            PulsePalette.divider.frame(height: 1)
             Button {
                 selectedUsageDayKey = nil
                 usageHistoryShowsRecentHalf = true
                 page = .usageHistory
             } label: {
-                HStack(alignment: .center, spacing: 10) {
-                    Text(viewModel.t("usage.title"))
-                        .font(.system(size: 15, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                    Spacer(minLength: 8)
-                    Text("\(heatmap.activeDays) \(viewModel.t("usage.activeDaysShort"))")
-                        .font(.system(size: 13, weight: .medium, design: .default))
+                HStack(spacing: 8) {
+                    MarqueeLabel(text: viewModel.t("usage.overviewTitle"), font: .system(size: 14, weight: .regular), color: PulsePalette.ink)
+                        .frame(height: 20)
+                    Spacer(minLength: 0)
+                    Text(viewModel.t("usage.recentWeeks", OverviewUsageCalendar.weekCount))
+                        .font(.system(size: 12))
                         .foregroundStyle(PulsePalette.muted)
-                    PulseIcon(name: "arrow-right")
-                        .frame(width: 9, height: 9)
-                        .foregroundStyle(PulsePalette.faint)
+                    PulseIcon(name: "chevron-down").frame(width: 8, height: 8)
+                        .foregroundStyle(PulsePalette.muted)
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(PulsePressStyle())
             .accessibilityIdentifier("Overview.UsageHistory")
-
-            TokenUsageHeatmapGrid(
-                weeks: visibleWeeks,
-                cellSize: 8.7,
-                cellSpacing: 1.8,
-                selectedDayKey: nil,
-                onSelect: nil,
-                chartLabel: viewModel.t("usage.accountHistory"),
-                dayLabel: usageDayAccessibilityLabel
-            )
-            .frame(width: 286, height: 72, alignment: .leading)
-
-            TokenUsageMonthLabels(
-                months: Array(heatmap.monthStarts.suffix(6)),
-                label: usageMonthLabel
-            )
-            .frame(width: 286, height: 14)
+            if !compact {
+                OverviewUsageCalendar(
+                    weeks: visibleWeeks,
+                    locale: Locale(identifier: viewModel.appLanguage.localeIdentifier),
+                    chartLabel: viewModel.t("usage.accountHistory"),
+                    dayLabel: usageDayAccessibilityLabel
+                ) { day in
+                    selectedUsageDayKey = day.dateKey
+                    usageHistoryShowsRecentHalf = true
+                    page = .usageHistory
+                }
+            }
         }
-        .padding(11)
-        .frame(height: 148, alignment: .top)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(height: compact ? 46 : 182, alignment: .top)
     }
 
     @ViewBuilder
     private func quotaOverviewRow(_ account: CodexAccountUsageSnapshot) -> some View {
-        if !account.accountQuotaWindows.isEmpty {
-            Button {
-                page = .quotaDetails
-            } label: {
-                VStack(spacing: 7) {
-                    HStack(spacing: 10) {
-                        PulseIcon(name: "quota")
-                            .frame(width: 15, height: 15)
-                            .foregroundStyle(PulsePalette.accent)
-
-                        Text(viewModel.t("quota.accountScope"))
-                            .foregroundStyle(PulsePalette.ink)
-                        Text(account.planDisplayName)
-                            .foregroundStyle(PulsePalette.muted)
-                        Spacer(minLength: 6)
-                        PulseIcon(name: "arrow-right")
-                            .frame(width: 9, height: 9)
-                            .foregroundStyle(PulsePalette.faint)
+        if let window = account.preferredMenuWindow {
+            Button { page = .quotaDetails } label: {
+                HStack(spacing: 10) {
+                    PulseIcon(name: "quota").frame(width: 19, height: 19)
+                    MarqueeLabel(text: viewModel.t("quota.accountScope"), font: .system(size: 13), color: PulsePalette.ink)
+                        .frame(height: 20)
+                    VStack(alignment: .trailing, spacing: 5) {
+                        Text("\(Int(window.remainingPercent.rounded()))%")
+                            .font(.system(size: 16, weight: .regular)).monospacedDigit()
+                        ContextUsageBar(progress: window.remainingPercent / 100, color: quotaAccent(window))
+                            .frame(width: 104, height: 4)
                     }
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-
-                    VStack(spacing: 6) {
-                        ForEach(Array(account.accountQuotaWindows.prefix(2))) { window in
-                            overviewQuotaProgress(window)
-                        }
-                    }
-                    .frame(maxHeight: .infinity)
                 }
-                .padding(.horizontal, 11)
-                .padding(.vertical, 8)
-                .frame(height: 90)
+                .foregroundStyle(PulsePalette.ink)
+                .padding(.horizontal, 12)
+                .frame(height: 44)
+                .glassOutline()
                 .contentShape(Rectangle())
             }
             .buttonStyle(PulsePressStyle())
+            .help(quotaCycleTitle(window))
             .accessibilityIdentifier("Overview.QuotaDetails")
         }
-    }
-
-    private func overviewQuotaProgress(_ window: CodexQuotaWindow) -> some View {
-        let remaining = min(100, max(0, window.remainingPercent))
-        return HStack(spacing: 8) {
-            Text(quotaCycleTitle(window))
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-                .frame(width: 58, alignment: .leading)
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(PulsePalette.divider)
-                    Capsule()
-                        .fill(quotaAccent(window))
-                        .frame(width: proxy.size.width * remaining / 100)
-                }
-            }
-            .frame(height: 4)
-            Text("\(Int(remaining.rounded()))%")
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .foregroundStyle(quotaAccent(window))
-                .monospacedDigit()
-                .contentTransition(.numericText())
-                .frame(width: 38, alignment: .trailing)
-        }
-        .frame(height: 18)
     }
 
     @ViewBuilder
@@ -847,13 +627,15 @@ struct MenuBarDashboardView: View {
                     .font(.system(size: 13, weight: .semibold, design: .default))
                     .foregroundStyle(PulsePalette.ink)
 
-                VStack(spacing: 4) {
-                    ForEach(months) { month in
-                        usageMonthRow(month, peak: months.map(\.tokens).max() ?? 0)
+                ScrollView(.vertical) {
+                    VStack(spacing: 4) {
+                        ForEach(months) { month in
+                            usageMonthRow(month, peak: months.map(\.tokens).max() ?? 0)
+                        }
                     }
                 }
-
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .accessibilityIdentifier("UsageHistory.Months")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -925,7 +707,7 @@ struct MenuBarDashboardView: View {
                 .monospacedDigit()
                 .frame(width: 104, alignment: .trailing)
         }
-        .frame(height: 20)
+        .frame(height: 23)
     }
 
     private func selectedUsageDay(in heatmap: TokenUsageHeatmap) -> TokenUsageHeatmapDay? {
@@ -1037,65 +819,26 @@ struct MenuBarDashboardView: View {
     }
 
     private var liveTaskSwitcher: some View {
-        HStack(spacing: 7) {
-            PulseIcon(name: "tasks")
-                .frame(width: 13, height: 13)
-                .foregroundStyle(PulsePalette.accent)
-            Text(viewModel.t("console.tasks", viewModel.activeTaskCount))
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-
-            Spacer(minLength: 4)
-
-            Button { selectAdjacentLiveTask(-1) } label: {
-                PulseIcon(name: "arrow-left")
-                    .frame(width: 9, height: 9)
-                    .frame(width: 24, height: 24)
+        Button {
+            activeTaskPage = 0
+            page = .activeTasks
+        } label: {
+            HStack(spacing: 8) {
+                MarqueeLabel(text: viewModel.liveContext?.displayTitle ?? viewModel.t("page.activeTasks"),
+                             font: .system(size: 13, weight: .regular), color: PulsePalette.ink)
+                    .frame(height: 20)
+                LivePulseBadge(isFresh: viewModel.liveContext.map { Date().timeIntervalSince($0.updatedAt) < 20 } ?? false)
+                PulseIcon(name: "chevron-down").frame(width: 9, height: 9)
+                    .foregroundStyle(PulsePalette.muted)
             }
-            .disabled(selectedLiveTaskIndex == 0)
-
-            Text("\(selectedLiveTaskIndex + 1) / \(viewModel.activeTaskCount)")
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PulsePalette.muted)
-                .monospacedDigit()
-
-            Button { selectAdjacentLiveTask(1) } label: {
-                PulseIcon(name: "arrow-right")
-                    .frame(width: 9, height: 9)
-                    .frame(width: 24, height: 24)
-            }
-            .disabled(selectedLiveTaskIndex >= viewModel.activeTaskCount - 1)
-
-            Button {
-                activeTaskPage = 0
-                page = .activeTasks
-            } label: {
-                PulseIcon(name: "ledger")
-                    .frame(width: 12, height: 12)
-                    .foregroundStyle(PulsePalette.accent)
-                    .frame(width: 26, height: 24)
-            }
-            .help(viewModel.t("page.activeTasks"))
-            .accessibilityLabel(viewModel.t("page.activeTasks"))
-            .accessibilityIdentifier("Overview.ActiveTasks")
+            .padding(.horizontal, 10)
+            .frame(height: 32)
+            .glassOutline(radius: 7)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PulsePressStyle())
-        .padding(.horizontal, 10)
-        .frame(height: 34)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-
-    private var selectedLiveTaskIndex: Int {
-        guard let selectedID = viewModel.liveContext?.id,
-              let index = viewModel.activeLiveContexts.firstIndex(where: { $0.id == selectedID })
-        else { return 0 }
-        return index
-    }
-
-    private func selectAdjacentLiveTask(_ offset: Int) {
-        let target = selectedLiveTaskIndex + offset
-        guard viewModel.activeLiveContexts.indices.contains(target) else { return }
-        viewModel.selectLiveContext(viewModel.activeLiveContexts[target].id)
+        .accessibilityLabel(viewModel.t("page.activeTasks"))
+        .accessibilityIdentifier("Overview.ActiveTasks")
     }
 
     @ViewBuilder
@@ -1103,11 +846,7 @@ struct MenuBarDashboardView: View {
         if let context = viewModel.liveContext {
             LiveContextCard(
                 context: context,
-                apiUSD: viewModel.liveRequestAPIUSD,
-                taskAPIUSD: viewModel.liveTaskAPIUSD,
-                showAPIEstimate: viewModel.showAPIEstimate,
-                showRuntimeWindow: viewModel.showRuntimeWindow,
-                initiallyExpanded: initiallyExpandedLiveDetails
+                onOpenDetails: { page = .tokenDetails }
             )
         } else {
             HStack(spacing: 12) {
@@ -1117,17 +856,30 @@ struct MenuBarDashboardView: View {
                     Text(viewModel.t("live.capture"))
                         .font(.system(size: 14, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.ink)
-                    Text(viewModel.liveContextErrorMessage ?? viewModel.t("live.waiting"))
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(PulsePalette.muted)
-                        .lineLimit(1)
+                    MarqueeLabel(text: viewModel.liveContextErrorMessage ?? viewModel.t("live.waiting"),
+                                 font: .system(size: 13, weight: .medium), color: PulsePalette.muted)
+                        .frame(height: 18)
                     Button(viewModel.t("action.rediscover")) { viewModel.liveContextTick(forceDiscover: true) }
                         .buttonStyle(PulseTextButtonStyle())
                 }
                 Spacer()
             }
             .padding(16)
-                .frame(minHeight: 116)
+            .frame(minHeight: 116)
+        }
+    }
+
+    @ViewBuilder
+    private var tokenDetails: some View {
+        if let context = viewModel.liveContext {
+            LiveTokenDetails(
+                context: context, apiUSD: viewModel.liveRequestAPIUSD, taskAPIUSD: viewModel.liveTaskAPIUSD,
+                showAPIEstimate: viewModel.showAPIEstimate, showRuntimeWindow: viewModel.showRuntimeWindow,
+                initialDetailScope: initialDetailScope
+            )
+        } else {
+            inlineFailure(viewModel.t("live.waiting"), title: viewModel.t("live.capture"))
+                .padding(.horizontal, 20)
         }
     }
 
@@ -1151,54 +903,68 @@ struct MenuBarDashboardView: View {
     }
 
     private func quotaDetailsContent(account: CodexAccountUsageSnapshot) -> some View {
-        VStack(spacing: 10) {
-            ForEach(Array(account.accountQuotaWindows.prefix(2))) { window in
-                quotaDetailStatus(
-                    window: window,
-                    forecast: window.id == account.preferredMenuWindow?.id
-                        ? viewModel.selectedQuotaForecast
-                        : nil
-                )
+        let windows = Array(account.accountQuotaWindows.prefix(2))
+        let selectedWindow = windows.first { $0.id == quotaWindowID } ?? account.preferredMenuWindow ?? windows[0]
+        let groups = account.additionalQuotaGroups
+        let selectedGroup = groups.first { $0.id == quotaGroupID } ?? groups.first
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                accountContext
+                Spacer(minLength: 0)
+                if windows.count > 1 {
+                    Picker(viewModel.t("quota.accountScope"), selection: Binding(
+                        get: { selectedWindow.id }, set: { quotaWindowID = $0 }
+                    )) {
+                        ForEach(windows) { window in Text(compactQuotaTitle(window)).tag(window.id) }
+                    }
+                    .labelsHidden()
+                    .frame(maxWidth: 160)
+                }
             }
-
+            .frame(height: 28)
+            .padding(.bottom, 18)
+            quotaDetailStatus(window: selectedWindow, forecast: selectedWindow.id == account.preferredMenuWindow?.id ? viewModel.selectedQuotaForecast : nil)
             if let credits = account.credits {
+                quotaSectionDivider
                 quotaCreditBalanceCard(credits)
             }
-
-            if let window = account.weeklyWindow,
-               let estimate = viewModel.selectedSubscriptionQuotaEstimate {
+            if let window = account.weeklyWindow, let estimate = viewModel.selectedSubscriptionQuotaEstimate {
+                quotaSectionDivider
                 quotaAllowanceEstimateCard(estimate: estimate, window: window)
             }
-
-            ForEach(Array(account.additionalQuotaGroups.prefix(2))) { group in
-                scopedQuotaDetail(group)
+            if let selectedGroup {
+                quotaSectionDivider
+                if groups.count > 1 {
+                    Picker(viewModel.t("quota.modelScope"), selection: Binding(
+                        get: { selectedGroup.id }, set: { quotaGroupID = $0 }
+                    )) {
+                        ForEach(groups) { group in Text(scopedQuotaTitle(group)).tag(group.id) }
+                    }
+                    .labelsHidden()
+                }
+                scopedQuotaDetail(selectedGroup)
             }
-
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
         .padding(.bottom, 12)
         .frame(height: Self.primaryPageContentHeight, alignment: .top)
     }
 
+    private var quotaSectionDivider: some View {
+        PulsePalette.divider.frame(height: 1).padding(.vertical, 8)
+    }
+
     private func quotaCreditBalanceCard(_ credits: CodexCreditBalance) -> some View {
         HStack(spacing: 10) {
-            PulseIcon(name: "credits")
-                .frame(width: 14, height: 14)
-                .foregroundStyle(PulsePalette.accent)
-            Text(viewModel.t("ledger.credits"))
-                .font(.system(size: 13, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
+            PulseIcon(name: "credits").frame(width: 20, height: 20).foregroundStyle(PulsePalette.muted)
+            Text(viewModel.t("ledger.credits")).font(.system(size: 14)).foregroundStyle(PulsePalette.ink)
             Spacer(minLength: 8)
-            Text(creditText(credits))
-                .font(.system(size: 17, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
+            Text(creditText(credits)).font(.system(size: 23, weight: .regular))
+                .foregroundStyle(PulsePalette.ink).monospacedDigit()
         }
-        .padding(.horizontal, 12)
-        .frame(height: 52)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(height: 40)
     }
 
     private func quotaAllowanceEstimateCard(
@@ -1207,80 +973,44 @@ struct MenuBarDashboardView: View {
     ) -> some View {
         let remainingUSD = estimate.remainingAPIEquivalentUSD(remainingPercent: window.remainingPercent)
         return VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text(viewModel.t("quota.apiEquivalentAllowance"))
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.ink)
-                Spacer(minLength: 6)
-                Text(accountPlanEstimateLabel(estimate.tier))
-                    .font(.system(size: 12, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.muted)
+            Button { quotaShowsEstimateEvidence.toggle() } label: {
+                HStack(spacing: 7) {
+                    Text(viewModel.t("quota.apiEquivalentAllowance")).font(.system(size: 14))
+                    PulseIcon(name: quotaShowsEstimateEvidence ? "arrow-left" : "info").frame(width: 13, height: 13)
+                }
+                .foregroundStyle(PulsePalette.ink)
+                .frame(height: 22)
             }
-
-            VStack(spacing: 0) {
-                quotaEstimateRow(
-                    title: viewModel.t("quota.currentAvailable"),
-                    value: DisplayFormat.quotaUSD(remainingUSD)
-                )
-                Divider()
-                    .overlay(PulsePalette.divider.opacity(0.72))
-                quotaEstimateRow(
-                    title: viewModel.t("quota.weeklyFull"),
-                    value: DisplayFormat.quotaUSD(estimate.weeklyAPIEquivalentUSD)
-                )
-                Divider()
-                    .overlay(PulsePalette.divider.opacity(0.72))
-                quotaEstimateRow(
-                    title: viewModel.t("quota.monthlyAverage"),
-                    value: DisplayFormat.quotaUSD(estimate.monthlyAPIEquivalentUSD)
-                )
-            }
-            .padding(.horizontal, 10)
-            .background(PulsePalette.surfaceRaised.opacity(0.58), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            HStack(spacing: 6) {
-                Text(
-                    viewModel.t(
-                        "quota.measuredRange",
-                        DisplayFormat.quotaUSD(estimate.weeklyAPILowerBoundUSD),
-                        DisplayFormat.quotaUSD(estimate.weeklyAPIUpperBoundUSD)
-                    )
-                )
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.faint)
-                .lineLimit(1)
-                Spacer(minLength: 4)
-                if let sourceURL = SubscriptionQuotaEstimate.sourceURL {
-                    Link(viewModel.t("quota.measurementSource"), destination: sourceURL)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.accent)
-                        .buttonStyle(.plain)
+            .buttonStyle(PulsePressStyle())
+            if quotaShowsEstimateEvidence {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(accountPlanEstimateLabel(estimate.tier)).font(.system(size: 15, weight: .medium)).foregroundStyle(PulsePalette.ink)
+                    MarqueeLabel(text: viewModel.t("quota.measuredRange", DisplayFormat.quotaUSD(estimate.weeklyAPILowerBoundUSD), DisplayFormat.quotaUSD(estimate.weeklyAPIUpperBoundUSD)),
+                                 font: .system(size: 13), color: PulsePalette.muted).frame(height: 20)
+                    if let sourceURL = SubscriptionQuotaEstimate.sourceURL {
+                        Link(viewModel.t("quota.measurementSource"), destination: sourceURL)
+                            .font(.system(size: 13)).foregroundStyle(PulsePalette.accent).buttonStyle(.plain)
+                    }
+                }
+                .frame(height: 105, alignment: .top)
+            } else {
+                VStack(spacing: 0) {
+                    quotaEstimateRow(title: viewModel.t("quota.currentAvailable"), value: DisplayFormat.quotaUSD(remainingUSD))
+                    quotaEstimateRow(title: viewModel.t("quota.weeklyFull"), value: DisplayFormat.quotaUSD(estimate.weeklyAPIEquivalentUSD))
+                    quotaEstimateRow(title: viewModel.t("quota.monthlyAverage"), value: DisplayFormat.quotaUSD(estimate.monthlyAPIEquivalentUSD))
                 }
             }
-        }
-        .padding(12)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
         }
         .accessibilityElement(children: .contain)
     }
 
     private func quotaEstimateRow(title: String, value: String) -> some View {
         HStack(spacing: 10) {
-            Text(title)
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.system(size: 15, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
-                .lineLimit(1)
+            MarqueeLabel(text: title, font: .system(size: 13), color: PulsePalette.muted).frame(height: 20)
+            Spacer(minLength: 0)
+            Text(value).font(.system(size: 17)).foregroundStyle(PulsePalette.ink).monospacedDigit().fixedSize()
         }
-        .frame(maxWidth: .infinity, minHeight: 34)
+        .frame(maxWidth: .infinity, minHeight: 35)
     }
 
     private func accountPlanEstimateLabel(_ tier: SubscriptionQuotaEstimate.Tier) -> String {
@@ -1291,126 +1021,61 @@ struct MenuBarDashboardView: View {
         }
     }
 
-    private func quotaDetailStatus(
-        window: CodexQuotaWindow,
-        forecast: QuotaForecast?
-    ) -> some View {
+    private func quotaDetailStatus(window: CodexQuotaWindow, forecast: QuotaForecast?) -> some View {
         let remaining = max(0, min(100, window.remainingPercent))
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(quotaCycleTitle(window))
-                        .font(.system(size: 14, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                    Text(accountQuotaTimingText(window, forecast: forecast))
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(PulsePalette.muted)
-                        .lineLimit(1)
-                }
-                Spacer(minLength: 6)
-                Text("\(Int(remaining.rounded()))%")
-                    .font(.system(size: 24, weight: .semibold, design: .default))
-                    .foregroundStyle(quotaAccent(window))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-            }
-
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(PulsePalette.divider)
-                    Capsule()
-                        .fill(quotaAccent(window))
-                        .frame(width: proxy.size.width * remaining / 100)
-                }
-            }
-            .frame(height: 5)
-
-            Text(viewModel.t("quota.used", Int(window.clampedUsedPercent.rounded())))
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.muted)
-        }
-        .padding(12)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
+        return VStack(alignment: .leading, spacing: 7) {
+            MarqueeLabel(text: viewModel.t("quota.remainingCycle", compactQuotaTitle(window)), font: .system(size: 13), color: PulsePalette.muted)
+                .frame(height: 18)
+            Text("\(Int(remaining.rounded()))%")
+                .font(.system(size: 40, weight: .regular)).foregroundStyle(PulsePalette.ink).monospacedDigit()
+            ContextUsageBar(progress: remaining / 100, color: quotaAccent(window)).frame(height: 6)
+            MarqueeLabel(text: accountQuotaTimingText(window, forecast: forecast), font: .system(size: 12), color: PulsePalette.muted)
+                .frame(height: 18)
         }
         .accessibilityElement(children: .combine)
     }
 
     private func scopedQuotaDetail(_ group: CodexScopedQuotaGroup) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(scopedQuotaTitle(group))
-                .font(.system(size: 13, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-
-            HStack(spacing: 8) {
-                ForEach(Array(group.windows.prefix(2))) { window in
-                    VStack(spacing: 2) {
-                        Text(quotaCycleTitle(window))
-                            .font(.system(size: 12, weight: .semibold, design: .default))
-                            .foregroundStyle(PulsePalette.muted)
-                        Text("\(Int(window.remainingPercent.rounded()))%")
-                            .font(.system(size: 15, weight: .semibold, design: .default))
-                            .foregroundStyle(quotaAccent(window))
-                            .monospacedDigit()
-                    }
-                    .frame(maxWidth: .infinity)
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 9) {
+                PulseIcon(name: "developer").frame(width: 15, height: 15).foregroundStyle(PulsePalette.muted)
+                MarqueeLabel(text: scopedQuotaTitle(group), font: .system(size: 14), color: PulsePalette.ink).frame(height: 22)
             }
-        }
-        .padding(12)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
+            ForEach(Array(group.windows.prefix(2))) { window in
+                VStack(spacing: 6) {
+                    HStack {
+                        MarqueeLabel(text: compactQuotaTitle(window), font: .system(size: 13), color: PulsePalette.muted).frame(height: 20)
+                        Text("\(Int(window.remainingPercent.rounded()))%")
+                            .font(.system(size: 14)).foregroundStyle(PulsePalette.muted).monospacedDigit()
+                    }
+                    ContextUsageBar(progress: window.remainingPercent / 100, color: quotaAccent(window)).frame(height: 5)
+                }
+                .padding(.vertical, 3)
+            }
         }
     }
 
     private var tiboGlobalSignalRow: some View {
         Button { page = .tiboSignal } label: {
-            VStack(spacing: 6) {
-                HStack(spacing: 8) {
-                    ZStack {
-                        Circle().fill(tiboCycleColor.opacity(0.14))
-                        Circle().fill(tiboCycleColor).frame(width: 7, height: 7)
+            HStack(spacing: 10) {
+                PulseIcon(name: "forecast").frame(width: 19, height: 19)
+                MarqueeLabel(text: viewModel.t("tibo.forecast.title"), font: .system(size: 13), color: PulsePalette.ink)
+                    .frame(height: 20)
+                VStack(alignment: .trailing, spacing: 5) {
+                    HStack(spacing: 6) {
+                        Text(viewModel.tiboForecastProbabilityText).font(.system(size: 16, weight: .regular)).monospacedDigit()
+                        MarqueeLabel(text: viewModel.tiboForecastProbabilityLevelText,
+                                     font: .system(size: 12), color: PulsePalette.muted)
+                            .frame(width: 64, height: 17)
                     }
-                    .frame(width: 24, height: 24)
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(viewModel.t("tibo.forecast.title"))
-                            .font(.system(size: 13, weight: .semibold, design: .default))
-                            .foregroundStyle(PulsePalette.ink)
-                        Text(viewModel.tiboForecastProbabilityLevelText)
-                            .font(.system(size: 12, weight: .medium, design: .default))
-                            .foregroundStyle(PulsePalette.muted)
-                    }
-
-                    Spacer(minLength: 4)
-
-                    Text(viewModel.tiboForecastProbabilityText)
-                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(tiboCycleColor)
-                        .monospacedDigit()
-
-                    PulseIcon(name: "arrow-right")
-                        .frame(width: 9, height: 9)
-                        .foregroundStyle(PulsePalette.faint)
+                    ContextUsageBar(progress: viewModel.tiboForecastProgress, color: tiboCycleColor)
+                        .frame(width: 104, height: 4)
                 }
-
-                GeometryReader { proxy in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(PulsePalette.divider)
-                        Capsule()
-                            .fill(tiboCycleColor)
-                            .frame(width: proxy.size.width * CGFloat(viewModel.tiboForecastProgress))
-                    }
-                }
-                .frame(height: 3)
             }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 8)
-            .frame(height: 64)
+            .foregroundStyle(PulsePalette.ink)
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .glassOutline()
             .contentShape(Rectangle())
         }
         .buttonStyle(PulsePressStyle())
@@ -1452,238 +1117,200 @@ struct MenuBarDashboardView: View {
     }
 
     private var tiboSignalDetail: some View {
-        VStack(spacing: 12) {
-            VStack(spacing: 0) {
-                HStack(spacing: 10) {
-                    Image("CodexLensBrandMark")
-                        .resizable()
-                        .renderingMode(.template)
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                        .foregroundStyle(PulsePalette.accent)
-                        .frame(width: 34, height: 34)
-                        .background(PulsePalette.surfaceRaised, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-
-                    Text("Codex")
-                        .font(.system(size: 18, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-
-                    Spacer(minLength: 6)
-
-                    Text(viewModel.tiboForecastProbabilityLevelText)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.accent)
-                        .padding(.horizontal, 9)
-                        .frame(height: 24)
-                        .background(PulsePalette.surfaceRaised, in: Capsule())
-
-                    Button { viewModel.tiboSignalTick(force: true) } label: {
-                        AnimatedRefreshIcon(isSpinning: viewModel.isTiboSignalRefreshing)
-                            .frame(width: 13, height: 13)
-                            .frame(width: 28, height: 28)
-                            .background(PulsePalette.surfaceRaised, in: Circle())
-                    }
-                    .buttonStyle(PulsePressStyle())
-                    .disabled(viewModel.isTiboSignalRefreshing)
-                    .help(viewModel.t("tibo.detail.refresh"))
-                }
-                .padding(.horizontal, 13)
-                .frame(height: 54)
-
-                PulsePalette.divider.frame(height: 1)
-
-                HStack(spacing: 0) {
-                    VStack(spacing: 2) {
-                        Text(viewModel.tiboForecastProbabilityText)
-                            .font(.system(size: 38, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(PulsePalette.accent)
-                            .monospacedDigit()
-                        VStack(spacing: 0) {
-                            Text(viewModel.t("tibo.forecast.horizon24h"))
-                            Text(viewModel.t("tibo.forecast.resetProbability"))
-                        }
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(PulsePalette.muted)
-                    }
-                    .frame(width: 82)
-
-                    PulsePalette.divider.frame(width: 1, height: 78)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(viewModel.tiboForecastReferenceLabel)
-                            .font(.system(size: 12, weight: .medium, design: .default))
-                            .foregroundStyle(PulsePalette.muted)
-                        Text(viewModel.tiboForecastReferenceText)
-                            .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(PulsePalette.ink)
-                            .monospacedDigit()
-                        Text(viewModel.tiboForecastCountdownText)
-                            .font(.system(size: 12, weight: .medium, design: .default))
-                            .foregroundStyle(PulsePalette.muted)
-                    }
-                    .padding(.leading, 14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(.vertical, 12)
-
-                GeometryReader { proxy in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(PulsePalette.divider)
-                        Capsule()
-                            .fill(PulsePalette.accent)
-                            .frame(width: proxy.size.width * CGFloat(viewModel.tiboForecastProgress))
-                    }
-                }
-                .frame(height: 4)
-                .padding(.horizontal, 13)
-                .padding(.bottom, 13)
+        VStack(alignment: .leading, spacing: 16) {
+            Picker(viewModel.t("page.tiboSignal"), selection: $tiboShowsEvidence) {
+                Text(viewModel.t("tibo.section.forecast")).tag(false)
+                Text(viewModel.t("tibo.section.evidence")).tag(true)
             }
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityIdentifier("Tibo.Sections")
 
-            VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 8) {
-                    Text(viewModel.t("tibo.forecast.lastConfirmed"))
-                        .font(.system(size: 13, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                    Spacer(minLength: 4)
-                    if viewModel.tiboCycleHasSource {
-                        Button { viewModel.openTiboCycleSource() } label: {
-                            HStack(spacing: 4) {
-                                Text(viewModel.t("tibo.cycle.openPost"))
-                                PulseIcon(name: "arrow-right").frame(width: 8, height: 8)
-                            }
-                        }
-                        .buttonStyle(PulseTextButtonStyle())
-                    }
-                }
-
-                Text(viewModel.tiboForecastLastConfirmedText)
-                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(PulsePalette.accent)
-                    .monospacedDigit()
-
-                if let reason = viewModel.tiboForecastResetReasonText {
-                    Text(reason)
-                        .font(.system(size: 13, weight: .regular, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                        .lineSpacing(3)
-                        .lineLimit(4)
-                }
-            }
-            .padding(13)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-            }
-
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 8) {
-                    Text(viewModel.tiboForecastJudgementTitle)
-                        .font(.system(size: 13, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                    Spacer(minLength: 6)
-                    Text(viewModel.tiboForecastConfidenceText)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.muted)
-                }
-                .padding(.bottom, 8)
-
-                VStack(alignment: .leading, spacing: 4) {
+            if tiboShowsEvidence {
+                VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 8) {
-                        Text(viewModel.tiboSocialEvidenceTitle)
+                        Text(viewModel.tiboForecastJudgementTitle)
+                            .font(.system(size: 13, weight: .semibold, design: .default))
+                            .foregroundStyle(PulsePalette.ink)
+                        Spacer(minLength: 6)
+                        Text(viewModel.tiboForecastConfidenceText)
                             .font(.system(size: 12, weight: .semibold, design: .default))
                             .foregroundStyle(PulsePalette.muted)
+                    }
+                    .padding(.bottom, 8)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text(viewModel.tiboSocialEvidenceTitle)
+                                .font(.system(size: 12, weight: .semibold, design: .default))
+                                .foregroundStyle(PulsePalette.muted)
+                            Spacer(minLength: 4)
+                            if viewModel.tiboLatestSocialEvidence != nil {
+                                Button { viewModel.openLatestTiboSocialEvidence() } label: {
+                                    HStack(spacing: 3) {
+                                        Text(viewModel.t("tibo.cycle.openPost"))
+                                        PulseIcon(name: "arrow-right").frame(width: 7, height: 7)
+                                    }
+                                }
+                                .buttonStyle(PulseTextButtonStyle())
+                            }
+                        }
+
+                        if let text = viewModel.tiboSocialEvidenceText {
+                            Text("“\(text)”")
+                                .font(.system(size: 13, weight: .regular, design: .default))
+                                .foregroundStyle(PulsePalette.ink)
+                                .lineSpacing(2)
+                                .lineLimit(6)
+                        }
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            if let meta = viewModel.tiboSocialEvidenceMetaText {
+                                MarqueeLabel(text: meta, font: .system(size: 12, weight: .medium), color: PulsePalette.muted)
+                                    .frame(height: 16)
+                            }
+                            Text(viewModel.tiboSocialEvidenceAssessmentText)
+                                .foregroundStyle(PulsePalette.accent)
+                        }
+                        .font(.system(size: 12, weight: .semibold, design: .default))
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 8)
+
+                    .padding(.bottom, 6)
+
+                    forecastEvidenceRow(
+                        title: viewModel.t("tibo.forecast.probabilityBand"),
+                        value: viewModel.tiboForecastProbabilityBandText
+                    )
+                    PulsePalette.divider.frame(height: 1)
+                    forecastEvidenceRow(
+                        title: viewModel.t("tibo.forecast.publicSignal"),
+                        value: viewModel.tiboForecastPublicSignalText
+                    )
+                    if let age = viewModel.tiboForecastLastResetAgeText {
+                        PulsePalette.divider.frame(height: 1)
+                        forecastEvidenceRow(title: viewModel.t("tibo.forecast.lastResetAge"), value: age)
+                    }
+                    if let cadence = viewModel.tiboForecastCadenceText {
+                        PulsePalette.divider.frame(height: 1)
+                        forecastEvidenceRow(title: viewModel.t("tibo.forecast.recentCadence"), value: cadence)
+                    }
+                    if let window = viewModel.tiboForecastCommonWindowText {
+                        PulsePalette.divider.frame(height: 1)
+                        forecastEvidenceRow(title: viewModel.t("tibo.forecast.commonWindow"), value: window)
+                    }
+                }
+                .padding(13)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+            } else {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(viewModel.t("tibo.forecast.horizon24h") + " · " + viewModel.t("tibo.forecast.resetProbability"))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(PulsePalette.muted)
+                            Text(viewModel.tiboForecastProbabilityText)
+                                .font(.system(size: 48, weight: .semibold))
+                                .foregroundStyle(PulsePalette.accent)
+                                .monospacedDigit()
+                            Text(viewModel.tiboForecastProbabilityLevelText)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(PulsePalette.muted)
+                        }
+                        Spacer()
+                        Button { viewModel.tiboSignalTick(force: true) } label: {
+                            AnimatedRefreshIcon(isSpinning: viewModel.isTiboSignalRefreshing)
+                                .frame(width: 32, height: 32)
+                                .background(PulsePalette.surfaceRaised, in: Circle())
+                        }
+                        .buttonStyle(PulsePressStyle())
+                        .disabled(viewModel.isTiboSignalRefreshing)
+                        .accessibilityLabel(viewModel.t("tibo.detail.refresh"))
+                    }
+                    PulsePalette.divider.frame(height: 1)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(viewModel.tiboForecastReferenceLabel)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(PulsePalette.muted)
+                        Text(viewModel.tiboForecastReferenceText)
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(PulsePalette.ink)
+                            .monospacedDigit()
+                        MarqueeLabel(text: viewModel.tiboForecastCountdownText,
+                                     font: .system(size: 13, weight: .medium), color: PulsePalette.muted)
+                            .frame(height: 18)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 9) {
+                    HStack(spacing: 8) {
+                        Text(viewModel.t("tibo.forecast.lastConfirmed"))
+                            .font(.system(size: 13, weight: .semibold, design: .default))
+                            .foregroundStyle(PulsePalette.ink)
                         Spacer(minLength: 4)
-                        if viewModel.tiboLatestSocialEvidence != nil {
-                            Button { viewModel.openLatestTiboSocialEvidence() } label: {
-                                HStack(spacing: 3) {
+                        if viewModel.tiboCycleHasSource {
+                            Button { viewModel.openTiboCycleSource() } label: {
+                                HStack(spacing: 4) {
                                     Text(viewModel.t("tibo.cycle.openPost"))
-                                    PulseIcon(name: "arrow-right").frame(width: 7, height: 7)
+                                    PulseIcon(name: "arrow-right").frame(width: 8, height: 8)
                                 }
                             }
                             .buttonStyle(PulseTextButtonStyle())
                         }
                     }
 
-                    if let text = viewModel.tiboSocialEvidenceText {
-                        Text("“\(text)”")
-                            .font(.system(size: 12, weight: .medium, design: .default))
+                    Text(viewModel.tiboForecastLastConfirmedText)
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(PulsePalette.accent)
+                        .monospacedDigit()
+
+                    if let reason = viewModel.tiboForecastResetReasonText {
+                        Text(reason)
+                            .font(.system(size: 13, weight: .regular, design: .default))
                             .foregroundStyle(PulsePalette.ink)
-                            .lineSpacing(2)
-                            .lineLimit(3)
+                            .lineSpacing(3)
+                            .lineLimit(4)
                     }
+                }
+                .padding(13)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                    HStack(spacing: 6) {
-                        if let meta = viewModel.tiboSocialEvidenceMetaText {
-                            Text(meta)
-                                .foregroundStyle(PulsePalette.faint)
-                        }
-                        Spacer(minLength: 4)
-                        Text(viewModel.tiboSocialEvidenceAssessmentText)
-                            .foregroundStyle(PulsePalette.accent)
+                Button { tiboShowsEvidence = true } label: {
+                    HStack {
+                        Text(viewModel.tiboForecastJudgementTitle)
+                        Spacer()
+                        PulseIcon(name: "arrow-right").frame(width: 12, height: 12)
                     }
-                    .font(.system(size: 12, weight: .semibold, design: .default))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(PulsePalette.accent)
+                    .padding(14)
+                    .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12))
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 8)
-                .background(PulsePalette.surfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .padding(.bottom, 6)
-
-                forecastEvidenceRow(
-                    title: viewModel.t("tibo.forecast.probabilityBand"),
-                    value: viewModel.tiboForecastProbabilityBandText
-                )
-                PulsePalette.divider.frame(height: 1)
-                forecastEvidenceRow(
-                    title: viewModel.t("tibo.forecast.publicSignal"),
-                    value: viewModel.tiboForecastPublicSignalText
-                )
-                if let age = viewModel.tiboForecastLastResetAgeText {
-                    PulsePalette.divider.frame(height: 1)
-                    forecastEvidenceRow(title: viewModel.t("tibo.forecast.lastResetAge"), value: age)
-                }
-                if let cadence = viewModel.tiboForecastCadenceText {
-                    PulsePalette.divider.frame(height: 1)
-                    forecastEvidenceRow(title: viewModel.t("tibo.forecast.recentCadence"), value: cadence)
-                }
-                if let window = viewModel.tiboForecastCommonWindowText {
-                    PulsePalette.divider.frame(height: 1)
-                    forecastEvidenceRow(title: viewModel.t("tibo.forecast.commonWindow"), value: window)
-                }
+                .buttonStyle(PulsePressStyle())
             }
-            .padding(13)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-            }
-
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
+        .padding(.top, 12)
+        .padding(.bottom, 12)
     }
 
     private func forecastEvidenceRow(title: String, value: String) -> some View {
-        HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.system(size: 12, weight: .medium, design: .default))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(PulsePalette.muted)
-            Spacer(minLength: 6)
-            Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.ink)
-                .monospacedDigit()
+            MarqueeLabel(text: value, font: .system(size: 14, weight: .medium), color: PulsePalette.ink)
+                .frame(height: 18)
         }
-        .frame(height: 32)
+        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 
     private func ledgerSurface(_ account: CodexAccountUsageSnapshot) -> some View {
@@ -1787,9 +1414,8 @@ struct MenuBarDashboardView: View {
             .background(PulsePalette.surfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .padding(.horizontal, 16)
 
-            Text(viewModel.t("sessions.notice"))
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(PulsePalette.muted)
+            MarqueeLabel(text: viewModel.t("sessions.notice"), font: .system(size: 12, weight: .medium), color: PulsePalette.muted)
+                .frame(height: 16)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
 
@@ -1961,28 +1587,30 @@ struct MenuBarDashboardView: View {
             VStack(spacing: 0) {
                 moreActionButton(
                     title: viewModel.t("page.tiboSignal"),
-                    icon: "calendar",
+                    icon: "forecast",
                     showsChevron: true
                 ) { page = .tiboSignal }
                 settingsDivider
                 moreActionButton(
                     title: viewModel.t("page.about"),
-                    icon: "developer",
+                    icon: "info",
                     showsChevron: true
                 ) { page = .about }
-                settingsDivider
+            }
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12))
+            VStack(spacing: 0) {
                 moreActionButton(title: viewModel.t("action.exportCSV"), icon: "export", action: viewModel.exportCSV)
                 settingsDivider
                 moreActionButton(title: viewModel.t("action.exportJSON"), icon: "export", action: viewModel.exportJSON)
             }
             .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            moreActionButton(title: viewModel.t("action.quit"), icon: "more", destructive: true) {
+            Spacer(minLength: 0)
+            moreActionButton(title: viewModel.t("action.quit"), icon: "power", destructive: true) {
                 NSApp.terminate(nil)
             }
             .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 12)
@@ -2035,55 +1663,31 @@ struct MenuBarDashboardView: View {
                 }
             }
             .id(consolePanel)
-            .transition(.opacity)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 9)
         .frame(height: Self.primaryPageContentHeight, alignment: .top)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: consolePanel)
     }
 
     private var consolePanelStrip: some View {
-        HStack(spacing: 0) {
-            consolePanelButton(.appearance, icon: "appearance")
-            consolePanelButton(.live, icon: "pulse")
-            consolePanelButton(.account, icon: "account")
-            consolePanelButton(.data, icon: "data")
-        }
-        .frame(height: 46)
-        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-        .overlay(alignment: .bottom) {
-            PulsePalette.divider.frame(height: 1)
-        }
-        .help(viewModel.t("console.note"))
-    }
-
-    private func consolePanelButton(_ panel: ConsolePanel, icon: String) -> some View {
-        Button { consolePanel = panel } label: {
-            VStack(spacing: 3) {
-                PulseIcon(name: icon).frame(width: 13, height: 13)
-                Text(consolePanelTitle(panel))
-                    .font(.system(size: 12, weight: .semibold, design: .default))
-                    .lineLimit(1)
-            }
-            .foregroundStyle(consolePanel == panel ? PulsePalette.accent : PulsePalette.muted)
-            .frame(maxWidth: .infinity, minHeight: 46)
-            .overlay(alignment: .bottom) {
-                Capsule()
-                    .fill(consolePanel == panel ? PulsePalette.accent : Color.clear)
-                    .frame(width: 24, height: 2)
+        Picker(viewModel.t("page.console"), selection: $consolePanel) {
+            ForEach(ConsolePanel.allCases) { panel in
+                Text(consolePanelTitle(panel)).tag(panel)
             }
         }
-        .buttonStyle(PulsePressStyle())
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .frame(height: 38)
+        .accessibilityIdentifier("Settings.Sections")
     }
 
     private func consolePanelTitle(_ panel: ConsolePanel) -> String {
         switch panel {
-        case .appearance: viewModel.t("console.theme")
-        case .live: viewModel.t("console.live")
-        case .account: viewModel.t("console.accounts")
-        case .data: viewModel.t("console.data")
+        case .appearance: viewModel.t("settings.tab.appearance")
+        case .live: viewModel.t("settings.tab.live")
+        case .account: viewModel.t("settings.tab.account")
+        case .data: viewModel.t("settings.tab.data")
         }
     }
 
@@ -2316,12 +1920,10 @@ struct MenuBarDashboardView: View {
     private var tokenLogin: some View {
         let inspection = viewModel.inspectCredentialText(credentialText)
         return VStack(spacing: 8) {
-            HStack(spacing: 5) {
-                formatBadge("TOKEN", color: PulsePalette.accent)
-                formatBadge("JSON / JSONL", color: PulsePalette.muted)
-                formatBadge("SUB2 · CPA · COCKPIT", color: PulsePalette.muted)
-                Spacer(minLength: 0)
-            }
+            Text("Token / JSON")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(PulsePalette.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -2334,7 +1936,7 @@ struct MenuBarDashboardView: View {
                             )
                     }
                 if credentialText.isEmpty {
-                    Text(viewModel.t("account.tokenInputPlaceholder"))
+                    Text("Token / JSON")
                         .font(.system(size: 13, weight: .medium, design: .monospaced))
                         .foregroundStyle(PulsePalette.faint)
                         .padding(.horizontal, 13)
@@ -2344,7 +1946,7 @@ struct MenuBarDashboardView: View {
                 PrivateCredentialEditor(text: $credentialText)
                     .padding(7)
             }
-            .frame(height: 148)
+            .frame(height: 210)
 
             HStack(spacing: 8) {
                 Circle()
@@ -2370,7 +1972,7 @@ struct MenuBarDashboardView: View {
                 Text(viewModel.t("account.tokenModeTitle"))
                     .font(.system(size: 12, weight: .semibold, design: .default))
                     .foregroundStyle(PulsePalette.muted)
-                HStack(spacing: 8) {
+                VStack(spacing: 8) {
                     tokenModeButton(
                         .monitorOnly,
                         title: viewModel.t("account.tokenModeMonitor"),
@@ -2389,8 +1991,8 @@ struct MenuBarDashboardView: View {
             HStack(spacing: 8) {
                 PulseIcon(name: "check")
                     .frame(width: 12, height: 12)
-                Text(viewModel.t("account.tokenPrivacy"))
-                    .font(.system(size: 12, weight: .semibold))
+                MarqueeLabel(text: viewModel.t("account.tokenPrivacy"), font: .system(size: 12, weight: .medium), color: PulsePalette.muted)
+                    .frame(height: 18)
                 Spacer(minLength: 0)
             }
             .foregroundStyle(PulsePalette.muted)
@@ -2426,15 +2028,6 @@ struct MenuBarDashboardView: View {
         .padding(.bottom, 10)
     }
 
-    private func formatBadge(_ text: String, color: Color) -> some View {
-        Text(text)
-            .font(.system(size: 12, weight: .semibold, design: .default))
-            .foregroundStyle(color)
-            .padding(.horizontal, 7)
-            .frame(height: 20)
-            .background(color.opacity(0.11), in: Capsule())
-    }
-
     private func tokenModeButton(
         _ mode: AccountSwitchMode,
         title: String,
@@ -2455,13 +2048,15 @@ struct MenuBarDashboardView: View {
                 .frame(width: 19, height: 19)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
+                        .font(.system(size: 14, weight: .semibold, design: .default))
                         .foregroundStyle(PulsePalette.ink)
+                    MarqueeLabel(text: subtitle, font: .system(size: 12, weight: .regular), color: PulsePalette.muted)
+                        .frame(height: 16)
                 }
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 9)
-            .frame(maxWidth: .infinity, minHeight: 46)
+            .frame(maxWidth: .infinity, minHeight: 60)
             .background(
                 selected ? color.opacity(0.12) : PulsePalette.surface,
                 in: RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -2525,138 +2120,86 @@ struct MenuBarDashboardView: View {
     }
 
     private func settingsMenuRow<Content: View>(title: String, value: String, @ViewBuilder content: () -> Content) -> some View {
-        HStack(spacing: 8) {
-            Text(title)
-                .foregroundStyle(PulsePalette.ink)
-            Spacer(minLength: 8)
+        VStack(alignment: .leading, spacing: 4) {
+            MarqueeLabel(text: title, font: .system(size: 13, weight: .medium), color: PulsePalette.ink)
+                .frame(height: 18)
             Menu(content: content) {
                 Text(value)
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(PulsePalette.accent)
-                    .lineLimit(1)
-                    .font(.system(size: 12, weight: .semibold, design: .default))
-                    .padding(.horizontal, 8)
-                    .frame(height: 25)
-                    .background(PulsePalette.accent.opacity(0.10), in: Capsule())
             }
             .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
+            .frame(width: Self.contentWidth - 58, height: 20, alignment: .leading)
+            .help(value)
+            .accessibilityLabel(title)
         }
         .padding(.horizontal, 13)
-        .frame(height: 42)
+        .frame(height: 60)
         .contentShape(Rectangle())
     }
 
     private var about: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 12) {
+        VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 Image("CodexLensAppIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 50, height: 50)
+                    .resizable().scaledToFit()
+                    .frame(width: 76, height: 76)
                     .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(viewModel.t("developer.product"))
-                        .font(.system(size: 17, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.ink)
-                    HStack(spacing: 6) {
-                        versionBadge(viewModel.t("about.versionValue", appVersionNumber))
-                        versionBadge(viewModel.t("about.buildValue", appBuildNumber))
-                    }
+                Text(viewModel.t("developer.product"))
+                    .font(.system(size: 25, weight: .semibold))
+                    .foregroundStyle(PulsePalette.ink)
+                HStack(spacing: 12) {
+                    Text(viewModel.t("about.versionValue", appVersionNumber))
+                    Text(viewModel.t("about.buildValue", appBuildNumber))
                 }
-
-                Spacer(minLength: 0)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(PulsePalette.muted)
             }
-            .padding(.horizontal, 14)
-            .frame(height: 76)
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
 
             VStack(spacing: 0) {
-                aboutNavigationRow(
-                    title: viewModel.t("update.check"),
-                    value: updateStatusShortText,
-                    icon: "sync"
-                ) { page = .updates }
-            }
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            VStack(spacing: 0) {
-                aboutNavigationRow(
-                    title: viewModel.t("about.website"),
-                    value: viewModel.t("about.websitePlaceholder"),
-                    icon: "export"
-                ) { openURL(Self.websiteURL) }
+                aboutNavigationRow(title: viewModel.t("update.check"), value: updateStatusShortText, icon: "sync") { page = .updates }
                 settingsDivider
-                aboutNavigationRow(
-                    title: viewModel.t("about.source"),
-                    value: "GitHub",
-                    icon: "developer"
-                ) { openURL(Self.sourceURL) }
+                aboutNavigationRow(title: viewModel.t("about.website"), value: viewModel.t("about.websitePlaceholder"), icon: "external-link") { openURL(Self.websiteURL) }
+                settingsDivider
+                aboutNavigationRow(title: viewModel.t("about.source"), value: "GitHub", icon: "developer") { openURL(Self.sourceURL) }
             }
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12))
 
-            LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
-                spacing: 8
-            ) {
+            VStack(spacing: 0) {
                 ForEach(LegalDocument.allCases) { document in
-                    Button {
+                    if document != LegalDocument.allCases.first { settingsDivider }
+                    aboutNavigationRow(title: viewModel.t(document.titleKey), value: "", icon: legalIcon(document)) {
                         legalDocument = document
                         legalPage = 0
                         page = .legal
-                    } label: {
-                        HStack(spacing: 8) {
-                            PulseIcon(name: legalIcon(document))
-                                .frame(width: 14, height: 14)
-                                .foregroundStyle(PulsePalette.accent)
-                            Text(viewModel.t(document.titleKey))
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(PulsePalette.ink)
-                            Spacer(minLength: 0)
-                        }
-                        .padding(.horizontal, 11)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                        .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
                     }
-                    .buttonStyle(PulsePressStyle())
                 }
             }
-
-            HStack(spacing: 10) {
-                Image("DeveloperAvatar")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 34, height: 34)
-                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Zijiu522")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(PulsePalette.ink)
-                    Text(viewModel.t("developer.role"))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(PulsePalette.muted)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 54)
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 12))
 
             Spacer(minLength: 0)
+            HStack(spacing: 8) {
+                Image("DeveloperAvatar")
+                    .resizable().scaledToFill()
+                    .frame(width: 26, height: 26)
+                    .clipShape(Circle())
+                Text("Zijiu522")
+                    .font(.system(size: 13, weight: .medium))
+                Spacer()
+                Text(viewModel.t("developer.role"))
+                    .font(.system(size: 12))
+            }
+            .foregroundStyle(PulsePalette.muted)
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 12)
+        .padding(.bottom, 16)
         .frame(height: Self.primaryPageContentHeight, alignment: .top)
     }
 
     private var updates: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             VStack(spacing: 7) {
                 ZStack {
                     Circle()
@@ -2668,15 +2211,14 @@ struct MenuBarDashboardView: View {
                 .frame(width: 48, height: 48)
 
                 Text(updateStatusTitle)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(PulsePalette.ink)
                 Text(appVersionDisplay)
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
                     .foregroundStyle(PulsePalette.muted)
                     .monospacedDigit()
             }
-            .frame(maxWidth: .infinity, minHeight: 122)
-            .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .frame(maxWidth: .infinity, minHeight: 102)
 
             Button(action: updateService.checkForUpdates) {
                 HStack(spacing: 8) {
@@ -2715,9 +2257,8 @@ struct MenuBarDashboardView: View {
                             Circle()
                                 .fill(PulsePalette.accent)
                                 .frame(width: 4, height: 4)
-                            Text(viewModel.t(key))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(PulsePalette.ink)
+                            MarqueeLabel(text: viewModel.t(key), font: .system(size: 13, weight: .medium), color: PulsePalette.ink)
+                                .frame(height: 22)
                             Spacer(minLength: 0)
                         }
                     }
@@ -2742,7 +2283,7 @@ struct MenuBarDashboardView: View {
                         set: updateService.setAutomaticallyDownloadsUpdates
                     )
                 ) {}
-                .disabled(!updateService.automaticallyChecksForUpdates)
+                    .disabled(!updateService.automaticallyChecksForUpdates)
             }
 
             HStack(spacing: 8) {
@@ -2876,8 +2417,8 @@ struct MenuBarDashboardView: View {
 
     private func legalIcon(_ document: LegalDocument) -> String {
         switch document {
-        case .userAgreement: "check"
-        case .privacy: "account"
+        case .userAgreement: "document"
+        case .privacy: "shield"
         case .openSource: "developer"
         case .disclaimer: "warning"
         }
@@ -2944,10 +2485,10 @@ struct MenuBarDashboardView: View {
 
     private var currentReleaseNoteKeys: [String] {
         [
-            "update.releaseNote.rename",
-            "update.releaseNote.tiboJudgement",
-            "update.releaseNote.usageHeatmap",
-            "update.releaseNote.usageDetail",
+            "update.releaseNote.roundedIcons",
+            "update.releaseNote.luminousHeatmap",
+            "update.releaseNote.pageBounds",
+            "update.releaseNote.astraPricing",
         ]
     }
 
@@ -2998,7 +2539,7 @@ struct MenuBarDashboardView: View {
 
     private var footerDestination: MenuPopoverPage {
         switch page {
-        case .overview, .usageHistory, .quotaDetails, .activeTasks: .overview
+        case .overview, .tokenDetails, .usageHistory, .quotaDetails, .activeTasks: .overview
         case .sessions: .sessions
         case .settings, .tokenLogin: .settings
         case .tiboSignal, .about, .updates, .legal, .more: .more
@@ -3008,7 +2549,7 @@ struct MenuBarDashboardView: View {
     private var footer: some View {
         HStack(spacing: 4) {
             footerTab(.overview, icon: "pulse", title: viewModel.t("nav.live"))
-            footerTab(.sessions, icon: "tasks", title: viewModel.t("nav.history"))
+            footerTab(.sessions, icon: "history", title: viewModel.t("nav.history"))
             footerTab(.settings, icon: "console", title: viewModel.t("nav.settings"))
             footerTab(
                 .more,
@@ -3017,12 +2558,11 @@ struct MenuBarDashboardView: View {
                 showsStatus: true
             )
         }
+        .padding(.horizontal, 5)
+        .frame(height: 48)
+        .glassOutline(radius: 10)
+        .padding(.horizontal, 16)
         .frame(height: Self.footerHeight)
-        .padding(.horizontal, 8)
-        .background(PulsePalette.surface.opacity(0.52))
-        .overlay(alignment: .top) {
-            PulsePalette.divider.frame(height: 1)
-        }
     }
 
     private func footerTab(
@@ -3038,16 +2578,13 @@ struct MenuBarDashboardView: View {
             ZStack(alignment: .topTrailing) {
                 VStack(spacing: 4) {
                     PulseIcon(name: icon)
-                        .frame(width: 14, height: 14)
+                        .frame(width: 24, height: 23)
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold, design: .default))
+                        .font(.system(size: 12, weight: .regular))
                 }
-                .foregroundStyle(selected ? PulsePalette.accent : PulsePalette.faint)
+                .foregroundStyle(selected ? PulsePalette.accent : PulsePalette.muted)
                 .frame(maxWidth: .infinity, minHeight: 44)
-                .background(
-                    selected ? PulsePalette.accent.opacity(0.11) : Color.clear,
-                    in: RoundedRectangle(cornerRadius: 10, style: .continuous)
-                )
+
                 if showsStatus {
                     Circle()
                         .fill(viewModel.isScanning ? PulsePalette.warning : PulsePalette.lime)
@@ -3073,10 +2610,8 @@ struct MenuBarDashboardView: View {
                 Text(title)
                     .font(.system(size: 13, weight: .semibold, design: .default))
                     .foregroundStyle(PulsePalette.ink)
-                Text(error)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(PulsePalette.muted)
-                    .lineLimit(1)
+                MarqueeLabel(text: error, font: .system(size: 12, weight: .medium), color: PulsePalette.muted)
+                    .frame(height: 16)
             }
             Spacer()
             Button(viewModel.t("action.retry"), action: viewModel.refresh)
@@ -3121,6 +2656,74 @@ private struct TokenUsageMonthLabels: View {
     }
 }
 
+struct OverviewUsageCalendar: View {
+    let weeks: [[TokenUsageHeatmapDay]]
+    let chartLabel: String
+    let dayLabel: (TokenUsageHeatmapDay) -> String
+    let onSelect: (TokenUsageHeatmapDay) -> Void
+    static let weekCount = 16
+    static let weekdayWidth: CGFloat = 28
+    private let cellSize: CGFloat = 14.5
+    private let gap: CGFloat = 2.25
+    private let weekdays: [String]
+    private let monthLabels: [Int: String]
+
+    init(weeks: [[TokenUsageHeatmapDay]], locale: Locale, chartLabel: String,
+         dayLabel: @escaping (TokenUsageHeatmapDay) -> String,
+         onSelect: @escaping (TokenUsageHeatmapDay) -> Void) {
+        self.weeks = weeks
+        self.chartLabel = chartLabel
+        self.dayLabel = dayLabel
+        self.onSelect = onSelect
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = calendar.timeZone
+        weekdays = formatter.shortWeekdaySymbols
+        formatter.setLocalizedDateFormatFromTemplate("MMM")
+        var labels: [Int: String] = [:]
+        for (index, week) in weeks.enumerated() {
+            guard let first = week.first else { continue }
+            let monthStart = week.first { calendar.component(.day, from: $0.date) == 1 }
+            if let monthStart {
+                labels[index] = formatter.string(from: monthStart.date)
+            } else if index == 0 && calendar.component(.day, from: first.date) < 20 {
+                labels[index] = formatter.string(from: first.date)
+            }
+        }
+        monthLabels = labels
+    }
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 6) {
+            VStack(spacing: gap) {
+                ForEach(0..<7) { index in
+                    Text(weekdays[index])
+                        .font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+                        .frame(width: Self.weekdayWidth, height: cellSize, alignment: .leading)
+                }
+            }
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: gap) {
+                    ForEach(weeks.indices, id: \.self) { index in
+                        Color.clear.frame(width: cellSize, height: 16)
+                            .overlay(alignment: index > weeks.count - 3 ? .trailing : .leading) {
+                                if let label = monthLabels[index] {
+                                    Text(label).font(.system(size: 12)).foregroundStyle(PulsePalette.muted).fixedSize()
+                                }
+                            }
+                    }
+                }
+                .accessibilityHidden(true)
+                TokenUsageHeatmapGrid(weeks: weeks, cellSize: cellSize, cellSpacing: gap,
+                                      selectedDayKey: nil, onSelect: onSelect, chartLabel: chartLabel, dayLabel: dayLabel)
+            }
+        }
+    }
+}
+
 private struct TokenUsageHeatmapGrid: View {
     let weeks: [[TokenUsageHeatmapDay]]
     let cellSize: CGFloat
@@ -3150,7 +2753,7 @@ private struct TokenUsageHeatmapGrid: View {
     }
 }
 
-private struct TokenUsageHeatmapCell: View {
+struct TokenUsageHeatmapCell: View {
     let day: TokenUsageHeatmapDay
     let size: CGFloat
     let selected: Bool
@@ -3158,6 +2761,7 @@ private struct TokenUsageHeatmapCell: View {
     let accessibilityLabel: String
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
 
     var body: some View {
@@ -3172,354 +2776,243 @@ private struct TokenUsageHeatmapCell: View {
             }
         }
         .frame(width: size, height: size)
-        .scaleEffect(isHovered && day.tokens > 0 ? 1.35 : 1)
-        .zIndex(isHovered ? 1 : 0)
         .onHover { isHovered = $0 }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovered)
         .help(day.isFuture ? "" : accessibilityLabel)
     }
 
     private var cell: some View {
-        RoundedRectangle(cornerRadius: max(1, size * 0.28), style: .continuous)
-            .fill(fillColor)
+        let shape = RoundedRectangle(cornerRadius: min(1, size * 0.08), style: .continuous)
+        let tint = PulsePalette.heatmapGlassTint(intensity: day.intensity)
+        return shape
+            .fill(day.isFuture ? PulsePalette.heatmapFuture : PulsePalette.heatmapEmpty.opacity(day.intensity == 0 ? 1 : 0.15))
             .overlay {
-                if selected {
-                    RoundedRectangle(cornerRadius: max(1, size * 0.28), style: .continuous)
-                        .stroke(PulsePalette.ink.opacity(0.74), lineWidth: 1)
+                shape.fill(LinearGradient(
+                    colors: [tint.opacity(glassOpacity), tint.opacity(glassOpacity * 0.94)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+                .blendMode(colorScheme == .dark ? .screen : .normal)
+            }
+            .overlay {
+                shape.fill(LinearGradient(
+                    stops: [.init(color: .white.opacity(glassOpacity * 0.22), location: 0),
+                            .init(color: .white.opacity(glassOpacity * 0.07), location: 0.45),
+                            .init(color: .clear, location: 1)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+            }
+            .overlay {
+                shape.strokeBorder(LinearGradient(
+                    colors: [.white.opacity(glassOpacity * 0.30 + 0.03), .white.opacity(0.015)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ), lineWidth: 0.5)
+            }
+            .overlay {
+                if selected || isHovered {
+                    shape.strokeBorder(PulsePalette.ink.opacity(selected ? 0.65 : 0.28), lineWidth: 1)
                 }
             }
             .contentShape(Rectangle())
     }
 
-    private var fillColor: Color {
-        if day.isFuture { return PulsePalette.heatmapFuture }
+    private var glassOpacity: Double {
+        guard !day.isFuture else { return 0 }
         switch day.intensity {
-        case 1: return PulsePalette.accent.opacity(0.28)
-        case 2: return PulsePalette.accent.opacity(0.48)
-        case 3: return PulsePalette.accent.opacity(0.70)
-        case 4: return PulsePalette.accent
-        default: return PulsePalette.heatmapEmpty
+        case 1: return 0.34
+        case 2: return 0.47
+        case 3: return 0.62
+        case 4: return colorScheme == .dark ? 0.84 : 0.68
+        default: return 0
         }
     }
 }
 
 private struct LiveContextCard: View {
     let context: CodexLiveContextSnapshot
+    let onOpenDetails: () -> Void
+    @EnvironmentObject private var viewModel: DashboardViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .bottom, spacing: 8) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(viewModel.t("detail.currentContext"))
+                        .font(.system(size: 13)).foregroundStyle(PulsePalette.muted)
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text(DisplayFormat.integer(context.contextInputTokens))
+                            .font(.system(size: 30, weight: .regular))
+                            .tracking(-0.5).monospacedDigit()
+                        Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+                    }
+                    .foregroundStyle(PulsePalette.ink)
+                }
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(context.contextUsedPercent.map { $0.formatted(.number.precision(.fractionLength(0))) + "%" } ?? "—")
+                        .font(.system(size: 21, weight: .regular)).monospacedDigit()
+                        .foregroundStyle(PulsePalette.ink)
+                    Text(viewModel.t("detail.utilization"))
+                        .font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+                }
+            }
+            ContextCapacityRuler(capacity: context.contextCapacityWindow, progress: (context.contextUsedPercent ?? 0) / 100)
+                .accessibilityLabel(context.contextCapacityWindow.map { viewModel.t("live.contextLimit", DisplayFormat.integer($0)) } ?? viewModel.t("live.single"))
+            HStack(spacing: 20) {
+                ContextTokenRow(direction: .cached, title: viewModel.t("live.cached"), value: context.lastRequest.cachedInputTokens)
+                PulsePalette.divider.frame(width: 1, height: 34)
+                ContextTokenRow(direction: .output, title: viewModel.t("live.requestOutput"), value: context.lastRequest.outputTokens)
+            }
+            Button(action: onOpenDetails) {
+                HStack(spacing: 9) {
+                    Text(viewModel.t("live.tokenDetail")).font(.system(size: 13, weight: .regular))
+                    PulseIcon(name: "arrow-right").frame(width: 11, height: 11)
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(PulsePalette.accent)
+                .frame(height: 22)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PulsePressStyle())
+            .accessibilityIdentifier("Overview.TokenDetails")
+        }
+        .frame(height: 190, alignment: .top)
+    }
+}
+
+private struct ContextCapacityRuler: View {
+    let capacity: Int64?
+    let progress: Double
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ZStack(alignment: .top) {
+                ContextUsageBar(progress: progress, color: PulsePalette.accent).frame(height: 5)
+                HStack(spacing: 0) {
+                    ForEach(0..<17) { tick in
+                        if tick > 0 { Spacer(minLength: 0) }
+                        PulsePalette.muted.opacity(0.55).frame(width: 0.5, height: tick.isMultiple(of: 4) ? 7 : 3)
+                    }
+                }
+                .padding(.top, 5)
+            }
+            .frame(height: 12)
+            HStack {
+                Text("0")
+                Spacer(minLength: 0)
+                Text(capacity.map { DisplayFormat.integer($0) + " Token" } ?? "—")
+            }
+            .font(.system(size: 12)).monospacedDigit().foregroundStyle(PulsePalette.muted)
+        }
+        .accessibilityElement(children: .ignore)
+    }
+}
+
+private struct LiveTokenDetails: View {
+    let context: CodexLiveContextSnapshot
     let apiUSD: CostBreakdown?
     let taskAPIUSD: CostBreakdown?
     let showAPIEstimate: Bool
     let showRuntimeWindow: Bool
-
     @EnvironmentObject private var viewModel: DashboardViewModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isDetailsExpanded: Bool
+    @State private var detailScope: TokenDetailScope
+    @State private var showsRates = false
 
-    init(
-        context: CodexLiveContextSnapshot,
-        apiUSD: CostBreakdown?,
-        taskAPIUSD: CostBreakdown?,
-        showAPIEstimate: Bool,
-        showRuntimeWindow: Bool,
-        initiallyExpanded: Bool = false
-    ) {
+    init(context: CodexLiveContextSnapshot, apiUSD: CostBreakdown?, taskAPIUSD: CostBreakdown?,
+         showAPIEstimate: Bool, showRuntimeWindow: Bool, initialDetailScope: TokenDetailScope) {
         self.context = context
         self.apiUSD = apiUSD
         self.taskAPIUSD = taskAPIUSD
         self.showAPIEstimate = showAPIEstimate
         self.showRuntimeWindow = showRuntimeWindow
-        _isDetailsExpanded = State(initialValue: initiallyExpanded)
+        _detailScope = State(initialValue: initialDetailScope)
     }
 
     var body: some View {
-        VStack(spacing: 9) {
-            HStack(spacing: 7) {
-                LivePulseBadge(
-                    isFresh: Date().timeIntervalSince(context.updatedAt) < 20,
-                    onHero: true
-                )
-                VStack(alignment: .leading, spacing: 1) {
-                    MarqueeLabel(
-                        text: context.displayTitle,
-                        font: .system(size: 13, weight: .semibold, design: .default),
-                        color: PulsePalette.heroInk
-                    )
-                    .frame(height: 16)
-                    Text(modelLabel)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(PulsePalette.heroMuted)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Button(action: toggleDetails) {
-                    PulseIcon(name: "chevron-down")
-                        .frame(width: 8, height: 8)
-                        .rotationEffect(.degrees(isDetailsExpanded ? 180 : 0))
-                        .animation(
-                            reduceMotion ? nil : .easeInOut(duration: 0.14),
-                            value: isDetailsExpanded
-                        )
-                        .foregroundStyle(PulsePalette.heroInk)
-                        .frame(width: 26, height: 26)
-                        .background(PulsePalette.heroTile, in: Circle())
-                }
-                .buttonStyle(PulsePressStyle())
-                .help(viewModel.t("console.details"))
-            }
-            .frame(height: 30)
-
-            HStack(alignment: .lastTextBaseline, spacing: 10) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(viewModel.t("live.currentContextInput"))
-                        .font(.system(size: 12, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.heroMuted)
-                    Text(DisplayFormat.tokens(context.contextInputTokens))
-                        .font(.system(size: 38, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.heroInk)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                }
-
-                Spacer(minLength: 6)
-
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text(heroCapacityText)
-                        .foregroundStyle(PulsePalette.heroMuted)
-                    Text(heroPercentText)
-                        .foregroundStyle(PulsePalette.heroInk)
-                }
-                .font(.system(size: 12, weight: .semibold, design: .default))
-                .monospacedDigit()
-            }
-
-            ContextUsageBar(
-                progress: (context.contextUsedPercent ?? 0) / 100,
-                color: PulsePalette.accent
-            )
-            .frame(height: 4)
-
-            HStack(spacing: 0) {
-                HeroMetricTile(
-                    direction: .input,
-                    title: viewModel.t("live.contextInput"),
-                    value: DisplayFormat.tokens(context.lastRequest.inputTokens)
-                )
-                PulsePalette.heroMuted.opacity(0.16).frame(width: 1, height: 30)
-                HeroMetricTile(
-                    direction: .cached,
-                    title: viewModel.t("live.cacheWithinInput"),
-                    value: DisplayFormat.tokens(context.lastRequest.cachedInputTokens)
-                )
-                PulsePalette.heroMuted.opacity(0.16).frame(width: 1, height: 30)
-                HeroMetricTile(
-                    direction: .output,
-                    title: viewModel.t("live.requestOutput"),
-                    value: DisplayFormat.tokens(context.lastRequest.outputTokens)
-                )
-            }
-            .padding(.vertical, 2)
-            .background(PulsePalette.focusSurfaceRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-            HStack(spacing: 0) {
-                heroScopeMetric(
-                    title: viewModel.t("live.currentTurn"),
-                    value: context.currentTurnUsage.totalTokens
-                )
-                PulsePalette.heroMuted.opacity(0.22).frame(width: 1, height: 24)
-                heroScopeMetric(
-                    title: viewModel.t("live.taskUsageTotal"),
-                    value: context.taskTotal.totalTokens
-                )
-            }
-            .frame(height: 34)
-        }
-        .padding(11)
-        .frame(height: 222, alignment: .top)
-        .background(PulsePalette.focusSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        // The drawer is an overlay, not part of intrinsic layout. NSMenu keeps
-        // exactly the same window size while it opens and closes, so AppKit no
-        // longer rebuilds or flashes the entire menu window.
-        .overlay(alignment: .top) {
-            if isDetailsExpanded {
-                expandedDetails
-                    .padding(.horizontal, -2)
-                    .offset(y: 38)
-                    .transition(
-                        reduceMotion
-                            ? .identity
-                            : .opacity.combined(with: .scale(scale: 0.985, anchor: .top))
-                    )
-                    .zIndex(20)
-            }
-        }
-        .zIndex(isDetailsExpanded ? 20 : 0)
-    }
-
-    private func heroScopeMetric(title: String, value: Int64) -> some View {
-        VStack(spacing: 2) {
-            Text(title)
-                .foregroundStyle(PulsePalette.heroMuted)
-            Text("\(DisplayFormat.tokens(value)) Token")
-                .foregroundStyle(PulsePalette.heroInk)
-                .monospacedDigit()
-        }
-        .font(.system(size: 12, weight: .semibold, design: .default))
-        .frame(maxWidth: .infinity)
-    }
-
-    /// Never change the custom NSMenu item's intrinsic height from disclosure.
-    /// The floating drawer is composited inside the existing hero bounds, so
-    /// only that local layer redraws and the native menu window stays stable.
-    private func toggleDetails() {
-        let expanding = !isDetailsExpanded
-        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.14)) {
-            isDetailsExpanded = expanding
-        }
-    }
-
-    private var heroCapacityText: String {
-        guard let window = context.contextCapacityWindow else { return viewModel.t("live.single") }
-        return viewModel.t("live.contextLimit", DisplayFormat.tokens(window))
-    }
-
-    private var heroPercentText: String {
-        guard let percent = context.contextUsedPercent else { return "—" }
-        let value = percent.formatted(.number.precision(.fractionLength(1))) + "%"
-        return viewModel.t("live.usedValue", value)
-    }
-
-    private var expandedDetails: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 8) {
-                    Text(viewModel.t("live.tokenDetail"))
-                        .font(.system(size: 14, weight: .semibold, design: .default))
-                        .foregroundStyle(PulsePalette.detailInk)
-                    Spacer(minLength: 6)
-                    Text(modelLabel)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(PulsePalette.detailMuted)
-                }
-
-                HStack(spacing: 8) {
-                    Text(context.projectName)
-                    Spacer(minLength: 4)
-                    if let detailWindowText {
-                        Text(detailWindowText)
+        VStack(alignment: .leading, spacing: 14) {
+            if showsRates {
+                rateDetails
+            } else {
+                Picker(viewModel.t("live.tokenDetail"), selection: $detailScope) {
+                    ForEach(TokenDetailScope.allCases) { scope in
+                        Text(viewModel.t(scope.titleKey)).tag(scope)
                     }
                 }
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.detailMuted)
-            }
-            .padding(.bottom, 10)
-
-            PulsePalette.detailDivider.frame(height: 1)
-
-            TokenScopeDetailSection(
-                title: viewModel.t("live.currentContext"),
-                headline: "\(viewModel.t("live.contextInput")) \(tokenValue(context.contextInputTokens))",
-                inputTitle: viewModel.t("live.input"),
-                cachedTitle: viewModel.t("live.cached"),
-                outputTitle: viewModel.t("live.output"),
-                inputValue: exactTokenValue(context.lastRequest.inputTokens),
-                cachedValue: exactTokenValue(context.lastRequest.cachedInputTokens),
-                outputValue: exactTokenValue(context.lastRequest.outputTokens)
-            )
-            .padding(.vertical, 10)
-
-            PulsePalette.detailDivider.frame(height: 1)
-
-            TokenScopeDetailSection(
-                title: viewModel.t("live.turn", context.currentTurnCalls.count),
-                headline: viewModel.t("live.totalTokens", tokenValue(context.currentTurnUsage.totalTokens)),
-                inputTitle: viewModel.t("live.input"),
-                cachedTitle: viewModel.t("live.cached"),
-                outputTitle: viewModel.t("live.output"),
-                inputValue: exactTokenValue(context.currentTurnUsage.inputTokens),
-                cachedValue: exactTokenValue(context.currentTurnUsage.cachedInputTokens),
-                outputValue: exactTokenValue(context.currentTurnUsage.outputTokens)
-            )
-            .padding(.vertical, 10)
-
-            PulsePalette.detailDivider.frame(height: 1)
-
-            TokenScopeDetailSection(
-                title: viewModel.t("live.total"),
-                headline: viewModel.t("live.totalTokens", tokenValue(context.taskTotal.totalTokens)),
-                inputTitle: viewModel.t("live.input"),
-                cachedTitle: viewModel.t("live.cached"),
-                outputTitle: viewModel.t("live.output"),
-                inputValue: exactTokenValue(context.taskTotal.inputTokens),
-                cachedValue: exactTokenValue(context.taskTotal.cachedInputTokens),
-                outputValue: exactTokenValue(context.taskTotal.outputTokens)
-            )
-            .padding(.top, 10)
-
-            MarqueeLabel(
-                text: detailAccountingNote,
-                font: .system(size: 12, weight: .medium, design: .default),
-                color: PulsePalette.detailMuted
-            )
-            .frame(height: 15)
-            .padding(.top, 8)
-
-            if showAPIEstimate {
-                PulsePalette.detailDivider
-                    .frame(height: 1)
-                    .padding(.vertical, 10)
-
-                VStack(spacing: 6) {
-                    apiCostRow(
-                        title: viewModel.t("live.turnAPIEstimate"),
-                        value: apiEstimateValue(apiUSD)
-                    )
-                    apiCostRow(
-                        title: viewModel.t("live.taskAPIEstimate"),
-                        value: apiEstimateValue(taskAPIUSD)
-                    )
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("TokenDetails.Scope")
+                TokenScopeDetailSection(
+                    title: viewModel.t("detail.total"), headline: detailUsage.totalTokens,
+                    inputTitle: viewModel.t("live.input"), cachedTitle: viewModel.t("live.cached"), outputTitle: viewModel.t("live.output"),
+                    inputValue: detailUsage.inputTokens, cachedValue: detailUsage.cachedInputTokens, outputValue: detailUsage.outputTokens
+                )
+                if showAPIEstimate {
+                    PulsePalette.divider.frame(height: 1)
+                    apiCostRow(title: viewModel.t("live.turnAPIEstimate"), value: apiEstimateValue(apiUSD))
+                    apiCostRow(title: viewModel.t("live.taskAPIEstimate"), value: apiEstimateValue(taskAPIUSD))
                 }
-                .padding(.bottom, 8)
+                PulsePalette.divider.frame(height: 1)
+                Button { showsRates = true } label: {
+                    HStack(spacing: 8) {
+                        MarqueeLabel(text: modelLabel, font: .system(size: 13), color: PulsePalette.muted)
+                            .frame(height: 24)
+                        PulseIcon(name: "chevron-down").frame(width: 9, height: 9)
+                            .foregroundStyle(PulsePalette.muted)
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(height: 32)
+                    .glassOutline(radius: 7)
+                }
+                .buttonStyle(PulsePressStyle())
+                .accessibilityLabel(viewModel.t("detail.modelAndRates"))
+                .accessibilityIdentifier("TokenDetails.Rates")
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+    }
 
+    private var detailUsage: TokenUsage { detailScope.usage(in: context) }
+
+    private var rateDetails: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            Button { showsRates = false } label: {
+                Label(viewModel.t("detail.modelAndRates"), systemImage: "chevron.left")
+                    .font(.system(size: 14, weight: .medium)).foregroundStyle(PulsePalette.accent)
+            }
+            .buttonStyle(PulseTextButtonStyle())
+            MarqueeLabel(text: context.displayTitle, font: .system(size: 15, weight: .medium), color: PulsePalette.ink).frame(height: 22)
+            MarqueeLabel(text: modelLabel, font: .system(size: 16), color: PulsePalette.ink).frame(height: 24)
+            if let detailWindowText {
+                MarqueeLabel(text: detailWindowText, font: .system(size: 13), color: PulsePalette.muted).frame(height: 20)
+            }
+            MarqueeLabel(text: detailAccountingNote, font: .system(size: 12), color: PulsePalette.muted).frame(height: 18)
+            if showAPIEstimate {
+                PulsePalette.divider.frame(height: 1)
                 if let rate = PricingCatalog.rate(for: context.model) {
                     PricingRateDetailRow(
-                        title: standardTierTitle,
-                        unitTitle: viewModel.t("live.perMillionTokens"),
-                        inputTitle: viewModel.t("live.input"),
-                        cachedTitle: viewModel.t("live.cached"),
-                        outputTitle: viewModel.t("live.output"),
-                        inputValue: "$\(compact(rate.inputPerMillion))",
-                        cachedValue: "$\(compact(rate.cachedInputPerMillion))",
-                        outputValue: "$\(compact(rate.outputPerMillion))"
+                        title: standardTierTitle, unitTitle: viewModel.t("live.perMillionTokens"),
+                        inputTitle: viewModel.t("live.input"), cachedTitle: viewModel.t("live.cached"), outputTitle: viewModel.t("live.output"),
+                        inputValue: "$\(compact(rate.inputPerMillion))", cachedValue: "$\(compact(rate.cachedInputPerMillion))", outputValue: "$\(compact(rate.outputPerMillion))"
                     )
-
                     if apiUSD?.isLongContext == true {
                         PricingRateDetailRow(
-                            title: longTierTitle,
-                            unitTitle: viewModel.t("live.perMillionTokens"),
-                            inputTitle: viewModel.t("live.input"),
-                            cachedTitle: viewModel.t("live.cached"),
-                            outputTitle: viewModel.t("live.output"),
+                            title: longTierTitle, unitTitle: viewModel.t("live.perMillionTokens"),
+                            inputTitle: viewModel.t("live.input"), cachedTitle: viewModel.t("live.cached"), outputTitle: viewModel.t("live.output"),
                             inputValue: "$\(compact(rate.inputPerMillion * rate.longContextInputMultiplier))",
                             cachedValue: "$\(compact(rate.cachedInputPerMillion * rate.longContextInputMultiplier))",
                             outputValue: "$\(compact(rate.outputPerMillion * rate.longContextOutputMultiplier))"
                         )
-                        .padding(.top, 8)
                     }
                 } else {
                     Text(viewModel.t("live.apiMissing"))
-                        .font(.system(size: 12, weight: .medium, design: .default))
-                        .foregroundStyle(PulsePalette.detailMuted)
+                        .font(.system(size: 12))
+                        .foregroundStyle(PulsePalette.muted)
                 }
+
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(PulsePalette.detailGlassTint, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .stroke(PulsePalette.detailDivider, lineWidth: 1)
-        }
-        .compositingGroup()
-        .accessibilityElement(children: .contain)
     }
 
     private var detailWindowText: String? {
@@ -3544,23 +3037,11 @@ private struct LiveContextCard: View {
 
     private func apiCostRow(title: String, value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(title)
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.detailMuted)
-            Spacer(minLength: 4)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.detailInk)
-                .monospacedDigit()
+            MarqueeLabel(text: title, font: .system(size: 13), color: PulsePalette.muted).frame(height: 22)
+            Spacer(minLength: 0)
+            Text(value).font(.system(size: 16)).foregroundStyle(PulsePalette.ink).monospacedDigit().fixedSize()
         }
-    }
-
-    private func tokenValue(_ value: Int64) -> String {
-        viewModel.t("live.tokenValue", DisplayFormat.tokens(value))
-    }
-
-    private func exactTokenValue(_ value: Int64) -> String {
-        viewModel.t("live.tokenValue", DisplayFormat.integer(value))
+        .frame(height: 27)
     }
 
     private var longContextCallCount: Int {
@@ -3619,75 +3100,90 @@ private enum HeroTokenDirection {
     }
 }
 
+enum TokenDetailScope: String, CaseIterable, Identifiable {
+    case context, turn, task
+    var id: String { rawValue }
+    var titleKey: String { "detail.scope." + rawValue }
+
+    func usage(in context: CodexLiveContextSnapshot) -> TokenUsage {
+        switch self {
+        case .context: context.lastRequest
+        case .turn: context.currentTurnUsage
+        case .task: context.taskTotal
+        }
+    }
+}
+
 private struct TokenScopeDetailSection: View {
     let title: String
-    let headline: String
+    let headline: Int64
     let inputTitle: String
     let cachedTitle: String
     let outputTitle: String
-    let inputValue: String
-    let cachedValue: String
-    let outputValue: String
+    let inputValue: Int64
+    let cachedValue: Int64
+    let outputValue: Int64
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold, design: .default))
-                    .foregroundStyle(PulsePalette.detailInk)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Text(headline)
-                    .font(.system(size: 12, weight: .medium, design: .default))
-                    .foregroundStyle(PulsePalette.detailMuted)
-                    .monospacedDigit()
-                    .lineLimit(1)
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(.system(size: 13)).foregroundStyle(PulsePalette.muted)
+                ExactTokenNumber(value: headline, size: 32)
             }
+            VStack(spacing: 8) {
+                DetailTokenMetric(direction: .input, title: inputTitle, value: inputValue)
+                DetailTokenMetric(direction: .cached, title: cachedTitle, value: cachedValue)
+                DetailTokenMetric(direction: .output, title: outputTitle, value: outputValue)
+            }
+        }
+    }
+}
 
-            VStack(spacing: 3) {
-                DetailTokenMetric(
-                    direction: .input,
-                    title: inputTitle,
-                    value: inputValue
-                )
-                DetailTokenMetric(
-                    direction: .cached,
-                    title: cachedTitle,
-                    value: cachedValue
-                )
-                DetailTokenMetric(
-                    direction: .output,
-                    title: outputTitle,
-                    value: outputValue
-                )
+private struct ExactTokenNumber: View {
+    let value: Int64
+    let size: CGFloat
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                number.fixedSize()
+                Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                MarqueeLabel(text: DisplayFormat.integer(value), font: .system(size: size, weight: .regular), color: PulsePalette.ink)
+                    .frame(height: size * 1.2)
+                Text("Token").font(.system(size: 12)).foregroundStyle(PulsePalette.muted)
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var number: some View {
+        Text(DisplayFormat.integer(value))
+            .font(.system(size: size, weight: .regular))
+            .monospacedDigit().foregroundStyle(PulsePalette.ink)
     }
 }
 
 private struct DetailTokenMetric: View {
     let direction: HeroTokenDirection
     let title: String
-    let value: String
+    let value: Int64
 
     var body: some View {
-        HStack(spacing: 6) {
-            PulseIcon(name: direction.iconName)
-                .frame(width: 8, height: 8)
-                .rotationEffect(direction.rotation)
-            Text(title)
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(PulsePalette.detailMuted)
-                .lineLimit(1)
-            Spacer(minLength: 12)
-            Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                .foregroundStyle(PulsePalette.detailInk)
-                .monospacedDigit()
-                .lineLimit(1)
+        HStack(spacing: 14) {
+            PulseIcon(name: direction.iconName).frame(width: 19, height: 19).rotationEffect(direction.rotation)
+                .foregroundStyle(PulsePalette.muted)
+            VStack(alignment: .leading, spacing: 5) {
+                MarqueeLabel(text: title, font: .system(size: 13), color: PulsePalette.muted).frame(height: 18)
+                ExactTokenNumber(value: value, size: 24)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, minHeight: 15)
+        .padding(.horizontal, 12)
+        .frame(height: 78)
+        .glassOutline(radius: 8)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -3726,47 +3222,35 @@ private struct PricingRateMetric: View {
     let value: String
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-            Text(title)
-                .foregroundStyle(PulsePalette.detailMuted)
-            Text(value)
-                .foregroundStyle(PulsePalette.detailInk)
-                .monospacedDigit()
+        VStack(alignment: .leading, spacing: 6) {
+            MarqueeLabel(text: title, font: .system(size: 12), color: PulsePalette.muted).frame(height: 18)
+            Text(value).font(.system(size: 17)).foregroundStyle(PulsePalette.ink).monospacedDigit()
         }
-        .font(.system(size: 12, weight: .semibold, design: .default))
-        .lineLimit(1)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-private struct HeroMetricTile: View {
+private struct ContextTokenRow: View {
     let direction: HeroTokenDirection
     let title: String
-    let value: String
+    let value: Int64
 
     var body: some View {
-        VStack(spacing: 3) {
-            HStack(spacing: 4) {
-                PulseIcon(name: direction.iconName)
-                    .frame(width: 9, height: 9)
-                    .rotationEffect(direction.rotation)
-                Text(title)
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 5) {
+                PulseIcon(name: direction.iconName).frame(width: 10, height: 10).rotationEffect(direction.rotation)
+                MarqueeLabel(text: title, font: .system(size: 12), color: PulsePalette.muted).frame(height: 17)
             }
-            .font(.system(size: 12, weight: .semibold, design: .default))
-            .foregroundStyle(PulsePalette.heroLowerMuted)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold, design: .default))
-                .foregroundStyle(PulsePalette.heroLowerInk)
-                .monospacedDigit()
-                .contentTransition(.numericText())
+            .foregroundStyle(PulsePalette.muted)
+            ExactTokenNumber(value: value, size: 18)
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 42)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 60, alignment: .top)
         .accessibilityElement(children: .combine)
     }
 }
 
-private struct MarqueeLabel: View {
+struct MarqueeLabel: View {
     let text: String
     let font: Font
     let color: Color
@@ -3776,27 +3260,34 @@ private struct MarqueeLabel: View {
     @State private var cycleStartedAt = Date()
 
     var body: some View {
-        GeometryReader { proxy in
-            TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion || textWidth <= proxy.size.width)) { timeline in
-                Text(text)
-                    .font(font)
-                    .foregroundStyle(color)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .offset(x: marqueeOffset(at: timeline.date, containerWidth: proxy.size.width))
-                    .background {
-                        GeometryReader { textProxy in
-                            Color.clear.preference(key: MarqueeTextWidthKey.self, value: textProxy.size.width)
-                        }
+        // Use the native line height for clipping, including fallback glyphs.
+        Text(text)
+            .font(font)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .hidden()
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion || textWidth <= proxy.size.width)) { timeline in
+                        Text(text)
+                            .font(font)
+                            .foregroundStyle(color)
+                            .fixedSize()
+                            .offset(x: marqueeOffset(at: timeline.date, containerWidth: proxy.size.width))
+                            .background {
+                                GeometryReader { textProxy in
+                                    Color.clear.preference(key: MarqueeTextWidthKey.self, value: textProxy.size.width)
+                                }
+                            }
                     }
+                }
             }
-        }
-        .frame(height: 18)
-        .clipped()
-        .onPreferenceChange(MarqueeTextWidthKey.self) { textWidth = $0 }
-        .onChange(of: text) { _, _ in cycleStartedAt = Date() }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(text)
-        .help(text)
+            .clipped()
+            .onPreferenceChange(MarqueeTextWidthKey.self) { textWidth = $0 }
+            .onChange(of: text) { _, _ in cycleStartedAt = Date() }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(text)
+            .help(text)
     }
 
     private func marqueeOffset(at date: Date, containerWidth: CGFloat) -> CGFloat {
@@ -3957,34 +3448,18 @@ private struct ContextRing: View {
 
 private struct LivePulseBadge: View {
     let isFresh: Bool
-    var onHero = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @EnvironmentObject private var viewModel: DashboardViewModel
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion || !isFresh)) { timeline in
-            let phase = timeline.date.timeIntervalSinceReferenceDate
-            let pulse = reduceMotion ? 1 : 0.72 + (sin(phase * 5) + 1) * 0.14
-            HStack(spacing: 4) {
-                ZStack {
-                    Circle()
-                        .fill(isFresh ? PulsePalette.lime.opacity(0.20) : PulsePalette.warning.opacity(0.20))
-                        .frame(width: 10, height: 10)
-                        .scaleEffect(isFresh ? pulse : 1)
-                    Circle()
-                        .fill(isFresh ? PulsePalette.lime : PulsePalette.warning)
-                        .frame(width: 4, height: 4)
-                }
-                Text(isFresh ? "LIVE" : "STALE")
-            }
-            .font(.system(size: 12, weight: .semibold, design: .default))
-            .foregroundStyle(onHero ? PulsePalette.heroInk : (isFresh ? PulsePalette.accent : PulsePalette.warning))
-            .padding(.horizontal, 6)
-            .frame(height: 18)
-            .background(
-                onHero ? PulsePalette.heroTile : Color.primary.opacity(0.07),
-                in: Capsule()
-            )
+        HStack(spacing: 5) {
+            Circle().fill(isFresh ? PulsePalette.accent : PulsePalette.warning).frame(width: 5, height: 5)
+            Text(viewModel.t(isFresh ? "live.stateFresh" : "live.stateStale"))
+                .font(.system(size: 12, weight: .medium))
         }
+        .foregroundStyle(isFresh ? PulsePalette.accent : PulsePalette.muted)
+        .padding(.horizontal, 6)
+        .frame(height: 20)
+        .background(PulsePalette.surfaceRaised, in: RoundedRectangle(cornerRadius: 5))
     }
 }
 
@@ -4155,55 +3630,33 @@ private struct PulseSessionRow: View {
     let session: SessionSummary
     let title: String
     let subtitle: String
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(PulsePalette.surfaceRaised)
-                PulseIcon(name: "tasks").frame(width: 15, height: 15)
-                    .foregroundStyle(PulsePalette.ink)
-            }
-            .frame(width: 32, height: 32)
-
-            VStack(alignment: .leading, spacing: 3) {
-                MarqueeLabel(
-                    text: title,
-                    font: .system(size: 13, weight: .semibold, design: .default),
-                    color: PulsePalette.ink
-                )
-                .frame(width: 150)
+        VStack(alignment: .leading, spacing: 7) {
+            MarqueeLabel(
+                text: title,
+                font: .system(size: 14, weight: .semibold),
+                color: PulsePalette.ink
+            )
+            .frame(height: 18)
+            HStack(spacing: 12) {
                 MarqueeLabel(
                     text: subtitle,
-                    font: .system(size: 12, weight: .medium, design: .monospaced),
-                    color: PulsePalette.faint
+                    font: .system(size: 12, weight: .regular),
+                    color: PulsePalette.muted
                 )
-                .frame(width: 150)
-            }
-
-            Spacer(minLength: 8)
-
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(DisplayFormat.tokens(session.usage.totalTokens))
-                    .font(.system(size: 13, weight: .semibold, design: .default))
+                .frame(height: 16)
+                Text("\(DisplayFormat.tokens(session.usage.totalTokens)) Token")
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(PulsePalette.accent)
                     .monospacedDigit()
-                Text(session.lastActivityAt.formatted(date: .abbreviated, time: .omitted))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(PulsePalette.faint)
+                    .fixedSize()
             }
         }
-        .padding(.horizontal, 11)
-        .frame(height: 52)
-        .background(
-            hovering ? PulsePalette.surfaceHover : Color.clear,
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
-        )
-        .offset(y: hovering && !reduceMotion ? -1 : 0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: hovering)
-        .onHover { hovering = $0 }
+        .padding(.horizontal, 12)
+        .frame(height: 58)
+        .help(session.lastActivityAt.formatted(date: .complete, time: .shortened))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -4217,19 +3670,15 @@ private struct PulseSettingsGroup<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.system(size: 12, weight: .semibold, design: .default))
+                .font(.system(size: 14, weight: .semibold, design: .default))
                 .foregroundStyle(PulsePalette.faint)
                 .padding(.leading, 3)
             VStack(spacing: 0) { content }
                 .font(.system(size: 13, weight: .semibold, design: .default))
                 .foregroundStyle(PulsePalette.ink)
                 .background(PulsePalette.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(PulsePalette.divider.opacity(0.72), lineWidth: 1)
-                }
         }
     }
 }
@@ -4326,7 +3775,7 @@ private struct SettingsValueRow: View {
             }
         }
         .padding(.horizontal, 13)
-        .frame(height: 38)
+        .frame(height: 46)
         .contentShape(Rectangle())
     }
 }
@@ -4341,9 +3790,10 @@ private struct SettingsToggleRow: View {
             Text(title)
             Spacer()
             PulseToggle(isOn: $isOn)
+                .accessibilityLabel(title)
         }
         .padding(.horizontal, 13)
-        .frame(height: 38)
+        .frame(height: 46)
         .contentShape(Rectangle())
         .onChange(of: isOn) { _, _ in changed() }
     }
@@ -4364,36 +3814,23 @@ private struct SettingsActionToggleRow: View {
                     set: changed
                 )
             )
+            .accessibilityLabel(title)
         }
         .padding(.horizontal, 13)
-        .frame(height: 38)
+        .frame(height: 46)
         .contentShape(Rectangle())
     }
 }
 
 private struct PulseToggle: View {
     @Binding var isOn: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @EnvironmentObject private var viewModel: DashboardViewModel
 
     var body: some View {
-        Button {
-            isOn.toggle()
-        } label: {
-            ZStack(alignment: isOn ? .trailing : .leading) {
-                Capsule()
-                    .fill(isOn ? PulsePalette.accent : PulsePalette.surfaceHover)
-                    .frame(width: 34, height: 20)
-                Circle()
-                    .fill(isOn ? PulsePalette.surface : PulsePalette.muted)
-                    .frame(width: 14, height: 14)
-                    .padding(3)
-            }
-        }
-        .buttonStyle(PulsePressStyle())
-        .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.86), value: isOn)
-        .accessibilityLabel(viewModel.t("control.toggle"))
-        .accessibilityValue(viewModel.t(isOn ? "status.on" : "status.off"))
+        Toggle(isOn: $isOn) { EmptyView() }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .labelsHidden()
+            .tint(PulsePalette.accent)
     }
 }
 
@@ -4408,7 +3845,7 @@ private struct AnimatedRefreshIcon: View {
             let degrees = isSpinning
                 ? timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1) * 360
                 : 0
-            PulseIcon(name: "sync").frame(width: 15, height: 15)
+            PulseIcon(name: "sync").frame(width: 20, height: 20)
                 .foregroundStyle(isSpinning ? spinningColor : idleColor)
                 .rotationEffect(.degrees(degrees))
         }
@@ -4438,7 +3875,6 @@ private struct PulsePressStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(enabled && configuration.isPressed && !reduceMotion ? 0.955 : 1)
             .opacity(enabled && configuration.isPressed ? 0.82 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.10), value: configuration.isPressed)
     }
@@ -4453,7 +3889,6 @@ private struct PulseTextButtonStyle: ButtonStyle {
             .font(.system(size: 12, weight: .semibold, design: .default))
             .foregroundStyle(color)
             .opacity(configuration.isPressed ? 0.64 : 1)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.10), value: configuration.isPressed)
     }
 }

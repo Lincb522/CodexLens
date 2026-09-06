@@ -101,7 +101,6 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var tiboSignalSnapshot: TiboResetMonitorSnapshot
     @Published private(set) var tiboSignalErrorMessage: String?
     @Published private(set) var isTiboSignalRefreshing: Bool
-    @Published private(set) var menuLayoutRevision: Int
     @Published private(set) var isAccountSwitching: Bool
     @Published private(set) var quotaHistorySamples: [QuotaUsageSample]
     @Published private(set) var clockNow: Date
@@ -185,7 +184,6 @@ final class DashboardViewModel: ObservableObject {
         tiboSignalSnapshot = initialTiboSignalSnapshot ?? TiboResetSignalStore.load()
         tiboSignalErrorMessage = nil
         isTiboSignalRefreshing = false
-        menuLayoutRevision = 0
         isAccountSwitching = false
         quotaHistorySamples = initialQuotaHistorySamples ?? QuotaUsageHistoryStore.load()
         clockNow = Date()
@@ -850,14 +848,6 @@ final class DashboardViewModel: ObservableObject {
             date,
             localeIdentifier: appLanguage.localeIdentifier
         )
-    }
-
-    func menuLayoutChanged() {
-        menuLayoutRevision &+= 1
-    }
-
-    func menuPageChanged() {
-        menuLayoutRevision &+= 1
     }
 
     func chooseCodexHome() {

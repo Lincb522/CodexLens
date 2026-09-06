@@ -4,147 +4,189 @@
   "semantics": [
     {
       "name": "pulse",
-      "category": "Brand",
+      "category": "Metrics",
       "asset": "PulseIcon-pulse",
-      "source": "png/pulse.png"
+      "source": "Generated/pulse.png"
     },
     {
       "name": "overview",
       "category": "Navigation",
       "asset": "PulseIcon-overview",
-      "source": "png/overview.png"
+      "source": "Generated/overview.png"
     },
     {
       "name": "tasks",
       "category": "Navigation",
       "asset": "PulseIcon-tasks",
-      "source": "png/tasks.png"
+      "source": "Generated/tasks.png"
     },
     {
       "name": "account",
       "category": "Identity",
       "asset": "PulseIcon-account",
-      "source": "png/account.png"
+      "source": "Generated/account.png"
     },
     {
       "name": "quota",
       "category": "Metrics",
       "asset": "PulseIcon-quota",
-      "source": "png/quota.png"
+      "source": "Generated/quota.png"
     },
     {
       "name": "credits",
       "category": "Metrics",
       "asset": "PulseIcon-credits",
-      "source": "png/credits.png"
+      "source": "Generated/credits.png"
     },
     {
       "name": "ledger",
       "category": "Data",
       "asset": "PulseIcon-ledger",
-      "source": "png/ledger.png"
+      "source": "Generated/ledger.png"
     },
     {
       "name": "console",
       "category": "Navigation",
       "asset": "PulseIcon-console",
-      "source": "png/console.png"
+      "source": "Generated/console.png"
     },
     {
       "name": "appearance",
       "category": "Settings",
       "asset": "PulseIcon-appearance",
-      "source": "png/appearance.png"
+      "source": "Generated/appearance.png"
     },
     {
       "name": "language",
       "category": "Settings",
       "asset": "PulseIcon-language",
-      "source": "png/language.png"
+      "source": "Generated/language.png"
     },
     {
       "name": "sync",
       "category": "Actions",
       "asset": "PulseIcon-sync",
-      "source": "png/sync.png"
+      "source": "Generated/sync.png"
     },
     {
       "name": "data",
       "category": "Data",
       "asset": "PulseIcon-data",
-      "source": "png/data.png"
+      "source": "Generated/data.png"
     },
     {
       "name": "developer",
       "category": "Identity",
       "asset": "PulseIcon-developer",
-      "source": "png/developer.png"
+      "source": "Generated/developer.png"
     },
     {
       "name": "search",
       "category": "Actions",
       "asset": "PulseIcon-search",
-      "source": "png/search.png"
+      "source": "Generated/search.png"
     },
     {
       "name": "arrow-left",
       "category": "Navigation",
       "asset": "PulseIcon-arrow-left",
-      "source": "png/arrow-left.png"
+      "source": "Generated/arrow-left.png"
     },
     {
       "name": "arrow-right",
       "category": "Navigation",
       "asset": "PulseIcon-arrow-right",
-      "source": "png/arrow-right.png"
+      "source": "Generated/arrow-right.png"
     },
     {
       "name": "chevron-down",
       "category": "Navigation",
       "asset": "PulseIcon-chevron-down",
-      "source": "png/chevron-down.png"
+      "source": "Generated/chevron-down.png"
     },
     {
       "name": "more",
       "category": "Actions",
       "asset": "PulseIcon-more",
-      "source": "png/more.png"
+      "source": "Generated/more.png"
     },
     {
       "name": "warning",
       "category": "Status",
       "asset": "PulseIcon-warning",
-      "source": "png/warning.png"
+      "source": "Generated/warning.png"
     },
     {
       "name": "export",
       "category": "Actions",
       "asset": "PulseIcon-export",
-      "source": "png/export.png"
+      "source": "Generated/export.png"
     },
     {
       "name": "folder",
       "category": "Data",
       "asset": "PulseIcon-folder",
-      "source": "png/folder.png"
+      "source": "Generated/folder.png"
     },
     {
       "name": "timer",
       "category": "Metrics",
       "asset": "PulseIcon-timer",
-      "source": "png/timer.png"
+      "source": "Generated/timer.png"
     },
     {
       "name": "calendar",
       "category": "Metrics",
       "asset": "PulseIcon-calendar",
-      "source": "png/calendar.png"
+      "source": "Generated/calendar.png"
     },
     {
       "name": "check",
       "category": "Status",
       "asset": "PulseIcon-check",
-      "source": "png/check.png"
+      "source": "Generated/check.png"
+    },
+    {
+      "name": "history",
+      "category": "Navigation",
+      "asset": "PulseIcon-history",
+      "source": "Generated/history.png"
+    },
+    {
+      "name": "forecast",
+      "category": "Metrics",
+      "asset": "PulseIcon-forecast",
+      "source": "Generated/forecast.png"
+    },
+    {
+      "name": "info",
+      "category": "Status",
+      "asset": "PulseIcon-info",
+      "source": "Generated/info.png"
+    },
+    {
+      "name": "power",
+      "category": "Actions",
+      "asset": "PulseIcon-power",
+      "source": "Generated/power.png"
+    },
+    {
+      "name": "external-link",
+      "category": "Actions",
+      "asset": "PulseIcon-external-link",
+      "source": "Generated/external-link.png"
+    },
+    {
+      "name": "document",
+      "category": "Documents",
+      "asset": "PulseIcon-document",
+      "source": "Generated/document.png"
+    },
+    {
+      "name": "shield",
+      "category": "Documents",
+      "asset": "PulseIcon-shield",
+      "source": "Generated/shield.png"
     }
   ]
 }

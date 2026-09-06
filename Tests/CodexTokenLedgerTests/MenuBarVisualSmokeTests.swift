@@ -4,6 +4,48 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class MenuBarVisualSmokeTests: XCTestCase {
+    @MainActor
+    func testRasterIconFamilyLoadsAndRendersWithTemplateTint() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let data = try Data(contentsOf: root.appendingPathComponent("Design/IconSystem/icon-system.json"))
+        let spec = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let names = try XCTUnwrap(spec["icons"] as? [String])
+        XCTAssertEqual(names.count, 31)
+        XCTAssertEqual(Set(names).count, names.count)
+        for name in names {
+            let asset = try XCTUnwrap(NSImage(named: "PulseIcon-\(name)"), name)
+            XCTAssertTrue(asset.isTemplate, name)
+            for size in [CGFloat(16), 24, 48] {
+                for dark in [false, true] {
+                    let view = PulseIcon(name: name)
+                        .frame(width: size, height: size)
+                        .foregroundStyle(dark ? Color.white : .black)
+                        .padding(4)
+                        .background(dark ? Color.black : .white)
+                    let host = NSHostingView(rootView: view)
+                    host.frame = NSRect(x: 0, y: 0, width: size + 8, height: size + 8)
+                    host.layoutSubtreeIfNeeded()
+                    let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                    host.cacheDisplay(in: host.bounds, to: bitmap)
+                    var coverage = 0.0
+                    for y in 0..<bitmap.pixelsHigh {
+                        for x in 0..<bitmap.pixelsWide {
+                            let color = try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
+                            let ink = dark ? color.redComponent : 1 - color.redComponent
+                            coverage += ink
+                            if x < 4 || y < 4 || x >= bitmap.pixelsWide - 4 || y >= bitmap.pixelsHigh - 4 {
+                                XCTAssertLessThan(ink, 0.02, "\(name): transparent outer margin")
+                            }
+                        }
+                    }
+                    XCTAssertGreaterThan(coverage, Double(size * size) * 0.05, "\(name): template is visible at \(size) pt")
+                    XCTAssertLessThan(coverage, Double(bitmap.pixelsWide * bitmap.pixelsHigh) * 0.65, "\(name): no opaque image tile")
+                }
+            }
+        }
+    }
+
     func testOfficialQuotaLabelsFitFixedPanelAcrossLocalizations() {
         let availableWidth = 340.0 - 40.0
         let font = NSFont.systemFont(ofSize: 13, weight: .semibold)
@@ -19,6 +61,101 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                 let width = (label as NSString).size(withAttributes: [.font: font]).width
                 XCTAssertLessThanOrEqual(width, availableWidth, "\(language.rawValue): \(label)")
             }
+        }
+    }
+
+    func testSettingsSegmentsFitAllSupportedLanguages() {
+        for language in AppLanguage.allCases where language != .system {
+            let width = ["appearance", "live", "account", "data"].reduce(CGFloat(0)) { width, key in
+                let title = LocalizationCatalog.text("settings.tab." + key, language: language)
+                return width + (title as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13)]).width + 20
+            }
+            XCTAssertLessThanOrEqual(width, 308, "\(language): setting segments overflow")
+        }
+    }
+
+    @MainActor
+    func testMarqueePreservesNativeGlyphsAcrossTitleSizesAndScripts() throws {
+        func ink(in content: some View, width: CGFloat) throws -> (coverage: Double, height: Int) {
+            let host = NSHostingView(rootView: content
+                .frame(width: width, height: 40, alignment: .leading)
+                .clipped()
+                .background(Color.black))
+            host.frame = NSRect(x: 0, y: 0, width: width, height: 40)
+            host.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            var coverage = 0.0
+            var rows: [Int] = []
+            for y in 0..<bitmap.pixelsHigh {
+                var rowCoverage = 0.0
+                for x in 0..<bitmap.pixelsWide {
+                    rowCoverage += try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB)).redComponent
+                }
+                coverage += rowCoverage
+                if rowCoverage > 0.1 { rows.append(y) }
+            }
+            return (coverage, (try XCTUnwrap(rows.last)) - (try XCTUnwrap(rows.first)) + 1)
+        }
+        for title in ["Token 使用记录", "账户额度", "Réglages gyqp", "利用履歴", "사용 기록", "123,456,789 Token"] {
+            for size in [CGFloat(12), 16, 19, 26] {
+                for width in [CGFloat(120), 300] {
+                    let font = Font.system(size: size, weight: .semibold)
+                    let actual = try ink(in: MarqueeLabel(text: title, font: font, color: .white), width: width)
+                    let expected = try ink(in: Text(title).font(font).foregroundStyle(.white).fixedSize(), width: width)
+                    XCTAssertEqual(actual.coverage, expected.coverage, accuracy: expected.coverage * 0.02,
+                                   "\(title), \(size) pt at \(width) pt must retain the native glyphs")
+                    XCTAssertGreaterThanOrEqual(actual.height, expected.height - 1, "Do not clip accents or descenders")
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func testHeatmapCellsKeepTheBackdropVisibleAtEveryIntensity() throws {
+        func sample(_ intensity: Int, background: CGFloat, scheme: ColorScheme, position: CGPoint = CGPoint(x: 24, y: 24)) throws -> NSColor {
+            let day = TokenUsageHeatmapDay(date: Date(), dateKey: "2026-09-06", tokens: 100,
+                                           intensity: intensity, isFuture: false)
+            let content = TokenUsageHeatmapCell(day: day, size: 32, selected: false, action: nil, accessibilityLabel: "Preview")
+                .padding(8)
+                .background(Color(nsColor: NSColor(calibratedWhite: background, alpha: 1)))
+                .environment(\.colorScheme, scheme)
+            let host = NSHostingView(rootView: content)
+            host.appearance = NSAppearance(named: scheme == .dark ? .darkAqua : .aqua)
+            host.frame = NSRect(x: 0, y: 0, width: 48, height: 48)
+            host.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            let x = Int(CGFloat(bitmap.pixelsWide) * position.x / 48)
+            let y = Int(CGFloat(bitmap.pixelsHigh) * position.y / 48)
+            return try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
+        }
+        for scheme in [ColorScheme.light, .dark] {
+            var previousBrightness: CGFloat?
+            for intensity in 0...4 {
+                let darkBackdrop = try sample(intensity, background: 0.2, scheme: scheme)
+                let lightBackdrop = try sample(intensity, background: 0.8, scheme: scheme)
+                let transmittedChange = abs(lightBackdrop.redComponent - darkBackdrop.redComponent)
+                    + abs(lightBackdrop.greenComponent - darkBackdrop.greenComponent)
+                    + abs(lightBackdrop.blueComponent - darkBackdrop.blueComponent)
+                XCTAssertGreaterThan(transmittedChange / 3, 0.15, "\(scheme) level \(intensity) became opaque")
+                let brightness = (darkBackdrop.redComponent + darkBackdrop.greenComponent + darkBackdrop.blueComponent) / 3
+                if let previousBrightness {
+                    XCTAssertGreaterThan(brightness, previousBrightness + 0.01, "\(scheme) usage levels must remain distinguishable")
+                }
+                previousBrightness = brightness
+            }
+            let center = try sample(4, background: 0.2, scheme: scheme)
+            if scheme == .dark {
+                XCTAssertGreaterThan(center.redComponent, 0.50, "Peak usage should have a pale blue face, not a dark saturated fill")
+                XCTAssertGreaterThan(center.blueComponent, 0.80)
+            }
+            let face = try sample(4, background: 0.2, scheme: scheme, position: CGPoint(x: 16, y: 32))
+            XCTAssertEqual(center.redComponent, face.redComponent, accuracy: 0.01, "The face must be planar, without a radial hotspot")
+            XCTAssertEqual(center.blueComponent, face.blueComponent, accuracy: 0.01)
+            let emptyEdge = try sample(0, background: 0.2, scheme: scheme, position: CGPoint(x: 40.5, y: 24))
+            let usedEdge = try sample(4, background: 0.2, scheme: scheme, position: CGPoint(x: 40.5, y: 24))
+            XCTAssertEqual(usedEdge.blueComponent, emptyEdge.blueComponent, accuracy: 0.005, "The tile must not cast a glow into the gap")
         }
     }
 
@@ -86,7 +223,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             initialTiboSignalSnapshot: tiboSnapshot
         )
         var records: [UsageRecord] = []
-        // More than one eight-row ledger page verifies that the list and pager
+        // More than one ledger page verifies that the list and pager
         // reach the footer without a scroll view or an empty lower half.
         for offset in 0..<10 {
             let timestamp = try XCTUnwrap(Calendar.current.date(byAdding: .day, value: -offset, to: now))
@@ -224,7 +361,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             threadTitle: "重构实时 Token 计费与上下文追踪",
             titleSource: .desktopCatalog,
             turnID: "preview-turn",
-            model: "gpt-5.6-sol",
+            model: "gpt-6-astra",
             reasoningEffort: "xhigh",
             updatedAt: now,
             lastRequest: TokenUsage(
@@ -243,14 +380,14 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                 CodexModelCallUsage(
                     id: "preview-call-1",
                     timestamp: now.addingTimeInterval(-4),
-                    model: "gpt-5.6-sol",
+                    model: "gpt-6-astra",
                     usage: TokenUsage(inputTokens: 810_000, cachedInputTokens: 760_000, outputTokens: 4_000),
                     cumulativeTaskUsage: TokenUsage(inputTokens: 52_848_000, outputTokens: 557_192)
                 ),
                 CodexModelCallUsage(
                     id: "preview-call-2",
                     timestamp: now,
-                    model: "gpt-5.6-sol",
+                    model: "gpt-6-astra",
                     usage: TokenUsage(inputTokens: 1_032_301, cachedInputTokens: 969_440, outputTokens: 4_612),
                     cumulativeTaskUsage: TokenUsage(inputTokens: 53_880_000, outputTokens: 561_804)
                 ),
@@ -335,6 +472,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             .deletingLastPathComponent()
         let requestedDarkOutput = ProcessInfo.processInfo.environment["CODEX_LEDGER_PREVIEW_PATH"].map(URL.init(fileURLWithPath:))
         let updateService = AppUpdateService()
+        var moreFooterPixels: [String: [CGFloat]] = [:]
         @discardableResult
         func render(
             page: MenuPopoverPage,
@@ -345,20 +483,27 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             consolePanel: ConsolePanel = .appearance,
             credentialText: String = "",
             legalDocument: LegalDocument = .userAgreement,
-            initiallyExpandedLiveDetails: Bool = false
+            initiallyExpandedLiveDetails: Bool = false,
+            detailScope: TokenDetailScope = .context,
+            tiboEvidence: Bool = false,
+            canvasWidth: CGFloat = 340,
+            showOldestMonth: Bool = false
         ) throws -> CGSize {
-            viewModel.appTheme = theme
-            let view = MenuBarDashboardView(
-                updateService: updateService,
-                initialPage: page,
-                initialConsolePanel: consolePanel,
-                initialCredentialText: credentialText,
-                initialLegalDocument: legalDocument,
-                initiallyExpandedLiveDetails: initiallyExpandedLiveDetails
-            )
+            return try autoreleasepool {
+                viewModel.appTheme = theme
+                let view = MenuBarDashboardView(
+                    updateService: updateService,
+                    initialPage: page,
+                    initialConsolePanel: consolePanel,
+                    initialCredentialText: credentialText,
+                    initialLegalDocument: legalDocument,
+                    initiallyExpandedLiveDetails: initiallyExpandedLiveDetails,
+                    initialDetailScope: detailScope,
+                    initiallyShowingTiboEvidence: tiboEvidence
+                )
                 .environmentObject(viewModel)
                 // Static test images cannot capture the desktop behind a real
-                // NSMenu. Supply only a neutral inspection backdrop that
+                // glass panel. Supply only a neutral inspection backdrop that
                 // matches the requested appearance; production remains clear
                 // and AppKit-owned.
                 .background(
@@ -368,31 +513,99 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                             : NSColor(calibratedWhite: 0.96, alpha: 1)
                     )
                 )
-            let host = NSHostingView(rootView: view)
-            host.frame = NSRect(x: 0, y: 0, width: 340, height: 1_200)
-            host.layoutSubtreeIfNeeded()
-            let fittedSize = host.fittingSize
-            XCTAssertGreaterThanOrEqual(fittedSize.width, 340)
-            XCTAssertGreaterThan(fittedSize.height, minimumHeight)
-            XCTAssertLessThan(fittedSize.height, maximumHeight)
-            host.frame = NSRect(origin: .zero, size: fittedSize)
-            host.layoutSubtreeIfNeeded()
-            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
-            bitmap.size = host.bounds.size
-            host.cacheDisplay(in: host.bounds, to: bitmap)
-            let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
-            try FileManager.default.createDirectory(
-                at: output.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try png.write(to: output, options: .atomic)
-            XCTAssertGreaterThan(png.count, 8_000)
-            return fittedSize
+                let host = NSHostingView(rootView: view)
+                host.frame = NSRect(x: 0, y: 0, width: canvasWidth, height: 1_200)
+                host.layoutSubtreeIfNeeded()
+                let fittedSize = host.fittingSize
+                XCTAssertEqual(fittedSize.width, 340, accuracy: 0.5)
+                XCTAssertEqual(fittedSize.height, 680, accuracy: 0.5)
+                XCTAssertGreaterThan(fittedSize.height, minimumHeight)
+                XCTAssertLessThan(fittedSize.height, maximumHeight)
+                host.frame = NSRect(origin: .zero, size: fittedSize)
+                host.appearance = NSAppearance(named: theme == .dark ? .darkAqua : .aqua)
+                let window = NSWindow(contentRect: host.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false
+                window.contentView = host
+                window.appearance = host.appearance
+                defer { window.contentView = nil; window.close() }
+                host.layoutSubtreeIfNeeded()
+                // Native controls commit their layer state on the next run-loop pass.
+                RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+                host.layoutSubtreeIfNeeded()
+                if page == .usageHistory, viewModel.selectedAccount != nil {
+                    @MainActor
+                    func scrollViews(in view: NSView) -> [NSScrollView] {
+                        if let scroll = view as? NSScrollView { return [scroll] }
+                        return view.subviews.flatMap { scrollViews(in: $0) }
+                    }
+                    let scrolls = scrollViews(in: host)
+                    XCTAssertEqual(scrolls.count, 1, "Only the monthly list should scroll")
+                    let scroll = try XCTUnwrap(scrolls.first)
+                    let document = try XCTUnwrap(scroll.documentView)
+                    let frame = host.convert(scroll.bounds, from: scroll)
+                    let top = host.isFlipped ? frame.minY : host.bounds.height - frame.maxY
+                    XCTAssertGreaterThan(top, 300, "The heatmap and summaries must stay above the scroll area")
+                    XCTAssertGreaterThan(frame.height, 100)
+                    XCTAssertLessThanOrEqual(top + frame.height, 610.5, "Keep 12 pt clear above the footer at y = 622")
+                    XCTAssertGreaterThanOrEqual(frame.minX, 16)
+                    XCTAssertLessThanOrEqual(frame.maxX, 324)
+                    XCTAssertEqual(document.bounds.height, 9 * 23 + 8 * 4, accuracy: 0.5, "All month rows must remain available")
+                    XCTAssertGreaterThan(document.bounds.height, scroll.contentView.bounds.height)
+                    let initialOrigin = scroll.contentView.bounds.origin
+                    let oldestOrigin = NSPoint(
+                        x: initialOrigin.x,
+                        y: document.isFlipped ? document.bounds.maxY - scroll.contentView.bounds.height : document.bounds.minY
+                    )
+                    scroll.contentView.scroll(to: oldestOrigin)
+                    scroll.reflectScrolledClipView(scroll.contentView)
+                    host.layoutSubtreeIfNeeded()
+                    XCTAssertEqual(scroll.contentView.bounds.origin.y, oldestOrigin.y, accuracy: 0.5)
+                    XCTAssertEqual(host.convert(scroll.bounds, from: scroll), frame, "Scrolling must not move the viewport or footer")
+                    let footerPoint = NSPoint(x: 170, y: host.isFlipped ? 651 : host.bounds.height - 651)
+                    let footerHit = try XCTUnwrap(host.hitTest(footerPoint))
+                    XCTAssertFalse(footerHit === scroll || footerHit.isDescendant(of: scroll), "The month list must not intercept footer clicks")
+                    if !showOldestMonth {
+                        scroll.contentView.scroll(to: initialOrigin)
+                        scroll.reflectScrolledClipView(scroll.contentView)
+                    }
+                }
+                host.displayIfNeeded()
+                CATransaction.flush()
+                let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                bitmap.size = host.bounds.size
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                if [.more, .about, .updates].contains(page) {
+                    var footerPixels: [CGFloat] = []
+                    let startY = Int(CGFloat(bitmap.pixelsHigh) * 622 / 680)
+                    for y in startY..<bitmap.pixelsHigh {
+                        for x in 0..<bitmap.pixelsWide {
+                            let color = try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
+                            footerPixels += [color.redComponent, color.greenComponent, color.blueComponent]
+                        }
+                    }
+                    let key = theme.rawValue + viewModel.appLanguage.rawValue
+                    if page == .more { moreFooterPixels[key] = footerPixels }
+                    if let reference = moreFooterPixels[key] {
+                        XCTAssertEqual(reference.count, footerPixels.count)
+                        let difference = zip(reference, footerPixels).reduce(CGFloat(0)) { $0 + abs($1.0 - $1.1) }
+                        XCTAssertLessThan(difference / CGFloat(reference.count), 0.0005,
+                                          "\(page): page content must not paint over the fixed footer")
+                    }
+                }
+                let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+                try FileManager.default.createDirectory(
+                    at: output.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try png.write(to: output, options: .atomic)
+                XCTAssertGreaterThan(png.count, 8_000)
+                return fittedSize
+            }
         }
 
         let renders: [(AppTheme, URL)] = [
-            (.dark, requestedDarkOutput ?? projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-preview-dark.png")),
-            (.light, projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-preview-light.png")),
+            (.dark, requestedDarkOutput ?? projectRoot.appendingPathComponent("build/ui-redesign/preview-dark.png")),
+            (.light, projectRoot.appendingPathComponent("build/ui-redesign/preview-light.png")),
         ]
         var darkOverviewHeight: CGFloat?
         var lightOverviewHeight: CGFloat?
@@ -404,7 +617,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let activeTasksLightSize = try render(
             page: .activeTasks,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-active-tasks-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/active-tasks-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -412,7 +625,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let activeTasksDarkSize = try render(
             page: .activeTasks,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-active-tasks-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/active-tasks-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -420,7 +633,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let quotaDetailsLightSize = try render(
             page: .quotaDetails,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-quota-details-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/quota-details-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -428,7 +641,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let quotaDetailsDarkSize = try render(
             page: .quotaDetails,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-quota-details-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/quota-details-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -436,7 +649,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let usageHistoryLightSize = try render(
             page: .usageHistory,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-usage-history-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -444,15 +657,20 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let usageHistoryDarkSize = try render(
             page: .usageHistory,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-usage-history-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
         XCTAssertEqual(usageHistoryDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+        for theme in [AppTheme.light, .dark] {
+            try render(page: .usageHistory, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-oldest-\(theme.rawValue).png"),
+                       minimumHeight: 650, showOldestMonth: true)
+        }
         let moreLightSize = try render(
             page: .more,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-more-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/more-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -460,7 +678,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let moreDarkSize = try render(
             page: .more,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-more-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/more-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -468,7 +686,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let lightSessionsSize = try render(
             page: .sessions,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-sessions-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/sessions-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -481,7 +699,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let darkSessionsSize = try render(
             page: .sessions,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-sessions-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/sessions-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -494,7 +712,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let expandedOverviewSize = try render(
             page: .overview,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-details-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/details-dark.png"),
             minimumHeight: 650,
             maximumHeight: 1_000,
             initiallyExpandedLiveDetails: true
@@ -503,12 +721,12 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             expandedOverviewSize.height,
             try XCTUnwrap(darkOverviewHeight),
             accuracy: 0.5,
-            "The detail drawer must never resize the native NSMenu window"
+            "The detail page must keep the fixed window geometry"
         )
         let expandedLightOverviewSize = try render(
             page: .overview,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-details-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/details-light.png"),
             minimumHeight: 650,
             maximumHeight: 1_000,
             initiallyExpandedLiveDetails: true
@@ -517,12 +735,12 @@ final class MenuBarVisualSmokeTests: XCTestCase {
             expandedLightOverviewSize.height,
             try XCTUnwrap(lightOverviewHeight),
             accuracy: 0.5,
-            "The Light detail drawer must never resize the native NSMenu window"
+            "Light details must keep the fixed window geometry"
         )
         let tiboLightSize = try render(
             page: .tiboSignal,
             theme: .light,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-tibo-signal-light.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/tibo-signal-light.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
@@ -530,65 +748,122 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         let tiboDarkSize = try render(
             page: .tiboSignal,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-tibo-signal-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/tibo-signal-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
         XCTAssertEqual(tiboDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let darkConsoleSize = try render(page: .settings, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-console-dark.png"), minimumHeight: 650, maximumHeight: 750)
+        let darkConsoleSize = try render(page: .settings, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/console-dark.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(darkConsoleSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let lightConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-console-light.png"), minimumHeight: 650, maximumHeight: 750)
+        let lightConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/console-light.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(lightConsoleSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let liveConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-live-settings-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .live)
+        let liveConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/live-settings-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .live)
         XCTAssertEqual(liveConsoleSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
         viewModel.accountActionMessage = viewModel.t("account.codexActivated", "designer@example.com")
-        let darkAccountsSize = try render(page: .settings, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-accounts-dark.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .account)
+        let darkAccountsSize = try render(page: .settings, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/accounts-dark.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .account)
         XCTAssertEqual(darkAccountsSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let lightAccountsSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-accounts-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .account)
+        let lightAccountsSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/accounts-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .account)
         XCTAssertEqual(lightAccountsSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let dataConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-data-settings-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .data)
+        let dataConsoleSize = try render(page: .settings, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/data-settings-light.png"), minimumHeight: 650, maximumHeight: 750, consolePanel: .data)
         XCTAssertEqual(dataConsoleSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
         let tokenFixture = #"{"provider":"openai","credentials":{"accessToken":"preview-access-token","accountId":"preview-account"}}"#
-        let tokenDarkSize = try render(page: .tokenLogin, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-token-login-dark.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
+        let tokenDarkSize = try render(page: .tokenLogin, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/token-login-dark.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
         XCTAssertEqual(tokenDarkSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let tokenLightSize = try render(page: .tokenLogin, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-token-login-light.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
+        let tokenLightSize = try render(page: .tokenLogin, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/token-login-light.png"), minimumHeight: 650, maximumHeight: 750, credentialText: tokenFixture)
         XCTAssertEqual(tokenLightSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let lightDeveloperSize = try render(page: .about, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-about-light.png"), minimumHeight: 650, maximumHeight: 750)
+        let lightDeveloperSize = try render(page: .about, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/about-light.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(lightDeveloperSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let darkDeveloperSize = try render(page: .about, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-about-dark.png"), minimumHeight: 650, maximumHeight: 750)
+        let darkDeveloperSize = try render(page: .about, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/about-dark.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(darkDeveloperSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let lightUpdateSize = try render(page: .updates, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-updates-light.png"), minimumHeight: 650, maximumHeight: 750)
+        let lightUpdateSize = try render(page: .updates, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/updates-light.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(lightUpdateSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let darkUpdateSize = try render(page: .updates, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-updates-dark.png"), minimumHeight: 650, maximumHeight: 750)
+        let darkUpdateSize = try render(page: .updates, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/updates-dark.png"), minimumHeight: 650, maximumHeight: 750)
         XCTAssertEqual(darkUpdateSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
-        let lightLegalSize = try render(page: .legal, theme: .light, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-legal-light.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .privacy)
+        let lightLegalSize = try render(page: .legal, theme: .light, output: projectRoot.appendingPathComponent("build/ui-redesign/legal-light.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .privacy)
         XCTAssertEqual(lightLegalSize.height, try XCTUnwrap(lightOverviewHeight), accuracy: 0.5)
-        let darkLegalSize = try render(page: .legal, theme: .dark, output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-legal-dark.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .openSource)
+        let darkLegalSize = try render(page: .legal, theme: .dark, output: projectRoot.appendingPathComponent("build/ui-redesign/legal-dark.png"), minimumHeight: 650, maximumHeight: 750, legalDocument: .openSource)
         XCTAssertEqual(darkLegalSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
+
+        let referenceContext = try XCTUnwrap(viewModel.liveContext)
+        XCTAssertEqual(TokenDetailScope.context.usage(in: referenceContext), referenceContext.lastRequest)
+        XCTAssertEqual(TokenDetailScope.turn.usage(in: referenceContext), referenceContext.currentTurnUsage)
+        XCTAssertEqual(TokenDetailScope.task.usage(in: referenceContext), referenceContext.taskTotal)
+        XCTAssertNotEqual(referenceContext.lastRequest, referenceContext.taskTotal)
+
+        for scope in TokenDetailScope.allCases {
+            try render(page: .overview, theme: .light,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/detail-\(scope.rawValue).png"),
+                       minimumHeight: 650, initiallyExpandedLiveDetails: true, detailScope: scope)
+        }
+        for theme in [AppTheme.light, .dark] {
+            try render(page: .tiboSignal, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/tibo-evidence-\(theme.rawValue).png"),
+                       minimumHeight: 650, tiboEvidence: true)
+        }
+        for language in AppLanguage.allCases where language != .system {
+            viewModel.appLanguage = language
+            try render(page: .more, theme: .light,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/\(language.rawValue)-more.png"),
+                       minimumHeight: 650, canvasWidth: 420)
+            for destination in [MenuPopoverPage.overview, .tokenDetails, .usageHistory, .quotaDetails, .settings, .about, .updates, .tokenLogin, .tiboSignal] {
+                try render(page: destination, theme: .light,
+                           output: projectRoot.appendingPathComponent("build/ui-redesign/\(language.rawValue)-\(destination.rawValue).png"),
+                           minimumHeight: 650, canvasWidth: 420)
+            }
+        }
+        viewModel.appLanguage = .zhHans
+        viewModel.accountErrorMessage = "Preview: account sync failed. Retry the connection."
+        try render(page: .overview, theme: .light,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/sync-error.png"), minimumHeight: 650)
+        try render(page: .usageHistory, theme: .light,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-sync-error.png"), minimumHeight: 650)
+        viewModel.accountErrorMessage = nil
+        let savedAccounts = viewModel.accountSnapshots
+        let savedContexts = viewModel.liveContexts
+        viewModel.accountSnapshots = []
+        viewModel.liveContexts = []
+        viewModel.liveContext = nil
+        viewModel.isScanning = true
+        try render(page: .overview, theme: .light,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/loading.png"), minimumHeight: 650)
+        try render(page: .usageHistory, theme: .light,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-loading.png"), minimumHeight: 650)
+        viewModel.isScanning = false
+        try render(page: .overview, theme: .dark,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/empty.png"), minimumHeight: 650)
+        try render(page: .usageHistory, theme: .dark,
+                   output: projectRoot.appendingPathComponent("build/ui-redesign/usage-history-empty.png"), minimumHeight: 650)
+        viewModel.accountSnapshots = savedAccounts
+        viewModel.liveContexts = savedContexts
+        viewModel.liveContext = referenceContext
+
+        viewModel.liveContext = CodexLiveContextSnapshot(
+            id: referenceContext.id, sourcePath: referenceContext.sourcePath, projectPath: referenceContext.projectPath,
+            threadTitle: referenceContext.threadTitle, titleSource: referenceContext.titleSource, turnID: referenceContext.turnID,
+            model: referenceContext.model, reasoningEffort: referenceContext.reasoningEffort, updatedAt: now,
+            lastRequest: TokenUsage(inputTokens: 1_050_000, cachedInputTokens: 1_048_576, outputTokens: 100_000),
+            currentTurnUsage: referenceContext.currentTurnUsage, currentTurnCalls: referenceContext.currentTurnCalls,
+            taskTotal: TokenUsage(inputTokens: 124_456_789_012, cachedInputTokens: 122_456_789_012, outputTokens: 9_876_543_210),
+            modelContextWindow: referenceContext.modelContextWindow, duplicateEventsIgnored: 0, isTaskActive: true
+        )
+        for theme in [AppTheme.light, .dark] {
+            try render(page: .overview, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/large-context-\(theme.rawValue).png"), minimumHeight: 650)
+            try render(page: .tokenDetails, theme: theme,
+                       output: projectRoot.appendingPathComponent("build/ui-redesign/large-task-\(theme.rawValue).png"), minimumHeight: 650, detailScope: .task)
+        }
+        viewModel.liveContext = referenceContext
 
         viewModel.liveContexts = Array(viewModel.liveContexts.prefix(1))
         let singleTaskSize = try render(
             page: .overview,
             theme: .dark,
-            output: projectRoot.appendingPathComponent("build/CodexTokenLedger-v2.3-single-task-dark.png"),
+            output: projectRoot.appendingPathComponent("build/ui-redesign/single-task-dark.png"),
             minimumHeight: 650,
             maximumHeight: 750
         )
         XCTAssertEqual(singleTaskSize.height, try XCTUnwrap(darkOverviewHeight), accuracy: 0.5)
 
-    }
-
-    func testMenuPopoverContainsNoScrollContainer() throws {
-        let projectRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let source = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
-        )
-        let contents = try String(contentsOf: source, encoding: .utf8)
-        XCTAssertFalse(contents.contains("ScrollView"))
-        XCTAssertFalse(contents.contains("scrollIndicators"))
     }
 
     func testEveryPageUsesTheFixedPageHeight() throws {
@@ -601,7 +876,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         )
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
 
-        XCTAssertTrue(source.contains("private let sessionsPerPage = 8"))
+        XCTAssertTrue(source.contains("private let sessionsPerPage = 7"))
         XCTAssertTrue(source.contains("private static let overviewPageContentHeight = primaryPageHeight - footerHeight"))
         XCTAssertTrue(source.contains("? Self.overviewPageContentHeight"))
         XCTAssertTrue(source.contains(": Self.primaryPageContentHeight"))
@@ -716,9 +991,10 @@ final class MenuBarVisualSmokeTests: XCTestCase {
     func testLocalizedVersionNotesFitTheUpdateCard() {
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         let keys = [
-            "update.releaseNote.glass",
-            "update.releaseNote.layout",
-            "update.releaseNote.quotaSummary",
+            "update.releaseNote.roundedIcons",
+            "update.releaseNote.luminousHeatmap",
+            "update.releaseNote.pageBounds",
+            "update.releaseNote.astraPricing",
         ]
 
         for language in AppLanguage.allCases where language != .system {
@@ -730,68 +1006,82 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         }
     }
 
-    func testWholePopoverUsesCodexBarStyleNativeMenuGlass() throws {
-        let projectRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let dashboardSource = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
-        )
-        let controllerSource = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/NativeMenuBarController.swift"
-        )
-        let appSource = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/CodexTokenLedgerApp.swift"
-        )
-        let dashboard = try String(contentsOf: dashboardSource, encoding: .utf8)
-        let controller = try String(contentsOf: controllerSource, encoding: .utf8)
-        let app = try String(contentsOf: appSource, encoding: .utf8)
-
-        XCTAssertTrue(controller.contains("NSStatusBar.system"))
-        XCTAssertTrue(controller.contains("private let menu = NativeDashboardMenu()"))
-        XCTAssertTrue(controller.contains("dashboardItem.view = hostingView"))
-        XCTAssertTrue(controller.contains("override var allowsVibrancy: Bool { true }"))
-        XCTAssertTrue(controller.contains("override var isOpaque: Bool { false }"))
-        XCTAssertTrue(controller.contains("hostingView.layer?.backgroundColor = NSColor.clear.cgColor"))
-        XCTAssertTrue(controller.contains("AppKit owns the complete menu window and its"))
-        XCTAssertTrue(controller.contains("system backdrop blur; SwiftUI only supplies transparent menu content"))
-        XCTAssertFalse(controller.contains("menuTopBridge"))
-        XCTAssertFalse(controller.contains("MenuTopBridgeView"))
-        XCTAssertFalse(controller.contains("NativeMenuTopBridgeGeometry"))
-        XCTAssertFalse(controller.contains("MenuHeroTopPalette"))
-        XCTAssertFalse(app.contains("MenuBarExtra"))
-        XCTAssertFalse(app.contains("menuBarExtraStyle"))
-        XCTAssertFalse(dashboard.contains("FrostedPopoverBackground"))
-        XCTAssertFalse(dashboard.contains("NSVisualEffectView"))
-        XCTAssertFalse(dashboard.contains("atmosphericBackground"))
-        XCTAssertTrue(dashboard.contains(".background(Color.clear)"))
-        XCTAssertFalse(dashboard.contains("Color.white"))
-        XCTAssertFalse(dashboard.contains("Color.black"))
-        XCTAssertTrue(dashboard.contains("static let selectionInk = adaptive"))
-        XCTAssertFalse(dashboard.contains("heroSelectionInk"))
-        XCTAssertTrue(dashboard.contains("Light mode uses a cool blue graphite rather than neutral black"))
-        XCTAssertTrue(dashboard.contains("heroAccountLabel(account)"))
-        XCTAssertTrue(dashboard.contains("heroAccountLabelWidth(account)"))
-        XCTAssertTrue(dashboard.contains("Keep the visible label outside the native Menu"))
-        XCTAssertTrue(dashboard.contains(".foregroundColor(.white.opacity(0.82))"))
-        XCTAssertFalse(dashboard.contains("Color(\"Pulse"))
+    @MainActor
+    func testNativeGlassOwnsWholeWindowAndPreservesSafeScreenBounds() throws {
+        let panel = FrostedDashboardPanel(content: AnyView(Text("Preview")))
+        defer { panel.close() }
+        XCTAssertFalse(panel.isOpaque)
+        XCTAssertEqual(panel.backgroundColor, .clear)
+        XCTAssertEqual(panel.backdrop.blendingMode, .behindWindow)
+        XCTAssertEqual(panel.backdrop.material, .menu)
+        XCTAssertEqual(panel.backdrop.state, .active)
+        XCTAssertTrue(panel.contentView === panel.backdrop)
+        XCTAssertTrue(panel.canBecomeKey)
+        XCTAssertFalse(panel.canBecomeMain)
+        XCTAssertFalse(panel.hostingView.isOpaque)
+        XCTAssertTrue(panel.hostingView.allowsVibrancy)
+        panel.contentView?.layoutSubtreeIfNeeded()
+        XCTAssertEqual(panel.backdrop.bounds.size, panel.contentLayoutRect.size)
+        XCTAssertEqual(panel.hostingView.frame.size, NSSize(width: 340, height: 680))
+        let scroll = try XCTUnwrap(panel.backdrop.subviews.first(where: { $0 is NSScrollView }) as? NSScrollView)
+        XCTAssertFalse(scroll.drawsBackground)
+        XCTAssertFalse(scroll.contentView.drawsBackground)
+        XCTAssertEqual(scroll.frame, panel.backdrop.bounds)
+        XCTAssertEqual(panel.backdrop.subviews, [scroll])
+        var dismissed = false
+        panel.onDismiss = { dismissed = true }
+        panel.cancelOperation(nil)
+        XCTAssertTrue(dismissed)
+        for screen in [NSRect(x: 0, y: 60, width: 1440, height: 815), NSRect(x: -1280, y: 0, width: 1280, height: 695)] {
+            for x in [screen.minX, screen.midX, screen.maxX] {
+                let frame = FrostedDashboardPanel.frame(anchoredTo: NSRect(x: x, y: screen.maxY, width: 30, height: 25), visibleFrame: screen)
+                XCTAssertEqual(frame.width, 340)
+                XCTAssertLessThanOrEqual(frame.height, 680)
+                XCTAssertTrue(screen.contains(frame))
+            }
+        }
     }
 
-    func testNativeMenuDoesNotPaintASeparateTopBand() throws {
-        let projectRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let controllerSource = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/NativeMenuBarController.swift"
-        )
-        let controller = try String(contentsOf: controllerSource, encoding: .utf8)
+    @MainActor
+    func testNativeMenuMaterialKeepsClearContentAcrossAppearances() throws {
+        let panel = FrostedDashboardPanel(content: AnyView(Text("Preview")))
+        defer { panel.close() }
+        for name in [NSAppearance.Name.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua] {
+            let appearance = try XCTUnwrap(NSAppearance(named: name))
+            panel.appearance = appearance
+            panel.contentView?.appearance = appearance
+            panel.contentView?.layoutSubtreeIfNeeded()
+            XCTAssertEqual(panel.backdrop.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]),
+                           appearance.bestMatch(from: [.aqua, .darkAqua]))
+            XCTAssertEqual(panel.backdrop.material, .menu)
+            XCTAssertEqual(panel.backdrop.blendingMode, .behindWindow)
+            XCTAssertEqual(panel.backgroundColor, .clear)
+            XCTAssertEqual(panel.alphaValue, 1)
+            XCTAssertFalse(panel.hostingView.isOpaque)
+            XCTAssertTrue(panel.hostingView.allowsVibrancy)
+            XCTAssertEqual(panel.hostingView.layer?.backgroundColor?.alpha, 0)
+            XCTAssertEqual(panel.backdrop.subviews.count, 1)
+        }
+    }
 
-        XCTAssertTrue(controller.contains("hostingView.layer?.backgroundColor = NSColor.clear.cgColor"))
-        XCTAssertTrue(controller.contains("NSMenu owns the glass window"))
-        XCTAssertFalse(controller.contains("CAGradientLayer"))
-        XCTAssertFalse(controller.contains("addSubview(menuTopBridge"))
+    @MainActor
+    func testOverviewCalendarFitsLocalizedWeekdays() throws {
+        let weeks = Array(TokenUsageHeatmap.make(dailyBuckets: []).weeks.suffix(OverviewUsageCalendar.weekCount))
+        XCTAssertEqual(weeks.count, 16)
+        XCTAssertTrue(weeks.allSatisfy { $0.count == 7 })
+        for language in AppLanguage.allCases where language != .system {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: language.localeIdentifier)
+            for weekday in formatter.shortWeekdaySymbols {
+                let width = (weekday as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 12)]).width
+                XCTAssertLessThanOrEqual(width, OverviewUsageCalendar.weekdayWidth, "\(language): \(weekday) would truncate")
+            }
+            let host = NSHostingView(rootView: OverviewUsageCalendar(
+                weeks: weeks, locale: formatter.locale, chartLabel: "Preview", dayLabel: { $0.dateKey }, onSelect: { _ in }
+            ))
+            XCTAssertLessThanOrEqual(host.fittingSize.width, 300)
+            XCTAssertLessThanOrEqual(host.fittingSize.height, 140)
+        }
     }
 
     func testMenuPopoverUsesReadableTypeRamp() throws {
@@ -818,31 +1108,27 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertFalse(sizes.isEmpty)
         XCTAssertGreaterThanOrEqual(try XCTUnwrap(sizes.min()), 12)
         XCTAssertTrue(contents.contains("static let contentWidth: CGFloat = 340"))
-        XCTAssertTrue(contents.contains("static let primaryPageHeight: CGFloat = 740"))
+        XCTAssertTrue(contents.contains("static let primaryPageHeight: CGFloat = 680"))
         XCTAssertTrue(contents.contains(".padding(.horizontal, 16)"))
         XCTAssertTrue(contents.contains(".background(Color.clear)"))
-        XCTAssertTrue(contents.contains("PulsePalette.focusSurface"))
+        XCTAssertFalse(contents.contains("PulsePalette.focusSurface"))
         XCTAssertTrue(contents.contains("idleColor: PulsePalette.ink"))
         XCTAssertTrue(contents.contains("spinningColor: PulsePalette.warning"))
-        XCTAssertTrue(contents.contains("static let heroLowerInk = adaptive(light: 0.99, dark: 0.98)"))
-        XCTAssertTrue(contents.contains("HeroMetricTile("))
+        XCTAssertTrue(contents.contains(".toggleStyle(.switch)"))
+        XCTAssertTrue(contents.contains("ContextTokenRow("))
         XCTAssertTrue(contents.contains("direction: .input"))
         XCTAssertTrue(contents.contains("direction: .cached"))
         XCTAssertTrue(contents.contains("direction: .output"))
         XCTAssertTrue(contents.contains("private enum HeroTokenDirection"))
         XCTAssertTrue(contents.contains("PulseIcon(name: direction.iconName)"))
-        XCTAssertTrue(contents.contains("DisplayFormat.tokens(context.contextInputTokens)"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.currentContext\")"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.taskUsageTotal\")"))
+        XCTAssertTrue(contents.contains("DisplayFormat.integer(context.contextInputTokens)"))
         XCTAssertTrue(contents.contains("Text(viewModel.t(\"live.tokenDetail\"))"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.currentContextInput\")"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.currentTurn\")"))
+        XCTAssertTrue(contents.contains("viewModel.t(\"detail.currentContext\")"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.inputIncludesCache\")"))
         XCTAssertTrue(contents.contains("TokenScopeDetailSection("))
         XCTAssertTrue(contents.contains("DetailTokenMetric("))
-        XCTAssertTrue(contents.contains("private func exactTokenValue"))
         XCTAssertTrue(contents.contains("DisplayFormat.integer(value)"))
-        XCTAssertTrue(contents.contains("viewModel.t(\"live.tokenValue\""))
+        XCTAssertTrue(contents.contains("private struct ExactTokenNumber"))
         XCTAssertTrue(contents.contains("viewModel.t(\"live.perMillionTokens\")"))
         XCTAssertTrue(contents.contains("account.accountQuotaWindows.prefix(2)"))
         XCTAssertTrue(contents.contains("window.remainingPercent"))
@@ -858,8 +1144,6 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertTrue(contents.contains("TokenUsageHeatmapGrid("))
         XCTAssertTrue(contents.contains("quotaOverviewRow(account)"))
         XCTAssertTrue(contents.contains("private var liveTaskSwitcher"))
-        XCTAssertTrue(contents.contains("private var selectedLiveTaskIndex"))
-        XCTAssertTrue(contents.contains("private func selectAdjacentLiveTask"))
         XCTAssertTrue(contents.contains("MarqueeLabel("))
         XCTAssertTrue(contents.contains(".lineLimit(1)"))
         XCTAssertTrue(contents.contains(".allowsTightening(false)"))
@@ -954,62 +1238,22 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertFalse(footer.contains("Menu {"))
     }
 
-    func testConsolePageRemeasuresNativeMenuAndCoversItsRoot() throws {
-        let projectRoot = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let dashboardURL = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"
-        )
-        let controllerURL = projectRoot.appendingPathComponent(
-            "Sources/CodexTokenLedger/NativeMenuBarController.swift"
-        )
-        let dashboard = try String(contentsOf: dashboardURL, encoding: .utf8)
-        let controller = try String(contentsOf: controllerURL, encoding: .utf8)
-
+    func testPageChangesDoNotRecreateOrResizeTheGlassWindow() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let dashboard = try String(contentsOf: root.appendingPathComponent("Sources/CodexTokenLedger/Views/MenuBarDashboardView.swift"), encoding: .utf8)
+        let controller = try String(contentsOf: root.appendingPathComponent("Sources/CodexTokenLedger/NativeMenuBarController.swift"), encoding: .utf8)
         XCTAssertTrue(dashboard.contains(".background(Color.clear)"))
-        XCTAssertTrue(dashboard.contains(".onChange(of: page)"))
-        XCTAssertFalse(dashboard.contains(".onChange(of: consolePanel)"))
-        XCTAssertTrue(dashboard.contains("static let primaryPageHeight: CGFloat = 740"))
-        XCTAssertTrue(dashboard.contains(".frame(height: Self.primaryPageContentHeight, alignment: .top)"))
-        XCTAssertTrue(dashboard.contains("@State private var isDetailsExpanded: Bool"))
-        XCTAssertTrue(dashboard.contains("Button(action: toggleDetails)"))
-        XCTAssertTrue(dashboard.contains(".overlay(alignment: .top)"))
-        XCTAssertTrue(dashboard.contains("PulsePalette.detailGlassTint"))
-        XCTAssertTrue(dashboard.contains(".background(.thinMaterial"))
-        XCTAssertTrue(dashboard.contains(".compositingGroup()"))
-        XCTAssertTrue(dashboard.contains("if isDetailsExpanded"))
-        XCTAssertTrue(dashboard.contains("value: isDetailsExpanded"))
-        XCTAssertFalse(dashboard.contains("@State private var isDetailsMounted"))
-        XCTAssertFalse(dashboard.contains("@State private var chevronExpanded"))
-        XCTAssertFalse(dashboard.contains("layoutTransaction.disablesAnimations = true"))
-        XCTAssertFalse(dashboard.contains("withTransaction(layoutTransaction)"))
-        XCTAssertFalse(dashboard.contains(".onChange(of: overviewPanel)"))
-        XCTAssertFalse(dashboard.contains(".id(overviewPanel)"))
-        XCTAssertTrue(dashboard.contains("private var usageHistory: some View"))
-        XCTAssertTrue(dashboard.contains("TokenUsageHeatmapGrid("))
-        XCTAssertTrue(dashboard.contains(".easeOut(duration: 0.12)"))
-        let toggleStart = try XCTUnwrap(dashboard.range(of: "private func toggleDetails()"))
-        let toggleEnd = try XCTUnwrap(
-            dashboard.range(of: "private var heroCapacityText", range: toggleStart.upperBound..<dashboard.endIndex)
-        )
-        let toggleBody = dashboard[toggleStart.lowerBound..<toggleEnd.lowerBound]
-        XCTAssertTrue(toggleBody.contains("withAnimation"))
-        XCTAssertFalse(toggleBody.contains("menuLayoutChanged"))
-        XCTAssertFalse(toggleBody.contains("DispatchQueue"))
-        XCTAssertTrue(controller.contains("viewModel.$menuLayoutRevision"))
-        XCTAssertTrue(controller.contains("resizeDashboardIfNeeded(force: true)"))
-        XCTAssertTrue(controller.contains("hostingView.sizingOptions = [.intrinsicContentSize]"))
-        XCTAssertTrue(controller.contains("settledLayoutWorkItem?.cancel()"))
-        XCTAssertTrue(controller.contains("deadline: .now() + 0.62"))
-        XCTAssertTrue(controller.contains("let intrinsicHeight = hostingView.intrinsicContentSize.height"))
-        XCTAssertTrue(controller.contains("self.resizeDashboardIfNeeded()"))
-        XCTAssertTrue(controller.contains("button.font = .monospacedSystemFont(ofSize: 12.5, weight: .medium)"))
-        XCTAssertTrue(controller.contains("case .contextUsed: specification = (\"arrow-right\", -90)"))
+        XCTAssertTrue(dashboard.contains("case .tokenDetails: tokenDetails"))
+        XCTAssertTrue(dashboard.contains("onOpenDetails: { page = .tokenDetails }"))
+        XCTAssertFalse(dashboard.contains("isDetailsExpanded"))
+        XCTAssertFalse(controller.contains("menu.update()"))
+        XCTAssertFalse(controller.contains("menuLayoutRevision"))
+        XCTAssertFalse(controller.contains("asyncAfter"))
+        XCTAssertTrue(controller.contains("NSEvent.addLocalMonitorForEvents"))
+        XCTAssertTrue(controller.contains("NSEvent.addGlobalMonitorForEvents"))
+        XCTAssertTrue(controller.contains("NSEvent.removeMonitor"))
         XCTAssertTrue(controller.contains("button.title = text"))
-        XCTAssertFalse(controller.contains("button.title = text.isEmpty ? \"\" : \"  "))
-        XCTAssertFalse(dashboard.contains("completionCriteria: .removed"))
+        XCTAssertTrue(controller.contains("case .contextUsed: specification = (\"arrow-right\", -90)"))
     }
 
     @MainActor

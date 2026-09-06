@@ -1,10 +1,5 @@
 #!/usr/bin/python3
-"""Package and validate the image-generated Pulse Atelier PNG icon family.
-
-The glyph artwork lives in generated-ui-icon-sheet-v2.png and was produced by
-Codex's built-in image generation tool. This script deliberately does not draw
-or synthesize icons; the Swift slicer only crops and scales that raster source.
-"""
+"""Package and validate individual image-generated raster glyphs."""
 
 from __future__ import annotations
 
@@ -17,15 +12,13 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent
 PROJECT = ROOT.parent.parent
 SPEC = json.loads((ROOT / "icon-system.json").read_text())
-SOURCE = ROOT / "generated-ui-icon-sheet-v2.png"
-SLICER = ROOT / "slice_generated_ui_icons.swift"
+SOURCES = ROOT / "Generated"
+PACKAGER = ROOT / "package_generated_icons.swift"
 ASSETS = PROJECT / "Sources/CodexTokenLedger/Resources/Assets.xcassets"
 
 
 def main() -> None:
-    if not SOURCE.exists():
-        raise SystemExit(f"missing image-generated raster source: {SOURCE}")
-    subprocess.run([str(SLICER)], cwd=PROJECT, check=True)
+    subprocess.run(["/usr/bin/swift", str(PACKAGER)], cwd=PROJECT, check=True)
 
     files = []
     errors = []
@@ -37,6 +30,16 @@ def main() -> None:
                 with Image.open(path) as image:
                     if image.format != "PNG" or image.size != (size, size) or image.mode != "RGBA":
                         errors.append(f"{filename}: expected RGBA PNG {size}x{size}, got {image.mode} {image.size}")
+                    alpha = image.getchannel("A")
+                    bounds = alpha.point(lambda a: 255 if a > 18 else 0).getbbox()
+                    if not bounds or min(bounds[0], bounds[1], size - bounds[2], size - bounds[3]) < size * 0.06:
+                        errors.append(f"{filename}: empty or insufficient transparent padding")
+                    elif max(abs((bounds[0] + bounds[2]) / 2 - size / 2), abs((bounds[1] + bounds[3]) / 2 - size / 2)) > 0.5:
+                        errors.append(f"{filename}: off-center alpha bounds {bounds}")
+                    if alpha.getextrema()[0] != 0 or alpha.getextrema()[1] < 240:
+                        errors.append(f"{filename}: missing transparency or solid ink")
+                    if path.read_bytes() != (ROOT / "png" / filename).read_bytes():
+                        errors.append(f"{filename}: design and app assets differ")
                 files.append({
                     "file": filename,
                     "pixels": [size, size],
@@ -47,9 +50,8 @@ def main() -> None:
 
     report = {
         "status": "pass" if not errors else "fail",
-        "source": SOURCE.name,
-        "sourceSHA256": hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
-        "generation": "built-in imagegen raster sheet; Swift crop/scale packaging only",
+        "sources": [{"file": "Generated/" + name + ".png", "sha256": hashlib.sha256((SOURCES / (name + ".png")).read_bytes()).hexdigest()} for name in SPEC["icons"]],
+        "generation": "built-in imagegen individual rasters; matte extraction and centered PNG packaging",
         "format": "transparent PNG Image Assets",
         "iconCount": len(SPEC["icons"]),
         "scales": ["1x", "2x", "3x"],

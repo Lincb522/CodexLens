@@ -2,6 +2,27 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class PricingCatalogTests: XCTestCase {
+    func testGPT6AstraUsesPublishedStandardRatesAndRequestScopedTier() throws {
+        let rate = try XCTUnwrap(PricingCatalog.rate(for: "gpt-6-astra"))
+        XCTAssertEqual(rate.displayName, "GPT-6 Astra")
+        XCTAssertEqual(rate.inputPerMillion, 10)
+        XCTAssertEqual(rate.cachedInputPerMillion, 1)
+        XCTAssertEqual(rate.cacheWritePerMillion, Decimal(string: "12.5"))
+        XCTAssertEqual(rate.outputPerMillion, 50)
+        XCTAssertEqual(rate.longContextThreshold, 272_000)
+        XCTAssertEqual(rate.longContextInputMultiplier, 2)
+        XCTAssertEqual(rate.longContextOutputMultiplier, Decimal(string: "1.5"))
+        XCTAssertTrue(rate.sourceNote.contains("https://developers.openai.com/api/docs/models/gpt-6-astra"))
+        XCTAssertTrue(rate.sourceNote.contains("2026-09-06"))
+    }
+
+    func testGPT6AstraCapacityAndIdentityDoNotAssumeUnpublishedVariants() {
+        XCTAssertEqual(PricingCatalog.publishedContextWindow(for: "gpt-6-astra"), 1_050_000)
+        XCTAssertEqual(PricingCatalog.rate(for: "GPT-6-ASTRA")?.modelKey, "gpt-6-astra")
+        XCTAssertNil(PricingCatalog.rate(for: "gpt-6-unknown"))
+        XCTAssertNil(PricingCatalog.rate(for: "gpt-6-astra-pro"))
+    }
+
     func testCurrentAliasesNormalizeToSol() {
         XCTAssertEqual(PricingCatalog.normalize(model: "gpt-5.6"), "gpt-5.6-sol")
         XCTAssertEqual(PricingCatalog.normalize(model: "gpt-5.6-sol"), "gpt-5.6-sol")

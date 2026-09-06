@@ -1,11 +1,11 @@
 {
-  "name": "Pulse Atelier",
-  "preset": "soft-rounded-technical",
+  "name": "Codex Lens Rounded",
+  "preset": "rounded-solid-cutout",
   "grid": 24,
   "cornerRadius": 3,
-  "padding": 3,
+  "padding": 2.5,
   "opticalBalance": true,
-  "iconCount": 24,
+  "iconCount": 31,
   "icons": [
     "pulse",
     "overview",
@@ -30,11 +30,18 @@
     "folder",
     "timer",
     "calendar",
-    "check"
+    "check",
+    "history",
+    "forecast",
+    "info",
+    "power",
+    "external-link",
+    "document",
+    "shield"
   ],
-  "generated": "2026-08-24",
+  "generated": "2026-09-06",
   "format": "PNG",
-  "source": "raster Image Assets",
+  "source": "individual imagegen raster masters",
   "sizes": [
     24,
     48,

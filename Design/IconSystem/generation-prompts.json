@@ -1,0 +1,161 @@
+{
+  "tool": "built-in imagegen",
+  "reference": "reference.png",
+  "icons": [
+    {
+      "name": "pulse",
+      "prompt": "Initial imagegen: rounded live activity ribbon, MONO reference, charcoal flat artwork.",
+      "source": "Generated/pulse.png"
+    },
+    {
+      "name": "overview",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: HOME / OVERVIEW: a compact filled house with softly rounded roof shoulders and a simple open doorway cut out from its bottom. No windows.",
+      "source": "Generated/overview.png"
+    },
+    {
+      "name": "ledger",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: TOKEN LEDGER: a squat solid rounded notebook with a short binding on its left and three broad white horizontal row apertures inside. No letters or numbers.",
+      "source": "Generated/ledger.png"
+    },
+    {
+      "name": "console",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: SETTINGS: a compact filled six-tooth gear, deeply softened tooth corners and one clean circular hole. Closely match the gear in the reference.",
+      "source": "Generated/console.png"
+    },
+    {
+      "name": "more",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: MORE ACTIONS: exactly three solid rounded pebble dots evenly spaced on one horizontal baseline. No surrounding badge.",
+      "source": "Generated/more.png"
+    },
+    {
+      "name": "account",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: ACCOUNT / PROFILE: one filled softly asymmetrical rounded profile tile, with a simple head-and-shoulders silhouette carved as a large white opening. Two functional shapes only. No face or eyes.",
+      "source": "Generated/account.png"
+    },
+    {
+      "name": "tasks",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: TASKS: two overlapping compact rounded task cards, the front solid card with one broad white check-mark aperture. Clear layered silhouette, no shadow, no text.",
+      "source": "Generated/tasks.png"
+    },
+    {
+      "name": "quota",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: ACCOUNT QUOTA: one filled rounded circular pie chart, with one clean quarter-wedge cut out at upper right. The separated wedge is slightly offset, but stays close to the main disk. No face.",
+      "source": "Generated/quota.png"
+    },
+    {
+      "name": "credits",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: CREDITS / COST: a compact filled round coin with a single large diamond-shaped white aperture in its center, plus a short second coin crescent visible behind its lower left. No currency lettering or numeric text.",
+      "source": "Generated/credits.png"
+    },
+    {
+      "name": "appearance",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Appearance control. A bold soft crescent moon cradling a small solid sun disk with four short broad rounded rays at its upper right. Compact two-part composition, no sparkle shape.",
+      "source": "Generated/appearance.png"
+    },
+    {
+      "name": "language",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Language globe. A filled soft circular globe with broad WHITE negative-space equator and two curved meridian channels; compact bold solid continents-free geometry, thick shell.",
+      "source": "Generated/language.png"
+    },
+    {
+      "name": "sync",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Refresh/synchronize. Two broad rounded curved arrows chasing each other clockwise around a generously open circular center, chunky softened arrowheads, equal weight and compact circle silhouette.",
+      "source": "Generated/sync.png"
+    },
+    {
+      "name": "data",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Data storage. Three solid softly rounded database layers stacked vertically with two generous white horizontal separator gaps and a simple gently curved top cap. Front-facing, strictly flat not a perspective cylinder.",
+      "source": "Generated/data.png"
+    },
+    {
+      "name": "developer",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Developer terminal. A filled rounded rectangular terminal tile with a broad white right-facing chevron and short white underscore cut out of its face. No text letters, no logo, no decorative dots.",
+      "source": "Generated/developer.png"
+    },
+    {
+      "name": "search",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Search magnifying glass. A large soft circular bowl with a generous white opening and a short thick handle extending diagonally lower right, rounded handle end, integrated silhouette.",
+      "source": "Generated/search.png"
+    },
+    {
+      "name": "arrow-left",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Back arrow pointing LEFT. A single solid bold arrow with a broad softly rounded triangular left head and short thick horizontal rounded shaft. No enclosing tile, no other symbol.",
+      "source": "Generated/arrow-left.png"
+    },
+    {
+      "name": "arrow-right",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Forward arrow pointing RIGHT. A single solid bold arrow with a broad softly rounded triangular right head and short thick horizontal rounded shaft. No enclosing tile, no other symbol.",
+      "source": "Generated/arrow-right.png"
+    },
+    {
+      "name": "chevron-down",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Expand disclosure chevron. One bold wide shallow V pointing DOWN, two thick rounded arms joined by a soft rounded vertex, no tile, no circle, no extra shapes.",
+      "source": "Generated/chevron-down.png"
+    },
+    {
+      "name": "warning",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Warning. A solid broad rounded triangular silhouette with a white exclamation aperture: one short thick rounded vertical bar and one dot. Very generous spacing, rounded three corners, not a road sign outline.",
+      "source": "Generated/warning.png"
+    },
+    {
+      "name": "export",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Export/download. A chunky solid downward arrow with rounded arrowhead hovering just above a thick shallow U-shaped receiving tray, broad openings and rounded ends. Two clear parts, no box enclosure.",
+      "source": "Generated/export.png"
+    },
+    {
+      "name": "folder",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Project folder. A filled wide soft rounded folder silhouette with a short raised tab at upper left. One generous white short horizontal slot near the lower right face. Front-facing, flat and compact.",
+      "source": "Generated/folder.png"
+    },
+    {
+      "name": "timer",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Stopwatch. One filled rounded circular watch face with a short wide top button and a tiny angled upper-right button. Broad white L-shaped hands carved into the face. No ticks, numerals or outline-only ring.",
+      "source": "Generated/timer.png"
+    },
+    {
+      "name": "calendar",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Calendar. A solid rounded calendar page with two small integrated rounded tabs above, one generous white header slot, and four generous white date apertures in a 2 by 2 grid. Minimal unmistakable silhouette.",
+      "source": "Generated/calendar.png"
+    },
+    {
+      "name": "check",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Confirmation checkmark. One solid bold tick, short descending left arm and long ascending right arm, softly rounded ends and bend. No enclosing circle, no other symbols.",
+      "source": "Generated/check.png"
+    },
+    {
+      "name": "history",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: History. A bold circular clock with a return arrow curling counterclockwise around its upper-left side. Filled clock face with generous white L-shaped hands, broad clear gap between outside arrow and face, compact at small sizes.",
+      "source": "Generated/history.png"
+    },
+    {
+      "name": "forecast",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Trend forecast. A filled softly rounded square chart tile, with one broad white upward-stepping zigzag path carved into its face from lower left to upper right. No numbers, axes ticks, or extra decoration. Clear chart not activity ECG.",
+      "source": "Generated/forecast.png"
+    },
+    {
+      "name": "info",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Information. A filled slightly softened circular disk with a broad white lowercase information i carved into its center: a rounded vertical stem and separated dot, no serif, wide aperture.",
+      "source": "Generated/info.png"
+    },
+    {
+      "name": "power",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Quit/power. A very thick rounded broken circular ring with an open gap at the top and a short thick vertical rounded stem reaching into the center. Compact balanced power symbol, no tile.",
+      "source": "Generated/power.png"
+    },
+    {
+      "name": "external-link",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Open external link. A bold rounded diagonal arrow rising up and right out of a thick rounded open square frame. Large empty interior, upper-right frame corner open to the arrow. Functional, not a thin outline.",
+      "source": "Generated/external-link.png"
+    },
+    {
+      "name": "document",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Agreement document. A filled portrait page with softly rounded corners and a single folded upper-right corner indicated by a generous white diagonal seam. Two broad white horizontal text slots in the lower face. No letters.",
+      "source": "Generated/document.png"
+    },
+    {
+      "name": "shield",
+      "prompt": "Reinterpret the supplied MONO style board into ONE finished flat raster interface icon for Codex Lens. Single icon, not a sheet. Match the mature rounded solid charcoal silhouette, compact optical mass, subtly softened geometry and carefully carved functional negative space. Uniform #202020 ink on a CLEAN PURE WHITE #FFFFFF background for later asset extraction. Absolutely no checkerboard, gray background, shadow, glow, gradient, texture, 3D, cartoon face, eyes, decorative glints or labels. Not a thin generic system-symbol outline. Center the entire silhouette optically on a square 1024 canvas with at least 150 px whitespace on every edge, approximately 720 px active-area maximum; no part touching edges. Readable at 16–24 px with generous openings. Specific subject: Privacy. A filled broad softly rounded shield, gently tapered at the bottom, with a simple generous white keyhole aperture consisting of one circle connected to a short wide stem. Flat, no badge border or lock overlay.",
+      "source": "Generated/shield.png"
+    }
+  ]
+}

@@ -1,26 +1,26 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "calendar.png",
-      "idiom": "universal",
-      "scale": "1x"
+      "filename" : "calendar.png",
+      "idiom" : "universal",
+      "scale" : "1x"
     },
     {
-      "filename": "calendar@2x.png",
-      "idiom": "universal",
-      "scale": "2x"
+      "filename" : "calendar@2x.png",
+      "idiom" : "universal",
+      "scale" : "2x"
     },
     {
-      "filename": "calendar@3x.png",
-      "idiom": "universal",
-      "scale": "3x"
+      "filename" : "calendar@3x.png",
+      "idiom" : "universal",
+      "scale" : "3x"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   },
-  "properties": {
-    "template-rendering-intent": "template"
+  "properties" : {
+    "template-rendering-intent" : "template"
   }
 }

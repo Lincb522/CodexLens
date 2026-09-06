@@ -44,6 +44,22 @@ final class TokenUsageHeatmapTests: XCTestCase {
         XCTAssertEqual(heatmap.days.first { $0.dateKey == "2026-09-02" }?.intensity, 0)
     }
 
+    func testLargeDailyTotalsKeepDistinctRelativeDisplayLevels() throws {
+        let now = try XCTUnwrap(isoDate("2026-09-03"))
+        let amounts: [Int64] = [40_000_000, 100_000_000, 200_000_000, 400_000_000]
+        let days = ["2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03"]
+        for scale in [Int64(1), 10] {
+            let heatmap = TokenUsageHeatmap.make(
+                dailyBuckets: zip(days, amounts).map { CodexAccountDailyTokenUsage(startDate: $0, tokens: $1 * scale) },
+                referenceDate: now
+            )
+            XCTAssertEqual(days.compactMap { key in heatmap.days.first { $0.dateKey == key }?.intensity }, [1, 2, 3, 4])
+            XCTAssertEqual(heatmap.totalTokens, 740_000_000 * scale)
+            XCTAssertEqual(heatmap.last30DaysTokens, 740_000_000 * scale)
+            XCTAssertEqual(heatmap.activeDays, 4)
+        }
+    }
+
     private func isoDate(_ value: String) -> Date? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

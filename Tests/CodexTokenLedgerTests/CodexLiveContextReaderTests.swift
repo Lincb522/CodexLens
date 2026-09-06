@@ -20,7 +20,7 @@ final class CodexLiveContextReaderTests: XCTestCase {
                 "type": "turn_context",
                 "payload": [
                     "cwd": "/Projects/ContextMeter",
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "effort": "xhigh",
                 ],
             ],
@@ -60,7 +60,7 @@ final class CodexLiveContextReaderTests: XCTestCase {
 
         XCTAssertEqual(snapshot.id, "thread-live")
         XCTAssertEqual(snapshot.projectName, "ContextMeter")
-        XCTAssertEqual(snapshot.model, "gpt-5.6-sol")
+        XCTAssertEqual(snapshot.model, "gpt-6-astra")
         XCTAssertEqual(snapshot.reasoningEffort, "xhigh")
         XCTAssertEqual(snapshot.lastRequest.inputTokens, 600)
         XCTAssertEqual(snapshot.lastRequest.cachedInputTokens, 500)
