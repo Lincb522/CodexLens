@@ -1012,10 +1012,7 @@ final class MenuBarVisualSmokeTests: XCTestCase {
     func testLocalizedVersionNotesFitTheUpdateCard() {
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         let keys = [
-            "update.releaseNote.tokenFormat",
-            "update.releaseNote.dailyRange",
-            "update.releaseNote.dayHover",
-            "update.releaseNote.fullCountRows",
+            "update.releaseNote.windowCorners",
         ]
 
         for language in AppLanguage.allCases where language != .system {
@@ -1059,6 +1056,69 @@ final class MenuBarVisualSmokeTests: XCTestCase {
                 XCTAssertEqual(frame.width, 340)
                 XCTAssertLessThanOrEqual(frame.height, 680)
                 XCTAssertTrue(screen.contains(frame))
+            }
+        }
+    }
+
+    @MainActor
+    func testNativeGlassMaskKeepsRoundCornersWhenWindowResizes() throws {
+        let panel = FrostedDashboardPanel(content: AnyView(Text("Preview")))
+        defer { panel.close() }
+        let mask = try XCTUnwrap(panel.backdrop.maskImage, "The native material and window shadow need their own mask")
+        let radius = try XCTUnwrap(panel.backdrop.layer).cornerRadius
+        XCTAssertEqual(radius, 14)
+        XCTAssertEqual(mask.size, NSSize(width: radius * 2 + 1, height: radius * 2 + 1))
+        XCTAssertEqual(mask.capInsets.top, radius)
+        XCTAssertEqual(mask.capInsets.left, radius)
+        XCTAssertEqual(mask.capInsets.bottom, radius)
+        XCTAssertEqual(mask.capInsets.right, radius)
+        XCTAssertEqual(mask.resizingMode, .stretch)
+        XCTAssertTrue(try XCTUnwrap(panel.backdrop.layer).masksToBounds, "The material mask does not clip child views")
+        XCTAssertTrue(panel.contentView === panel.backdrop, "The material must own the window shadow")
+        XCTAssertTrue(panel.hasShadow)
+
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("build/window-corners")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        for size in [NSSize(width: 340, height: 680), NSSize(width: 340, height: 480), NSSize(width: 420, height: 680)] {
+            panel.setContentSize(size)
+            panel.contentView?.layoutSubtreeIfNeeded()
+            XCTAssertTrue(panel.backdrop.maskImage === mask)
+            XCTAssertEqual(panel.backdrop.bounds.size, size)
+            for scale in [1, 2] {
+                let bitmap = try XCTUnwrap(NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: Int(size.width) * scale, pixelsHigh: Int(size.height) * scale,
+                    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+                ))
+                bitmap.size = size
+                let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
+                NSGraphicsContext.saveGraphicsState()
+                NSGraphicsContext.current = context
+                mask.draw(in: NSRect(origin: .zero, size: size), from: .zero, operation: .copy, fraction: 1)
+                NSGraphicsContext.restoreGraphicsState()
+
+                func alpha(x: CGFloat, y: CGFloat) throws -> CGFloat {
+                    try XCTUnwrap(bitmap.colorAt(x: Int(x * CGFloat(scale)), y: Int(y * CGFloat(scale)))).alphaComponent
+                }
+                for right in [false, true] {
+                    for bottom in [false, true] {
+                        func point(_ inset: CGFloat) -> NSPoint {
+                            NSPoint(x: right ? size.width - inset : inset, y: bottom ? size.height - inset : inset)
+                        }
+                        for inset in [CGFloat(0.5), 2.5] {
+                            let outside = point(inset)
+                            XCTAssertLessThan(try alpha(x: outside.x, y: outside.y), 0.02, "No square material at the outer corner")
+                        }
+                        let inside = point(7.5)
+                        XCTAssertGreaterThan(try alpha(x: inside.x, y: inside.y), 0.98, "Do not cut a transparent square from the corner")
+                    }
+                }
+                XCTAssertGreaterThan(try alpha(x: size.width / 2, y: 0.5), 0.98)
+                XCTAssertGreaterThan(try alpha(x: 0.5, y: size.height / 2), 0.98)
+                let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+                try png.write(to: root.appendingPathComponent("mask-\(Int(size.width))x\(Int(size.height))-\(scale)x.png"))
             }
         }
     }

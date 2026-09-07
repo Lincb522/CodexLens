@@ -2538,10 +2538,7 @@ struct MenuBarDashboardView: View {
 
     private var currentReleaseNoteKeys: [String] {
         [
-            "update.releaseNote.tokenFormat",
-            "update.releaseNote.dailyRange",
-            "update.releaseNote.dayHover",
-            "update.releaseNote.fullCountRows",
+            "update.releaseNote.windowCorners",
         ]
     }
 

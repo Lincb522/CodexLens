@@ -4,13 +4,13 @@
 
 ---
 
-版本：**2.5.1 (43)**
+版本：**2.5.2 (44)**
 
-日期：**2026-09-06**
+日期：**2026-09-07**
 
 ## 测试
 
-Xcode 26.4，运行环境为 Intel macOS 26.3。145 项测试中，144 项通过，1 项按需开启的 Tibo 在线审计跳过，0 项失败。
+Xcode 26.4，运行环境为 Intel macOS 26.3。窗口相关的 5 项回归测试通过，0 项失败。
 
 ```bash
 xcodegen generate
@@ -21,30 +21,20 @@ xcodebuild test \
   -destination 'platform=macOS'
 ```
 
-本次覆盖：
+完整测试由发布工作流执行，结果见对应运行记录。
 
-- Token 完整数值与 K / M / B / T 简写、七种语言、整数边界
-- 显示偏好保存与恢复、菜单栏即时切换，原始统计保持不变
-- 热力格日期与当天用量、UTC 跨日、跨月、闰年及自选日期范围
-- 完整使用记录不受首页筛选影响，单日跳转定位正确
-- 原有 Token 去重、累计、账号 RPC、额度和 Tibo 回归
+## 窗口
 
-## 界面
+- 毛玻璃背景和内容使用相同的 14pt 圆角；原生遮罩同时约束窗口阴影
+- 圆角遮罩在 340 × 680、340 × 480 和 420 × 680pt、1× / 2× 下检查了四角像素
+- 浅色、深色和高对比度外观保留原生菜单材质
+- 屏幕边界、主题切换和页面切换的窗口稳定性检查通过
 
-本次检查的是 `NSHostingView` 测试渲染：
-
-- 主窗口仍为 340 × 680pt，固定底部导航
-- 340/420pt 画布下的完整和简写模式、浅色和深色页面
-- 热力图及范围编辑器的 280/300/380pt 布局
-- 首页小格尺寸不变，长区间可横向滚动
-- 完整数值汇总按行显示，数字、单位与底部导航不重叠
-- 长数字、七种语言、加载、空状态和错误状态
-
-窗口使用透明 `NSPanel` 与原生菜单材质。测试渲染不能验证真实桌面的毛玻璃合成；鼠标悬停、键盘、VoiceOver 和 macOS 14 运行尚未实测。
+以上为原生视图属性与遮罩渲染验证，不代表实机桌面合成已验证。减少透明度、macOS 14 运行和实机四角效果仍待确认。
 
 ## 分发
 
-[GitHub Release v2.5.1](https://github.com/Lincb522/CodexLens/releases/tag/v2.5.1) · [发布工作流](https://github.com/Lincb522/CodexLens/actions/workflows/release.yml)
+[GitHub Release v2.5.2](https://github.com/Lincb522/CodexLens/releases/tag/v2.5.2) · [发布工作流](https://github.com/Lincb522/CodexLens/actions/workflows/release.yml)
 
 `v*` tag 工作流测试后生成通用架构 DMG、ZIP、SHA-256 清单和 Sparkle 更新源。安装包使用 Developer ID 签名，tag 发布不提交 Apple 公证；具体状态见对应发布页。
 

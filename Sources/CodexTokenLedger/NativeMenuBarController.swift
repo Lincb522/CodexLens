@@ -222,6 +222,20 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
 /// A single behind-window material owns the entire surface, including its edges.
 @MainActor
 final class FrostedDashboardPanel: NSPanel {
+    private static let cornerRadius: CGFloat = 14
+    private static let cornerMask: NSImage = {
+        let radius = cornerRadius
+        let size = NSSize(width: radius * 2 + 1, height: radius * 2 + 1)
+        let image = NSImage(size: size, flipped: false) { rect in
+            NSColor.black.setFill()
+            NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+            return true
+        }
+        image.capInsets = NSEdgeInsets(top: radius, left: radius, bottom: radius, right: radius)
+        image.resizingMode = .stretch
+        return image
+    }()
+
     let backdrop = NSVisualEffectView()
     private let viewport = NSScrollView()
     let hostingView: NSHostingView<AnyView>
@@ -243,8 +257,10 @@ final class FrostedDashboardPanel: NSPanel {
         backdrop.material = .menu
         backdrop.blendingMode = .behindWindow
         backdrop.state = .active
+        // Layer clipping alone does not shape the behind-window material or its shadow.
+        backdrop.maskImage = Self.cornerMask
         backdrop.wantsLayer = true
-        backdrop.layer?.cornerRadius = 14
+        backdrop.layer?.cornerRadius = Self.cornerRadius
         backdrop.layer?.masksToBounds = true
         backdrop.layer?.borderWidth = 0.5
         backdrop.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.24).cgColor
