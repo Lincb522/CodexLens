@@ -3,6 +3,57 @@ import XCTest
 @testable import CodexTokenLedger
 
 final class TiboResetSignalTests: XCTestCase {
+    func testAllResetForEveryoneIsACompletedReset() {
+        let result = TiboResetRuleEngine.evaluate("All reset for everyone. Enjoy the week with Astra.")
+        XCTAssertEqual(result.status, .confirmed)
+        XCTAssertFalse(result.matchedRuleIDs.isEmpty)
+    }
+
+    func testExplicitAnnouncementUsesPacificClockTimeAfterLongIntroduction() throws {
+        let text = String(repeating: "Unrelated introduction.\n", count: 12)
+            + "We will do a global reset of the usage for all paid subscriptions.\nLands around 6pm PST today."
+        let result = TiboResetRuleEngine.evaluate(text, postedAt: isoDate("2026-09-07T19:24:57Z"))
+        XCTAssertEqual(result.status, .expected)
+        XCTAssertEqual(result.expectedStart, isoDate("2026-09-08T01:00:00Z"))
+        let excerpt = TiboResetRuleEngine.evidenceExcerpt(text)
+        XCTAssertTrue(excerpt.hasPrefix("… We will"))
+        XCTAssertTrue(excerpt.contains("6pm PST today"))
+        XCTAssertFalse(excerpt.contains("Unrelated introduction"))
+    }
+
+    func testFeedDoesNotLetFalseClassifierFlagsHideConfirmation() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "fetched_at": "2026-09-08T04:06:08Z", "stale": false,
+            "tweets": [[
+                "id": "2097174560412246215",
+                "url": "https://x.com/thsottiaux/status/2097174560412246215",
+                "at": "2026-09-08T04:05:53Z",
+                "text": "All reset for everyone. Enjoy the week with Astra.",
+                "explicit_reset_claim": false, "tibo_lane": "reset_related",
+            ]],
+        ])
+        let snapshot = try TiboResetSignalService.decodeFeed(data, now: try XCTUnwrap(isoDate("2026-09-08T04:10:00Z")))
+        XCTAssertEqual(snapshot.latestSignal?.status, .confirmed)
+        XCTAssertEqual(snapshot.socialEvidence?.first?.signalKind, .explicit)
+    }
+
+    func testForecastConfirmationTextOutranksPromiseClassification() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "updated_at": "2026-09-08T04:07:26Z",
+            "probabilities": ["rounded_24h": 25, "signal_percent": 83],
+            "official_signal": [
+                "tweet_id": "2097174560412246215",
+                "url": "https://x.com/thsottiaux/status/2097174560412246215",
+                "at": "2026-09-08T04:05:53Z",
+                "summary": "All reset for everyone. Enjoy the week with Astra.",
+                "signal_type": "promise",
+            ],
+        ])
+        let snapshot = try TiboResetSignalService.decodeForecast(data, now: try XCTUnwrap(isoDate("2026-09-08T04:10:00Z")))
+        XCTAssertEqual(snapshot.latestSignal?.status, .confirmed)
+        XCTAssertEqual(snapshot.forecast?.probability24hPercent, 25, "A signal score is not a statistical probability")
+    }
+
     func testLiveEndpointAuditWhenRequested() async throws {
         guard let outputPath = ProcessInfo.processInfo.environment["TIBO_LIVE_AUDIT_OUTPUT"],
               !outputPath.isEmpty
@@ -31,11 +82,12 @@ final class TiboResetSignalTests: XCTestCase {
         XCTAssertTrue(result.matchedRuleIDs.contains("reset-propagated-completed"))
     }
 
-    func testRuleOnlyFutureResetRemainsCandidateWithoutInventedWindow() {
+    func testExplicitFutureResetIsAnnouncedWithoutInventedWindow() {
         let result = TiboResetRuleEngine.evaluate(
             "As part of the fixes tomorrow, we will also do a full reset of the usage for all paid subscriptions."
         )
-        XCTAssertEqual(result.status, .candidate)
+        XCTAssertEqual(result.status, .expected)
+        XCTAssertNil(result.expectedStart)
         XCTAssertTrue(result.matchedRuleIDs.contains("first-person-future-reset"))
     }
 
@@ -113,6 +165,7 @@ final class TiboResetSignalTests: XCTestCase {
                 "timezone": "UTC",
             ],
             "latest_alert": [
+                "id": "2093014447833116908",
                 "state": "confirmed",
                 "summary": "25M active users: usage reset for every paid ChatGPT Work and Codex subscription.",
             ],
@@ -335,6 +388,56 @@ final class TiboResetSignalTests: XCTestCase {
         XCTAssertNil(cycle.lastObservedResetAt)
         XCTAssertNil(cycle.activePrediction)
         XCTAssertNil(cycle.displayedNextResetAt)
+        XCTAssertEqual(cycle.pendingAnnouncement?.postID, "promise", "An overdue announcement still awaits confirmation")
+    }
+
+    func testPacificClockTimeUsesWinterOffsetAndTomorrow() throws {
+        let result = TiboResetRuleEngine.evaluate(
+            "We will reset Codex usage. Lands at 6:30pm PT tomorrow.",
+            postedAt: isoDate("2026-01-08T20:00:00Z")
+        )
+        XCTAssertEqual(result.status, .expected)
+        XCTAssertEqual(result.expectedStart, isoDate("2026-01-10T02:30:00Z"))
+    }
+
+    func testQuestionsDiscussionAndBankedGrantsDoNotConfirmGlobalReset() throws {
+        for text in ["Which Codex reset?", "Who says it won't reset in a while?", "There is no difference before or after a reset.", "All reset for everyone?"] {
+            XCTAssertNotEqual(TiboResetRuleEngine.evaluate(text).status, .confirmed, text)
+        }
+        let denied = TiboResetRuleEngine.evaluate("We will not reset Codex tomorrow.", postedAt: Date())
+        XCTAssertEqual(denied.status, .candidate)
+        XCTAssertTrue(denied.matchedRuleIDs.isEmpty)
+        let now = try XCTUnwrap(isoDate("2026-09-08T04:10:00Z"))
+        let banked = signal(id: "banked", at: now, status: .confirmed, resetKind: "banked")
+        XCTAssertNil(monitor(signals: [banked]).cycle(now: now).lastConfirmedSignal)
+    }
+
+    func testObservedForecastDateAloneIsNotAConfirmedPost() throws {
+        let data = try JSONSerialization.data(withJSONObject: [
+            "updated_at": "2026-09-08T04:07:26Z",
+            "probabilities": ["rounded_24h": 25],
+            "last_reset_at": "2026-09-08T01:34:00Z",
+            "evidence": [["code": "last_reset", "href": "https://x.com/thsottiaux/status/2097043464538264003"]],
+        ])
+        let now = try XCTUnwrap(isoDate("2026-09-08T04:10:00Z"))
+        let snapshot = try TiboResetSignalService.decodeForecast(data, now: now)
+        XCTAssertNil(snapshot.cycle(now: now).lastConfirmedSignal)
+        XCTAssertEqual(snapshot.forecast?.probability24hPercent, 25)
+    }
+
+    func testPostParsingCorrectsCachedProviderInferenceInEitherMergeOrder() throws {
+        let at = try XCTUnwrap(isoDate("2026-09-07T19:24:57Z"))
+        let inferred = TiboResetSignal(
+            postID: "same", sourceURL: try XCTUnwrap(URL(string: "https://x.com/thsottiaux/status/123")),
+            postedAt: at, status: .confirmed, resetKind: "forced",
+            matchedRuleIDs: ["forecast-verified-last-reset"], ruleVersion: "old",
+            contentHash: String(repeating: "b", count: 64)
+        )
+        let actual = signal(id: "same", at: at, status: .expected)
+        for merged in [monitor(signals: [inferred]).mergingRemote(monitor(signals: [actual])),
+                       monitor(signals: [actual]).mergingRemote(monitor(signals: [inferred]))] {
+            XCTAssertEqual(merged.latestSignal?.status, .expected)
+        }
     }
 
     func testCandidateDoesNotCreateFutureWindow() throws {

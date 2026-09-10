@@ -7,7 +7,7 @@
 <p align="center">Codex 用量统计 · macOS 菜单栏应用</p>
 
 <p align="center">
-  <a href="https://github.com/Lincb522/CodexLens/releases/download/v2.5.2/Codex-Lens-macOS.dmg"><strong>下载 macOS 版</strong></a> ·
+  <a href="https://github.com/Lincb522/CodexLens/releases/download/v2.5.3/Codex-Lens-macOS.dmg"><strong>下载 macOS 版</strong></a> ·
   <a href="CHANGELOG.md">更新日志</a> ·
   <a href="#开始使用">开始使用</a> ·
   <a href="#本地构建">本地构建</a>
@@ -19,7 +19,7 @@
   <img alt="SwiftUI + AppKit" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-0A84FF?style=flat-square&amp;logo=apple&amp;logoColor=white">
   <img alt="XcodeGen" src="https://img.shields.io/badge/Build-XcodeGen-147EFB?style=flat-square&amp;logo=xcode&amp;logoColor=white">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-2563EB?style=flat-square"></a>
-  <a href="https://github.com/Lincb522/CodexLens/releases/tag/v2.5.2"><img alt="Release 2.5.2" src="https://img.shields.io/badge/Release-2.5.2-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
+  <a href="https://github.com/Lincb522/CodexLens/releases/tag/v2.5.3"><img alt="Release 2.5.3" src="https://img.shields.io/badge/Release-2.5.3-2563EB?style=flat-square&amp;logo=github&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -60,7 +60,7 @@
 ## 开始使用
 
 1. 准备好已登录的 Codex CLI（终端中的 `codex` 命令）。
-2. 下载 [DMG 安装包](https://github.com/Lincb522/CodexLens/releases/download/v2.5.2/Codex-Lens-macOS.dmg)，将 **Codex Lens** 拖入「应用程序」并打开。
+2. 下载 [DMG 安装包](https://github.com/Lincb522/CodexLens/releases/download/v2.5.3/Codex-Lens-macOS.dmg)，将 **Codex Lens** 拖入「应用程序」并打开。
 3. 点击菜单栏图标查看。没有读到记录时，在「设置 → 数据」中选择 Codex Home。
 
 默认读取 `CODEX_HOME`，未设置时使用 `~/.codex`。多个账号可分别导入；“仅监控”不切换 Codex 登录，“登录到 Codex”会先备份原登录文件，再替换。
@@ -69,7 +69,7 @@
 
 **安装要求：** macOS 14 及以上，支持 Apple Silicon 和 Intel。当前发布包有 Developer ID 签名，尚未通过 Apple 公证。
 
-[ZIP 下载](https://github.com/Lincb522/CodexLens/releases/download/v2.5.2/Codex-Lens-macOS.zip) · [SHA-256 校验文件](https://github.com/Lincb522/CodexLens/releases/download/v2.5.2/SHA256SUMS.txt)
+[ZIP 下载](https://github.com/Lincb522/CodexLens/releases/download/v2.5.3/Codex-Lens-macOS.zip) · [SHA-256 校验文件](https://github.com/Lincb522/CodexLens/releases/download/v2.5.3/SHA256SUMS.txt)
 
 <details>
 <summary>账号导入格式</summary>

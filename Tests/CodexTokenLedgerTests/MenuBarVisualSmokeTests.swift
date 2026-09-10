@@ -5,6 +5,70 @@ import XCTest
 
 final class MenuBarVisualSmokeTests: XCTestCase {
     @MainActor
+    func testTiboStatusSurfacesWithAnnouncementsConfirmationsAndMissingData() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("build/tibo-status-preview")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let now = Date()
+        let formatter = ISO8601DateFormatter()
+        let updateService = AppUpdateService()
+        for language in AppLanguage.allCases where language != .system {
+            let scenarios = language == .zhHans ? ["confirmed", "announced", "pending", "low", "empty", "offline"] : ["confirmed", "announced"]
+            for scenario in scenarios {
+                let suite = "Tibo.Visual.\(UUID().uuidString)"
+                let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+                defer { defaults.removePersistentDomain(forName: suite) }
+                let text = scenario == "confirmed"
+                    ? "All reset for everyone. Enjoy the week with Astra."
+                    : (scenario == "announced" || scenario == "pending" ? "We will reset Codex usage in 30 minutes." : "Which Codex reset?")
+                let postedAt = now.addingTimeInterval(scenario == "pending" ? -7_200 : -60)
+                let data = try JSONSerialization.data(withJSONObject: [
+                    "fetched_at": formatter.string(from: now), "stale": false,
+                    "tweets": [["id": "123", "url": "https://x.com/thsottiaux/status/123",
+                                "at": formatter.string(from: postedAt), "text": text,
+                                "tibo_lane": "reset_related", "explicit_reset_claim": false]],
+                ])
+                var snapshot = try TiboResetSignalService.decodeFeed(data, now: now)
+                snapshot.forecast = TiboForecastSnapshot(
+                    updatedAt: now, probability24hPercent: 25, probability48hPercent: 45, confidence: .low,
+                    lastResetAt: now.addingTimeInterval(-3 * 86_400), cadence: nil, commonTimeWindow: nil, latestResetReason: nil
+                )
+                if scenario == "empty" { snapshot = .empty }
+                if scenario == "offline" { snapshot = TiboResetMonitorSnapshot.empty.recordingFailure(at: now, code: "offline", offline: true) }
+                let viewModel = DashboardViewModel(defaults: defaults, initialTiboSignalSnapshot: snapshot)
+                viewModel.appLanguage = language
+                for theme in [AppTheme.light, .dark] {
+                    viewModel.appTheme = theme
+                    for evidence in [false, true] {
+                        let content = MenuBarDashboardView(updateService: updateService, initialPage: .tiboSignal,
+                                                           initiallyShowingTiboEvidence: evidence)
+                            .environmentObject(viewModel)
+                            .background(Color(nsColor: NSColor(calibratedWhite: theme == .dark ? 0.10 : 0.96, alpha: 1)))
+                        let host = NSHostingView(rootView: content)
+                        host.frame = NSRect(x: 0, y: 0, width: language == .english ? 420 : 340, height: 680)
+                        host.layoutSubtreeIfNeeded()
+                        XCTAssertEqual(host.fittingSize, NSSize(width: 340, height: 680))
+                        host.frame = NSRect(origin: .zero, size: host.fittingSize)
+                        host.appearance = NSAppearance(named: theme == .dark ? .darkAqua : .aqua)
+                        let window = NSWindow(contentRect: host.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+                        window.isReleasedWhenClosed = false
+                        window.contentView = host
+                        defer { window.contentView = nil; window.close() }
+                        host.layoutSubtreeIfNeeded()
+                        host.displayIfNeeded()
+                        CATransaction.flush()
+                        let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                        host.cacheDisplay(in: host.bounds, to: bitmap)
+                        let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+                        try png.write(to: root.appendingPathComponent("\(scenario)-\(language.rawValue)-\(theme.rawValue)-\(evidence ? "evidence" : "status").png"))
+                    }
+                }
+            }
+        }
+    }
+
+    @MainActor
     func testRasterIconFamilyLoadsAndRendersWithTemplateTint() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
@@ -1012,7 +1076,10 @@ final class MenuBarVisualSmokeTests: XCTestCase {
     func testLocalizedVersionNotesFitTheUpdateCard() {
         let font = NSFont.systemFont(ofSize: 12, weight: .medium)
         let keys = [
-            "update.releaseNote.windowCorners",
+            "update.releaseNote.cpuUsage",
+            "update.releaseNote.hiddenAnimations",
+            "update.releaseNote.resetFacts",
+            "update.releaseNote.resetTimes",
         ]
 
         for language in AppLanguage.allCases where language != .system {
@@ -1241,8 +1308,8 @@ final class MenuBarVisualSmokeTests: XCTestCase {
         XCTAssertFalse(forecastBody.localizedCaseInsensitiveContains("tibo"))
         XCTAssertTrue(source.contains("Button { page = .tiboSignal }"))
         XCTAssertTrue(source.contains("private var tiboSignalDetail"))
-        XCTAssertTrue(source.contains("tibo.forecast.horizon24h"))
-        XCTAssertTrue(source.contains("tibo.forecast.resetProbability"))
+        XCTAssertTrue(source.contains("viewModel.tiboHeadlineLabel"))
+        XCTAssertTrue(source.contains("viewModel.tiboHeadlineText"))
         XCTAssertTrue(source.contains("tiboForecastProbabilityText"))
         XCTAssertTrue(source.contains("tiboForecastReferenceText"))
         XCTAssertTrue(source.contains("tiboForecastCountdownText"))

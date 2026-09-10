@@ -87,6 +87,10 @@ struct TiboResetSignal: Codable, Equatable, Identifiable, Sendable {
     var expectedEnd: Date? = nil
 
     var id: String { postID }
+
+    var isForecastInference: Bool {
+        !matchedRuleIDs.isEmpty && matchedRuleIDs.allSatisfy { $0.hasPrefix("forecast-") }
+    }
 }
 
 struct TiboResetCycle: Equatable, Sendable {
@@ -94,9 +98,10 @@ struct TiboResetCycle: Equatable, Sendable {
     let lastObservedResetAt: Date?
     let activeCandidate: TiboResetSignal?
     let activePrediction: TiboResetSignal?
+    let pendingAnnouncement: TiboResetSignal?
     let chain: [TiboResetSignal]
 
-    var activeSignal: TiboResetSignal? { activePrediction ?? activeCandidate }
+    var activeSignal: TiboResetSignal? { activePrediction ?? pendingAnnouncement ?? activeCandidate }
     var displayedNextResetAt: Date? { activePrediction?.expectedStart }
     var displayedNextResetEnd: Date? { activePrediction?.expectedEnd }
     var usesSignalPrediction: Bool { activePrediction != nil }
@@ -121,7 +126,7 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
 
     func cycle(now: Date = Date()) -> TiboResetCycle {
         let primary = signals
-            .filter { $0.resetKind != "banked" }
+            .filter { $0.resetKind != "banked" && $0.postedAt <= now }
             .sorted { $0.postedAt > $1.postedAt }
 
         let lastConfirmed = primary
@@ -142,6 +147,13 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
             }
             return lhs.postedAt < rhs.postedAt
         }
+        let pendingAnnouncement = primary.first { signal in
+            guard signal.status == .expected,
+                  signal.postedAt > now.addingTimeInterval(-7 * 86_400),
+                  let boundary = signal.expectedEnd ?? signal.expectedStart,
+                  boundary <= now else { return false }
+            return confirmedAt.map { signal.postedAt > $0 } ?? true
+        }
         let activeCandidate = primary
             .filter { signal in
                 guard signal.status == .candidate else { return false }
@@ -150,7 +162,7 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
             }
             .max { $0.postedAt < $1.postedAt }
 
-        let activeBoundary = activePrediction?.postedAt ?? activeCandidate?.postedAt
+        let activeBoundary = activePrediction?.postedAt ?? pendingAnnouncement?.postedAt ?? activeCandidate?.postedAt
         let chain: [TiboResetSignal]
         if activeBoundary != nil {
             chain = primary
@@ -173,6 +185,7 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
             lastObservedResetAt: confirmedAt,
             activeCandidate: activeCandidate,
             activePrediction: activePrediction,
+            pendingAnnouncement: pendingAnnouncement,
             chain: Array(chain.suffix(3))
         )
     }
@@ -181,8 +194,14 @@ struct TiboResetMonitorSnapshot: Codable, Equatable, Sendable {
         var byID: [String: TiboResetSignal] = [:]
         for signal in signals { byID[signal.postID] = signal }
         for signal in remote.signals {
-            if let existing = byID[signal.postID], statusRank(existing.status) > statusRank(signal.status) {
-                continue
+            if let existing = byID[signal.postID] {
+                // Re-parsed post text can correct an older provider-inferred fact.
+                // Otherwise a weaker refresh must not erase a real confirmation.
+                if existing.isForecastInference != signal.isForecastInference {
+                    if !existing.isForecastInference { continue }
+                } else if statusRank(existing.status) > statusRank(signal.status) {
+                    continue
+                }
             }
             byID[signal.postID] = signal
         }

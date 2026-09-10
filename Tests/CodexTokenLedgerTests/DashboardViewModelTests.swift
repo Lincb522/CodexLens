@@ -223,6 +223,62 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testTiboHeadlinePrioritizesFactsAndAnnouncementsOverLowBaseRate() throws {
+        let now = Date()
+        let defaultsName = "CodexTokenLedger.TiboHeadline.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: defaultsName))
+        defer { defaults.removePersistentDomain(forName: defaultsName) }
+        let formatter = ISO8601DateFormatter()
+        for scenario in ["confirmed", "announced", "pending"] {
+            let postedAt = now.addingTimeInterval(scenario == "pending" ? -7_200 : -60)
+            let text = scenario == "confirmed"
+                ? "All reset for everyone. Enjoy the week with Astra."
+                : "We will reset Codex usage" + (scenario == "pending" ? " in 30 minutes." : ".")
+            let data = try JSONSerialization.data(withJSONObject: [
+                "fetched_at": formatter.string(from: now), "stale": false,
+                "tweets": [[
+                    "id": "123", "url": "https://x.com/thsottiaux/status/123",
+                    "at": formatter.string(from: postedAt), "text": text,
+                    "explicit_reset_claim": false, "tibo_lane": "reset_related",
+                ]],
+            ])
+            var snapshot = try TiboResetSignalService.decodeFeed(data, now: now)
+            snapshot.forecast = TiboForecastSnapshot(
+                updatedAt: now, probability24hPercent: 25, probability48hPercent: 45,
+                confidence: .low, lastResetAt: now.addingTimeInterval(-86_400),
+                cadence: nil, commonTimeWindow: nil, latestResetReason: nil
+            )
+            // A newer conversational reply is not the evidence for the completed reset.
+            snapshot.socialEvidence?.append(TiboSocialEvidence(
+                postID: "reply", sourceURL: try XCTUnwrap(URL(string: "https://x.com/thsottiaux/status/456")),
+                postedAt: now, text: "Which Codex reset?", isReply: true,
+                replyingTo: "example", signalKind: .context
+            ))
+            let viewModel = DashboardViewModel(defaults: defaults, initialTiboSignalSnapshot: snapshot)
+            viewModel.appLanguage = .zhHans
+            XCTAssertNotNil(viewModel.tiboHeadlineSignal, scenario)
+            XCTAssertEqual(viewModel.tiboLatestSocialEvidence?.postID, "123")
+            XCTAssertEqual(viewModel.tiboForecastProbabilityText, "25%", "Keep the statistical model separate")
+            XCTAssertFalse(viewModel.tiboSocialEvidenceAssessmentText.contains("未形成"))
+            XCTAssertFalse(viewModel.tiboForecastJudgementTitle.contains("低概率"))
+            if scenario == "confirmed" {
+                XCTAssertEqual(viewModel.tiboHeadlineText, "已重置")
+                XCTAssertEqual(viewModel.tiboSocialEvidenceAssessmentText, "已确认重置")
+                XCTAssertEqual(viewModel.tiboForecastCountdownText, "暂无下一次重置预告")
+                XCTAssertEqual(viewModel.tiboForecastReferenceText, viewModel.tiboCycleTimeText(try XCTUnwrap(snapshot.latestSignal).postedAt))
+                XCTAssertEqual(viewModel.tiboForecastLastResetAgeText, "0.0 天")
+            } else if scenario == "pending" {
+                XCTAssertEqual(viewModel.tiboHeadlineText, "待确认")
+                XCTAssertEqual(viewModel.tiboForecastCountdownText, "等待重置确认")
+                XCTAssertNil(viewModel.tiboResetCycle.lastConfirmedSignal)
+            } else {
+                XCTAssertEqual(viewModel.tiboHeadlineText, "已公布")
+                XCTAssertEqual(viewModel.tiboForecastReferenceText, "时间待定")
+            }
+        }
+    }
+
+    @MainActor
     func testAccountDailyUsageUsesNewestServerBucketAndItsActualDate() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "CodexTokenLedger.DailyUsage.\(UUID().uuidString)"))
         let viewModel = DashboardViewModel(defaults: defaults)

@@ -1111,14 +1111,20 @@ struct MenuBarDashboardView: View {
                 MarqueeLabel(text: viewModel.t("tibo.forecast.title"), font: .system(size: 13), color: PulsePalette.ink)
                     .frame(height: 20)
                 VStack(alignment: .trailing, spacing: 5) {
-                    HStack(spacing: 6) {
-                        Text(viewModel.tiboForecastProbabilityText).font(.system(size: 16, weight: .regular)).monospacedDigit()
-                        MarqueeLabel(text: viewModel.tiboForecastProbabilityLevelText,
-                                     font: .system(size: 12), color: PulsePalette.muted)
-                            .frame(width: 64, height: 17)
+                    if viewModel.tiboHeadlineSignal != nil {
+                        Text(viewModel.tiboHeadlineText).font(.system(size: 14, weight: .semibold))
+                        MarqueeLabel(text: viewModel.tiboHeadlineDetail, font: .system(size: 12), color: PulsePalette.muted)
+                            .frame(width: 104, height: 17)
+                    } else {
+                        HStack(spacing: 6) {
+                            Text(viewModel.tiboForecastProbabilityText).font(.system(size: 16, weight: .regular)).monospacedDigit()
+                            MarqueeLabel(text: viewModel.tiboForecastProbabilityLevelText,
+                                         font: .system(size: 12), color: PulsePalette.muted)
+                                .frame(width: 64, height: 17)
+                        }
+                        ContextUsageBar(progress: viewModel.tiboForecastProgress, color: tiboCycleColor)
+                            .frame(width: 104, height: 4)
                     }
-                    ContextUsageBar(progress: viewModel.tiboForecastProgress, color: tiboCycleColor)
-                        .frame(width: 104, height: 4)
                 }
             }
             .foregroundStyle(PulsePalette.ink)
@@ -1182,9 +1188,11 @@ struct MenuBarDashboardView: View {
                             .font(.system(size: 13, weight: .semibold, design: .default))
                             .foregroundStyle(PulsePalette.ink)
                         Spacer(minLength: 6)
-                        Text(viewModel.tiboForecastConfidenceText)
-                            .font(.system(size: 12, weight: .semibold, design: .default))
-                            .foregroundStyle(PulsePalette.muted)
+                        if viewModel.tiboHeadlineSignal == nil {
+                            Text(viewModel.tiboForecastConfidenceText)
+                                .font(.system(size: 12, weight: .semibold, design: .default))
+                                .foregroundStyle(PulsePalette.muted)
+                        }
                     }
                     .padding(.bottom, 8)
 
@@ -1228,11 +1236,13 @@ struct MenuBarDashboardView: View {
 
                     .padding(.bottom, 6)
 
-                    forecastEvidenceRow(
-                        title: viewModel.t("tibo.forecast.probabilityBand"),
-                        value: viewModel.tiboForecastProbabilityBandText
-                    )
-                    PulsePalette.divider.frame(height: 1)
+                    if viewModel.tiboHeadlineSignal == nil {
+                        forecastEvidenceRow(
+                            title: viewModel.t("tibo.forecast.probabilityBand"),
+                            value: viewModel.tiboForecastProbabilityBandText
+                        )
+                        PulsePalette.divider.frame(height: 1)
+                    }
                     forecastEvidenceRow(
                         title: viewModel.t("tibo.forecast.publicSignal"),
                         value: viewModel.tiboForecastPublicSignalText
@@ -1258,14 +1268,14 @@ struct MenuBarDashboardView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(viewModel.t("tibo.forecast.horizon24h") + " · " + viewModel.t("tibo.forecast.resetProbability"))
+                            Text(viewModel.tiboHeadlineLabel)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(PulsePalette.muted)
-                            Text(viewModel.tiboForecastProbabilityText)
-                                .font(.system(size: 48, weight: .semibold))
+                            Text(viewModel.tiboHeadlineText)
+                                .font(.system(size: viewModel.tiboHeadlineSignal == nil ? 48 : 28, weight: .semibold))
                                 .foregroundStyle(PulsePalette.accent)
                                 .monospacedDigit()
-                            Text(viewModel.tiboForecastProbabilityLevelText)
+                            Text(viewModel.tiboHeadlineDetail)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(PulsePalette.muted)
                         }
@@ -1302,8 +1312,8 @@ struct MenuBarDashboardView: View {
                             .font(.system(size: 13, weight: .semibold, design: .default))
                             .foregroundStyle(PulsePalette.ink)
                         Spacer(minLength: 4)
-                        if viewModel.tiboCycleHasSource {
-                            Button { viewModel.openTiboCycleSource() } label: {
+                        if viewModel.tiboResetCycle.lastConfirmedSignal != nil {
+                            Button { viewModel.openLastTiboConfirmation() } label: {
                                 HStack(spacing: 4) {
                                     Text(viewModel.t("tibo.cycle.openPost"))
                                     PulseIcon(name: "arrow-right").frame(width: 8, height: 8)
@@ -2538,7 +2548,10 @@ struct MenuBarDashboardView: View {
 
     private var currentReleaseNoteKeys: [String] {
         [
-            "update.releaseNote.windowCorners",
+            "update.releaseNote.cpuUsage",
+            "update.releaseNote.hiddenAnimations",
+            "update.releaseNote.resetFacts",
+            "update.releaseNote.resetTimes",
         ]
     }
 
@@ -3242,6 +3255,7 @@ struct MarqueeLabel: View {
     let font: Font
     let color: Color
 
+    @Environment(\.dashboardIsVisible) private var dashboardIsVisible
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var textWidth: CGFloat = 0
     @State private var cycleStartedAt = Date()
@@ -3255,12 +3269,21 @@ struct MarqueeLabel: View {
             .hidden()
             .overlay(alignment: .leading) {
                 GeometryReader { proxy in
-                    TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion || textWidth <= proxy.size.width)) { timeline in
+                    Group {
+                        if dashboardIsVisible && !reduceMotion && textWidth > proxy.size.width {
+                            TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                                label(offset: marqueeOffset(at: timeline.date, containerWidth: proxy.size.width))
+                            }
+                        } else {
+                            label(offset: 0)
+                        }
+                    }
+                    .background(alignment: .leading) {
+                        // Measure static text outside the per-frame timeline.
                         Text(text)
                             .font(font)
-                            .foregroundStyle(color)
                             .fixedSize()
-                            .offset(x: marqueeOffset(at: timeline.date, containerWidth: proxy.size.width))
+                            .hidden()
                             .background {
                                 GeometryReader { textProxy in
                                     Color.clear.preference(key: MarqueeTextWidthKey.self, value: textProxy.size.width)
@@ -3270,11 +3293,21 @@ struct MarqueeLabel: View {
                 }
             }
             .clipped()
-            .onPreferenceChange(MarqueeTextWidthKey.self) { textWidth = $0 }
+            .onPreferenceChange(MarqueeTextWidthKey.self) { width in
+                if textWidth != width { textWidth = width }
+            }
             .onChange(of: text) { _, _ in cycleStartedAt = Date() }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(text)
             .help(text)
+    }
+
+    private func label(offset: CGFloat) -> some View {
+        Text(text)
+            .font(font)
+            .foregroundStyle(color)
+            .fixedSize()
+            .offset(x: offset)
     }
 
     private func marqueeOffset(at date: Date, containerWidth: CGFloat) -> CGFloat {
@@ -3825,33 +3858,46 @@ private struct AnimatedRefreshIcon: View {
     let isSpinning: Bool
     var idleColor: Color = PulsePalette.ink
     var spinningColor: Color = PulsePalette.warning
+    @Environment(\.dashboardIsVisible) private var dashboardIsVisible
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: !isSpinning || reduceMotion)) { timeline in
-            let degrees = isSpinning
-                ? timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1) * 360
-                : 0
-            PulseIcon(name: "sync").frame(width: 20, height: 20)
-                .foregroundStyle(isSpinning ? spinningColor : idleColor)
-                .rotationEffect(.degrees(degrees))
+        if dashboardIsVisible && isSpinning && !reduceMotion {
+            TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                icon(degrees: timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1) * 360)
+            }
+        } else {
+            icon(degrees: 0)
         }
+    }
+
+    private func icon(degrees: Double) -> some View {
+        PulseIcon(name: "sync").frame(width: 20, height: 20)
+            .foregroundStyle(isSpinning ? spinningColor : idleColor)
+            .rotationEffect(.degrees(degrees))
     }
 }
 
 private struct SignalSkeleton: View {
+    @Environment(\.dashboardIsVisible) private var dashboardIsVisible
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { timeline in
-            let phase = timeline.date.timeIntervalSinceReferenceDate
-            let opacity = reduceMotion ? 0.45 : 0.28 + (sin(phase * 3) + 1) * 0.14
-            ZStack {
-                Circle().stroke(PulsePalette.accent.opacity(opacity), lineWidth: 7)
-                Circle().fill(PulsePalette.accent.opacity(0.12)).padding(13)
-                PulseIcon(name: "pulse").frame(width: 18, height: 18)
-                    .foregroundStyle(PulsePalette.accent)
+        if dashboardIsVisible && !reduceMotion {
+            TimelineView(.animation(minimumInterval: 1 / 30)) { timeline in
+                symbol(opacity: 0.28 + (sin(timeline.date.timeIntervalSinceReferenceDate * 3) + 1) * 0.14)
             }
+        } else {
+            symbol(opacity: 0.45)
+        }
+    }
+
+    private func symbol(opacity: Double) -> some View {
+        ZStack {
+            Circle().stroke(PulsePalette.accent.opacity(opacity), lineWidth: 7)
+            Circle().fill(PulsePalette.accent.opacity(0.12)).padding(13)
+            PulseIcon(name: "pulse").frame(width: 18, height: 18)
+                .foregroundStyle(PulsePalette.accent)
         }
     }
 }

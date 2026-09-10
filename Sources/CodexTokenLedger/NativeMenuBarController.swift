@@ -10,13 +10,14 @@ final class CodexTokenLedgerAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-            updateService.start()
-        }
+        // Tests create isolated models and windows; do not start production polling.
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+        updateService.start()
         menuBarController = NativeMenuBarController(
             viewModel: viewModel,
             updateService: updateService
         )
+        menuBarController?.startPolling()
         viewModel.loadIfNeeded()
     }
 
@@ -31,7 +32,7 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
 
     private let viewModel: DashboardViewModel
     private let updateService: AppUpdateService
-    private let statusItem: NSStatusItem
+    let statusItem: NSStatusItem
     private let statusBar: NSStatusBar
     private let panel: FrostedDashboardPanel
     private var updateObservation: AnyCancellable?
@@ -40,6 +41,9 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
     private var globalClickMonitor: Any?
     private var pollingTimer: Timer?
     private var lastAccountTick = Date.distantPast
+    private var displayedMetric: MenuBarMetric?
+    private var displayedText: String?
+    private var displayedAccessibilityText: String?
 
     init(viewModel: DashboardViewModel, updateService: AppUpdateService, statusBar: NSStatusBar = .system) {
         self.viewModel = viewModel
@@ -55,7 +59,6 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
         configureStatusItem()
         observeViewModel()
         applyAppearance()
-        startPolling()
     }
 
     func stop() {
@@ -128,7 +131,20 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
         themeObservation = viewModel.$appTheme.removeDuplicates().sink { [weak self] theme in
             self?.applyAppearance(theme)
         }
-        updateObservation = viewModel.objectWillChange.receive(on: RunLoop.main).sink { [weak self] _ in
+        let menuChanges: [AnyPublisher<Void, Never>] = [
+            viewModel.$menuBarMetric.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$liveContext.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$liveContexts.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$accountSnapshots.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$selectedAccountID.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$snapshot.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$showConcurrentTaskCount.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$appLanguage.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$abbreviateTokenCounts.map { _ in () }.eraseToAnyPublisher(),
+            viewModel.$isScanning.map { _ in () }.eraseToAnyPublisher()
+        ]
+        // @Published emits before assignment; read the completed state on the run loop.
+        updateObservation = Publishers.MergeMany(menuChanges).receive(on: RunLoop.main).sink { [weak self] in
             self?.refreshStatusItemLabel()
         }
     }
@@ -145,11 +161,12 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
         panel.contentView?.appearance = appearance
     }
 
-    private func startPolling() {
+    func startPolling() {
+        guard pollingTimer == nil else { return }
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.viewModel.scheduledLiveContextTick()
+                self.viewModel.scheduledLiveContextTick(refreshDisplayClock: self.panel.isVisible)
                 if Date().timeIntervalSince(self.lastAccountTick) >= 30 {
                     self.lastAccountTick = Date()
                     self.viewModel.accountTimerTick()
@@ -163,13 +180,22 @@ final class NativeMenuBarController: NSObject, NSWindowDelegate {
     private func refreshStatusItemLabel() {
         guard let button = statusItem.button else { return }
         let text = viewModel.menuBarMetric == .iconOnly ? "" : viewModel.menuBarText
-        button.image = statusIcon()
-        button.title = text
-        button.imagePosition = text.isEmpty ? .imageOnly : .imageLeading
+        if displayedMetric != viewModel.menuBarMetric {
+            button.image = statusIcon()
+            displayedMetric = viewModel.menuBarMetric
+        }
+        if displayedText != text {
+            button.title = text
+            button.imagePosition = text.isEmpty ? .imageOnly : .imageLeading
+            displayedText = text
+        }
         let metricTitle = viewModel.menuMetricTitle(viewModel.menuBarMetric)
         let accessibleText = text.isEmpty ? "Codex Lens" : "Codex Lens · \(metricTitle): \(text)"
-        button.toolTip = accessibleText
-        button.setAccessibilityTitle(accessibleText)
+        if displayedAccessibilityText != accessibleText {
+            button.toolTip = accessibleText
+            button.setAccessibilityTitle(accessibleText)
+            displayedAccessibilityText = accessibleText
+        }
     }
 
     /// The status item stays compact by letting one raster glyph carry the
@@ -236,13 +262,16 @@ final class FrostedDashboardPanel: NSPanel {
         return image
     }()
 
+    let presentation = DashboardPresentationState()
     let backdrop = NSVisualEffectView()
     private let viewport = NSScrollView()
     let hostingView: NSHostingView<AnyView>
     var onDismiss: (() -> Void)?
 
     init(content: AnyView) {
-        hostingView = TransparentDashboardHostingView(rootView: content)
+        hostingView = TransparentDashboardHostingView(rootView: AnyView(
+            DashboardPresentationContent(presentation: presentation, content: content)
+        ))
         super.init(contentRect: NSRect(x: 0, y: 0, width: MenuBarDashboardView.contentWidth, height: MenuBarDashboardView.primaryPageHeight),
                    styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         isReleasedWhenClosed = false
@@ -294,6 +323,26 @@ final class FrostedDashboardPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 
+    override func orderFront(_ sender: Any?) {
+        presentation.setVisible(true)
+        super.orderFront(sender)
+    }
+
+    override func makeKeyAndOrderFront(_ sender: Any?) {
+        presentation.setVisible(true)
+        super.makeKeyAndOrderFront(sender)
+    }
+
+    override func orderOut(_ sender: Any?) {
+        presentation.setVisible(false)
+        super.orderOut(sender)
+    }
+
+    override func close() {
+        presentation.setVisible(false)
+        super.close()
+    }
+
     override func cancelOperation(_ sender: Any?) { onDismiss?() }
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
@@ -319,4 +368,35 @@ private final class TransparentDashboardHostingView: NSHostingView<AnyView> {
     override var allowsVibrancy: Bool { true }
     override var isOpaque: Bool { false }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}
+
+@MainActor
+final class DashboardPresentationState: ObservableObject {
+    @Published private(set) var isVisible = false
+
+    func setVisible(_ visible: Bool) {
+        guard isVisible != visible else { return }
+        isVisible = visible
+    }
+}
+
+private struct DashboardVisibilityKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
+extension EnvironmentValues {
+    var dashboardIsVisible: Bool {
+        get { self[DashboardVisibilityKey.self] }
+        set { self[DashboardVisibilityKey.self] = newValue }
+    }
+}
+
+private struct DashboardPresentationContent: View {
+    @ObservedObject var presentation: DashboardPresentationState
+    let content: AnyView
+
+    var body: some View {
+        // Keep navigation and scroll state alive while suspending hidden animations.
+        content.environment(\.dashboardIsVisible, presentation.isVisible)
+    }
 }

@@ -81,7 +81,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var liveContexts: [CodexLiveContextSnapshot]
     @Published var selectedLiveContextID: String?
     @Published var liveContextErrorMessage: String?
-    @Published var isLiveContextRefreshing: Bool
+    private(set) var isLiveContextRefreshing: Bool
     @Published var threadMetadataByID: [String: CodexThreadMetadata]
     @Published var appTheme: AppTheme
     @Published var appLanguage: AppLanguage
@@ -415,9 +415,9 @@ final class DashboardViewModel: ObservableObject {
         refresh()
     }
 
-    func scheduledLiveContextTick() {
+    func scheduledLiveContextTick(refreshDisplayClock: Bool = true) {
         let now = Date()
-        clockNow = now
+        if refreshDisplayClock { clockNow = now }
         guard now.timeIntervalSince(lastLivePollAt) >= liveRefreshRate.rawValue else { return }
         lastLivePollAt = now
         liveContextTick()
@@ -464,25 +464,37 @@ final class DashboardViewModel: ObservableObject {
             if discover { lastLiveDiscoveryAt = Date() }
             switch outcome {
             case .success(let values):
-                liveContexts = values
-                let preferredID = selectedLiveContextID ?? liveContext?.id
-                let selected = preferredID.flatMap { id in values.first { $0.id == id } } ?? values.first
-                liveContext = selected
-                selectedLiveContextID = selected?.id
-                defaults.set(selected?.id, forKey: "selectedLiveContextID")
-                liveContextErrorMessage = values.isEmpty ? t("live.noEvents") : nil
+                applyLiveContexts(values)
             case .failure(let error):
-                liveContextErrorMessage = localizedErrorText(error)
+                let message = localizedErrorText(error)
+                if liveContextErrorMessage != message { liveContextErrorMessage = message }
             }
             isLiveContextRefreshing = false
         }
     }
 
+    func applyLiveContexts(_ values: [CodexLiveContextSnapshot]) {
+        let preferredID = selectedLiveContextID ?? liveContext?.id
+        let selected = preferredID.flatMap { id in values.first { $0.id == id } } ?? values.first
+        // Polls often return the same cached snapshots. Only changed state should
+        // invalidate the dashboard; compare all fields, including task metadata.
+        if liveContexts != values { liveContexts = values }
+        if liveContext != selected { liveContext = selected }
+        if selectedLiveContextID != selected?.id {
+            selectedLiveContextID = selected?.id
+            defaults.set(selected?.id, forKey: "selectedLiveContextID")
+        }
+        let message = values.isEmpty ? t("live.noEvents") : nil
+        if liveContextErrorMessage != message { liveContextErrorMessage = message }
+    }
+
     func selectLiveContext(_ id: String) {
         guard let context = liveContexts.first(where: { $0.id == id }) else { return }
-        selectedLiveContextID = id
-        liveContext = context
-        defaults.set(id, forKey: "selectedLiveContextID")
+        if selectedLiveContextID != id {
+            selectedLiveContextID = id
+            defaults.set(id, forKey: "selectedLiveContextID")
+        }
+        if liveContext != context { liveContext = context }
     }
 
     func refresh() {
@@ -640,9 +652,8 @@ final class DashboardViewModel: ObservableObject {
         if tiboMonitoringEnabled { tiboSignalTick(force: true) }
     }
 
-    func openTiboCycleSource() {
-        let cycle = tiboResetCycle
-        guard let url = (cycle.activeSignal ?? cycle.lastConfirmedSignal)?.sourceURL else { return }
+    func openLastTiboConfirmation() {
+        guard let url = tiboResetCycle.lastConfirmedSignal?.sourceURL else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -652,6 +663,7 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboCompactStatusText: String {
+        if tiboHeadlineSignal != nil { return t("tibo.badge", tiboHeadlineText) }
         if isTiboSignalRefreshing, tiboSignalSnapshot.latestSignal == nil {
             return t("tibo.badge", t("tibo.status.checking"))
         }
@@ -672,6 +684,35 @@ final class DashboardViewModel: ObservableObject {
         tiboSignalSnapshot.forecast
     }
 
+    var tiboHeadlineSignal: TiboResetSignal? {
+        let cycle = tiboResetCycle
+        if let announced = cycle.activePrediction, announced.status == .expected { return announced }
+        if let pending = cycle.pendingAnnouncement { return pending }
+        // Keep a completed reset visible for the same 24-hour horizon as the model.
+        if let confirmed = cycle.lastConfirmedSignal,
+           confirmed.postedAt >= clockNow.addingTimeInterval(-86_400) { return confirmed }
+        return nil
+    }
+
+    var tiboHeadlineText: String {
+        guard let signal = tiboHeadlineSignal else { return tiboForecastProbabilityText }
+        if signal.status == .confirmed { return t("tibo.headline.confirmed") }
+        return t(tiboResetCycle.pendingAnnouncement != nil ? "tibo.headline.pending" : "tibo.headline.announced")
+    }
+
+    var tiboHeadlineLabel: String {
+        tiboHeadlineSignal == nil
+            ? t("tibo.forecast.horizon24h") + " · " + t("tibo.forecast.resetProbability")
+            : t("tibo.headline.publicStatus")
+    }
+
+    var tiboHeadlineDetail: String {
+        guard let signal = tiboHeadlineSignal else { return tiboForecastProbabilityLevelText }
+        return signal.status == .confirmed
+            ? tiboCycleTimeText(signal.postedAt)
+            : t("tibo.headline.awaitingConfirmation")
+    }
+
     var tiboForecastProbabilityText: String {
         tiboForecast.map { "\($0.probability24hPercent)%" } ?? "—"
     }
@@ -686,7 +727,10 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboForecastJudgementTitle: String {
-        t("tibo.forecast.judgementTitle", tiboForecastProbabilityLevelText)
+        if let signal = tiboHeadlineSignal {
+            return t(signal.status == .confirmed ? "tibo.headline.confirmationEvidence" : "tibo.headline.announcementEvidence")
+        }
+        return t("tibo.forecast.judgementTitle", tiboForecastProbabilityLevelText)
     }
 
     var tiboForecastProbabilityBandText: String {
@@ -705,6 +749,9 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboForecastPublicSignalText: String {
+        if let signal = tiboHeadlineSignal {
+            return t(signal.status == .expected ? "tibo.headline.announced" : "tibo.status.confirmed")
+        }
         let socialKind = tiboLatestSocialEvidence?.signalKind
         if tiboResetCycle.activePrediction != nil
             || socialKind == .explicit
@@ -715,7 +762,10 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboLatestSocialEvidence: TiboSocialEvidence? {
-        tiboSignalSnapshot.socialEvidence?.max { $0.postedAt < $1.postedAt }
+        let evidence = tiboSignalSnapshot.socialEvidence ?? []
+        if let headline = tiboHeadlineSignal,
+           let source = evidence.first(where: { $0.postID == headline.postID }) { return source }
+        return evidence.max { $0.postedAt < $1.postedAt }
     }
 
     var tiboSocialEvidenceTitle: String {
@@ -728,7 +778,7 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboSocialEvidenceText: String? {
-        tiboLatestSocialEvidence?.text
+        tiboLatestSocialEvidence.map { TiboResetRuleEngine.evidenceExcerpt($0.text) }
     }
 
     var tiboSocialEvidenceMetaText: String? {
@@ -745,14 +795,18 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboSocialEvidenceAssessmentText: String {
-        guard let kind = tiboLatestSocialEvidence?.signalKind else {
+        guard let evidence = tiboLatestSocialEvidence else {
             return tiboForecastPublicSignalText
         }
-        return t("tibo.forecast.socialAssessment.\(kind.rawValue)")
+        if let signal = tiboSignalSnapshot.signals.first(where: { $0.postID == evidence.postID }),
+           signal.status == .confirmed || signal.status == .expected {
+            return t(signal.status == .expected ? "tibo.headline.announced" : "tibo.status.confirmed")
+        }
+        return t("tibo.forecast.socialAssessment.\(evidence.signalKind.rawValue)")
     }
 
     var tiboForecastLastResetAgeText: String? {
-        let date = tiboForecast?.lastResetAt ?? tiboResetCycle.lastConfirmedSignal?.postedAt
+        let date = tiboResetCycle.lastConfirmedSignal?.postedAt
         guard let date else { return nil }
         let days = max(0, clockNow.timeIntervalSince(date) / 86_400)
         return t("tibo.forecast.lastResetAgeValue", localizedDecimal(days))
@@ -767,12 +821,22 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboForecastReferenceLabel: String {
-        tiboResetCycle.activePrediction == nil
+        if let signal = tiboHeadlineSignal {
+            return t(signal.status == .confirmed ? "tibo.headline.confirmedAt" : "tibo.forecast.signalWindow")
+        }
+        return tiboResetCycle.activePrediction == nil
             ? t("tibo.forecast.sevenDayReference")
             : t("tibo.forecast.signalWindow")
     }
 
     var tiboForecastReferenceText: String {
+        if let signal = tiboHeadlineSignal {
+            if signal.status == .confirmed { return tiboCycleTimeText(signal.postedAt) }
+            return TiboResetSignalFormatter.compactLocalWindow(
+                start: signal.expectedStart, end: signal.expectedEnd,
+                localeIdentifier: appLanguage.localeIdentifier
+            ) ?? t("tibo.cycle.windowPending")
+        }
         let cycle = tiboResetCycle
         if cycle.activePrediction != nil {
             return TiboResetSignalFormatter.compactLocalWindow(
@@ -786,6 +850,11 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboForecastCountdownText: String {
+        if tiboHeadlineSignal?.status == .confirmed { return t("tibo.headline.noNextAnnouncement") }
+        if tiboResetCycle.pendingAnnouncement != nil { return t("tibo.headline.awaitingConfirmation") }
+        if let signal = tiboHeadlineSignal, signal.expectedStart == nil {
+            return t("tibo.cycle.windowPending")
+        }
         let cycle = tiboResetCycle
         let target = cycle.activePrediction?.expectedEnd
             ?? cycle.activePrediction?.expectedStart
@@ -801,7 +870,7 @@ final class DashboardViewModel: ObservableObject {
     }
 
     var tiboForecastLastConfirmedText: String {
-        let date = tiboForecast?.lastResetAt ?? tiboResetCycle.lastConfirmedSignal?.postedAt
+        let date = tiboResetCycle.lastConfirmedSignal?.postedAt
         guard let date else { return t("tibo.cycle.notObserved") }
         return TiboResetSignalFormatter.localTimestamp(
             date,
@@ -842,11 +911,6 @@ final class DashboardViewModel: ObservableObject {
         formatter.minimumFractionDigits = 1
         formatter.maximumFractionDigits = 1
         return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.1f", value)
-    }
-
-    var tiboCycleHasSource: Bool {
-        let cycle = tiboResetCycle
-        return cycle.activeSignal != nil || cycle.lastConfirmedSignal != nil
     }
 
     func tiboCycleTimeText(_ date: Date) -> String {
